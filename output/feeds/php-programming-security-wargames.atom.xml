@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Coding, Learning and IT Security</title><link href="/" rel="alternate"></link><link href="/feeds/php-programming-security-wargames.atom.xml" rel="self"></link><id>/</id><updated>2015-09-10T15:57:00+02:00</updated><entry><title>Solution for Natas11 for natas wargame on overthewire.org</title><link href="/solution-for-natas11-for-natas-wargame-on-overthewire-org.html" rel="alternate"></link><updated>2015-09-10T15:57:00+02:00</updated><author><name>admin</name></author><id>tag:,2015-09-10:solution-for-natas11-for-natas-wargame-on-overthewire-org.html</id><summary type="html">&lt;h2&gt;Solution for Natas web security wargame with by XORing the plaintext with the ciphertext...&lt;/h2&gt;
+&lt;p&gt;Currently I am playing some wargames on
+&lt;a href="http://overthewire.org/wargames/"&gt;overthewire.org&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;The first 10 levels were very easy and everyone with some technical
+knowledge and programming experience should be able to solve them. But
+somehow I got stuck for a few hours on level 11. The task is to modify a
+XOR encrypted cookie. For some reason I couldn't figure out how to
+obtain the xor key that was used.&lt;/p&gt;
+&lt;p&gt;The challenge was to reverse engineer the key by having the plaintext
+and the ciphertext. Of course I should have realized very quickly that
+xoring the plaintext with the ciphertext yields us back the key. But why
+is this so? Consider the following math:  &lt;/p&gt;
+&lt;p&gt;&lt;code&gt;plaintext xor ciphertext == key &amp;lt;=&amp;gt; plaintext xor (plaintext xor key) &amp;lt;=&amp;gt; plaintext xor plaintext xor key &amp;lt;=&amp;gt; 00000... xor key == key&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;As you can see, the plaintext cancels out. If the plaintext would be a
+single byte, say, 1100 1101, then XORing this byte with itself yields:&lt;br /&gt;
+&lt;code&gt;1100 1101 XOR 1100 1101 -------- 0000 0000&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;To finally get to solution of the wargame, you can safe the following
+file as a PHP file and run it:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="s2"&gt;&amp;quot;no&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;bgcolor&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;=&amp;gt;&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;#ffffff&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)));&lt;/span&gt;
+&lt;span class="c1"&gt;// the above function outputs&lt;/span&gt;
+&lt;span class="c1"&gt;// qw8Jqw8Jqw8Jqw8Jqw8Jqw8Jqw8Jqw8Jqw8Jqw8Jq&lt;/span&gt;
+&lt;span class="c1"&gt;// 7177384a7177384a7177384a7177384a7177384a7177384a7177384a7177384a7177384a7177384a71&lt;/span&gt;
+&lt;span class="c1"&gt;// we can easily see that the xor key must be &amp;#39;qw8J&amp;#39;&lt;/span&gt;
+
+&lt;span class="nx"&gt;$key&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;qw8J&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="c1"&gt;// generate the new data with the key&lt;/span&gt;
+&lt;span class="nx"&gt;echo&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;Submit the following as the &amp;quot;data&amp;quot; cookie to gain access: &amp;#39;&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;encodeData&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;array&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;showpassword&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;=&amp;gt;&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;yes&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;bgcolor&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;=&amp;gt;&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;#ffffff&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="nx"&gt;$key&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;\n&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+&lt;span class="o"&gt;?&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Here a screenshot of the message you get when submitting the generated
+cookie:&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://incolumitas.com/wp-content/uploads/2015/09/Screenshot-10.09.2015-163249.png"&gt;&lt;img alt="Screenshot - 10.09.2015 -
+16:32:49" src="http://incolumitas.com/wp-content/uploads/2015/09/Screenshot-10.09.2015-163249-1024x484.png" /&gt;&lt;/a&gt;&lt;/p&gt;</summary></entry></feed>

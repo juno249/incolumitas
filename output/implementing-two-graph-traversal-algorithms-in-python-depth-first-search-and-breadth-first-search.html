@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700,400italic' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" type="text/css" href="/theme/css/style.min.css">
+  <link rel="stylesheet" type="text/css" href="/theme/css/pygments.min.css">
+  <link rel="stylesheet" type="text/css" href="/theme/css/font-awesome.min.css">
+
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="index, follow" />
+<meta name="author" content="Nikolai Tschacher" />
+<meta name="description" content="Depth First Search and Breadth First Search I am right in front of a ton of exams and I need to learn about algorithms and data structures. When I read about pseudocode of Graph traversal algorithms, I thought: Why not actually implement them in a real programming language? So I ..." />
+<meta name="keywords" content="Programming, Learning, University">
+<meta property="og:site_name" content="Coding, Learning and IT Security"/>
+<meta property="og:title" content="Implementing two Graph traversal algorithms in Python: Depth First Search and Breadth First Search"/>
+<meta property="og:description" content="Depth First Search and Breadth First Search I am right in front of a ton of exams and I need to learn about algorithms and data structures. When I read about pseudocode of Graph traversal algorithms, I thought: Why not actually implement them in a real programming language? So I ..."/>
+<meta property="og:locale" content="en_US"/>
+<meta property="og:url" content="/implementing-two-graph-traversal-algorithms-in-python-depth-first-search-and-breadth-first-search.html"/>
+<meta property="og:type" content="article"/>
+<meta property="article:published_time" content="2015-01-24 19:40:00+01:00"/>
+<meta property="article:modified_time" content=""/>
+<meta property="article:author" content="/author/nikolai-tschacher.html">
+<meta property="article:section" content="Learning"/>
+<meta property="article:tag" content="Programming"/>
+<meta property="article:tag" content="Learning"/>
+<meta property="article:tag" content="University"/>
+<meta property="og:image" content="">  <title>Coding, Learning and IT Security &ndash; Implementing two Graph traversal algorithms in Python: Depth First Search and Breadth First Search</title>
+</head>
+<body>
+  <aside>
+    <div>
+      <a href="">
+        <img src="/theme/img/profile.png" alt="Coding, Learning and IT Security" title="Coding, Learning and IT Security">
+      </a>
+      <h1><a href="">Coding, Learning and IT Security</a></h1>
+      <p></p>
+      <nav>
+        <ul class="list">
+          <li><a href="/pages/about.html#about">About</a></li>
+          <li><a href="/pages/contact.html#contact">Contact</a></li>
+          <li><a href="/pages/googlescraper-py.html#googlescraper-py">GoogleScraper.py</a></li>
+          <li><a href="/pages/projects.html#projects">Projects</a></li>
+          <li><a href="/pages/impressum.html#impressum">Site Notice</a></li>
+          <li><a href="/pages/svgcaptcha.html#svgcaptcha">SVGCaptcha</a></li>
+        </ul>
+      </nav>
+      <ul class="social">
+        <li><a class="sc-twitter" href="https://twitter.com/incolumitas_" target="_blank"><i class="fa fa-twitter"></i></a></li>
+        <li><a class="sc-github" href="https://github.com/NikolaiT" target="_blank"><i class="fa fa-github"></i></a></li>
+        <li><a class="sc-rss" href="//incolumitas/feeds/all.atom.xml" target="_blank"><i class="fa fa-rss"></i></a></li>
+        <li><a class="sc-stack-overflow" href="http://stackoverflow.com/users/1052496/nikolai-tschacher" target="_blank"><i class="fa fa-stack-overflow"></i></a></li>
+      </ul>
+    </div>
+  </aside>
+  <main>
+    <nav>
+      <a href="">Home</a>
+      <a href="/archives.html">Archives</a>
+      <a href="/categories.html">Categories</a>
+      <a href="/tags.html">Tags</a>
+    </nav>
+
+<article>
+  <header>
+    <h1 id="implementing-two-graph-traversal-algorithms-in-python-depth-first-search-and-breadth-first-search">Implementing two Graph traversal algorithms in Python: Depth First Search and Breadth First Search</h1>
+    <p>Posted on Sa 24 Januar 2015 in <a href="/category/learning.html">Learning</a></p>
+  </header>
+  <div>
+    <h3>Depth First Search and Breadth First Search</h3>
+<p>I am right in front of a ton of exams and I need to learn about
+algorithms and data structures. When I read about pseudocode of Graph
+traversal algorithms, I thought:<br />
+Why not actually implement them in a real programming language? So I
+did so and now you can study my code now here. I guess this problem was
+solved a thousand times before, but I learnt something and I hope my
+approach has some uniqueness to it.</p>
+<p>Additionlay, you can also generate a topological order after you
+traversed the whole Graph, which is a nice little extra.</p>
+<p>If you want the most recent version of the code, you can visit its own
+<a href="https://github.com/NikolaiT/TraversingGraphs" title="github repo">Github repo
+here</a>.</p>
+<p>Well, here's the code. Just download and run it like this: <code>python graph_traversal.py</code></p>
+<div class="highlight"><pre><span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Nikolai Tschacher&#39;</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;0.1&#39;</span>
+<span class="n">__contact__</span> <span class="o">=</span> <span class="s">&#39;admin@incolumitas.com&#39;</span>
+
+
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">deque</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This is just a little representation of two basic graph traversal methods.</span>
+
+<span class="sd">    - Depth-First-Search</span>
+<span class="sd">    - Breadth-First-Search</span>
+
+<span class="sd">It&#39;s by no means meant to be fast or performant. Rather it is for educational</span>
+<span class="sd">purposes and to understand it better for myself.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="k">class</span> <span class="nc">Node</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Represents a node.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_visited</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">discovery_time</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finishing_time</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">neighbors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">adjacency_list</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">adjacency_list</span><span class="p">[</span><span class="bp">self</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">visited</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_visited</span>
+
+    <span class="nd">@visited.setter</span>
+    <span class="k">def</span> <span class="nf">visited</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">discovery_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">clock</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">value</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">finishing_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">clock</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_visited</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+
+<span class="c"># Let&#39;s define our sample graph and represent it in an adjacency list.</span>
+<span class="c"># This means that for every node, we store the outgoing edges in a list.</span>
+
+<span class="n">Nodes</span> <span class="o">=</span> <span class="p">[</span><span class="n">Node</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">)]</span>
+
+<span class="n">Graph</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">Nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="p">[</span><span class="n">Nodes</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="n">Nodes</span><span class="p">[</span><span class="mi">3</span><span class="p">]],</span>
+    <span class="n">Nodes</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="p">[</span><span class="n">Nodes</span><span class="p">[</span><span class="mi">8</span><span class="p">],</span> <span class="n">Nodes</span><span class="p">[</span><span class="mi">3</span><span class="p">]],</span>
+    <span class="n">Nodes</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="p">[</span><span class="n">Nodes</span><span class="p">[</span><span class="mi">5</span><span class="p">]],</span>
+    <span class="n">Nodes</span><span class="p">[</span><span class="mi">3</span><span class="p">]:</span> <span class="p">[</span><span class="n">Nodes</span><span class="p">[</span><span class="mi">9</span><span class="p">],</span> <span class="n">Nodes</span><span class="p">[</span><span class="mi">8</span><span class="p">]],</span>
+    <span class="n">Nodes</span><span class="p">[</span><span class="mi">4</span><span class="p">]:</span> <span class="p">[</span><span class="n">Nodes</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="n">Nodes</span><span class="p">[</span><span class="mi">2</span><span class="p">]],</span>
+    <span class="n">Nodes</span><span class="p">[</span><span class="mi">5</span><span class="p">]:</span> <span class="p">[</span><span class="n">Nodes</span><span class="p">[</span><span class="mi">9</span><span class="p">]],</span>
+    <span class="n">Nodes</span><span class="p">[</span><span class="mi">6</span><span class="p">]:</span> <span class="p">[</span><span class="n">Nodes</span><span class="p">[</span><span class="mi">9</span><span class="p">]],</span>
+    <span class="n">Nodes</span><span class="p">[</span><span class="mi">7</span><span class="p">]:</span> <span class="p">[</span><span class="n">Nodes</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="n">Nodes</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">Nodes</span><span class="p">[</span><span class="mi">6</span><span class="p">]],</span>
+    <span class="n">Nodes</span><span class="p">[</span><span class="mi">8</span><span class="p">]:</span> <span class="p">[</span><span class="n">Nodes</span><span class="p">[</span><span class="mi">9</span><span class="p">],</span> <span class="n">Nodes</span><span class="p">[</span><span class="mi">4</span><span class="p">]],</span>
+    <span class="n">Nodes</span><span class="p">[</span><span class="mi">9</span><span class="p">]:</span> <span class="p">[</span><span class="n">Nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Nodes</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span>
+<span class="p">}</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Depth-First-Search</span>
+
+<span class="sd">Running time: O(|V| + |E|)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="k">def</span> <span class="nf">depth_first_search</span><span class="p">(</span><span class="n">Graph</span><span class="p">,</span> <span class="n">Nodes</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">Nodes</span><span class="p">:</span>
+        <span class="n">node</span><span class="o">.</span><span class="n">visited</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">Nodes</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">visited</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">depth_first_search_visit</span><span class="p">(</span><span class="n">Graph</span><span class="p">,</span> <span class="n">node</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">depth_first_search_visit</span><span class="p">(</span><span class="n">Graph</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
+    <span class="n">node</span><span class="o">.</span><span class="n">visited</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">for</span> <span class="n">neighbor</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">neighbors</span><span class="p">(</span><span class="n">Graph</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">neighbor</span><span class="o">.</span><span class="n">visited</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">depth_first_search_visit</span><span class="p">(</span><span class="n">Graph</span><span class="p">,</span> <span class="n">neighbor</span><span class="p">)</span>
+    <span class="n">node</span><span class="o">.</span><span class="n">visited</span> <span class="o">=</span> <span class="mi">2</span>
+
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Breadth-First-Search</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="k">def</span> <span class="nf">breadth_first_search</span><span class="p">(</span><span class="n">Graph</span><span class="p">,</span> <span class="n">Nodes</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">Nodes</span><span class="p">:</span>
+        <span class="n">node</span><span class="o">.</span><span class="n">visited</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">Nodes</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">visited</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">breadth_first_search_visit</span><span class="p">(</span><span class="n">Graph</span><span class="p">,</span> <span class="n">node</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">breadth_first_search_visit</span><span class="p">(</span><span class="n">Graph</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
+    <span class="n">node</span><span class="o">.</span><span class="n">visited</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">queue</span> <span class="o">=</span> <span class="n">deque</span><span class="p">([</span><span class="n">node</span><span class="p">])</span>
+
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">u</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">popleft</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+            <span class="k">break</span>
+
+        <span class="k">for</span> <span class="n">neighbor</span> <span class="ow">in</span> <span class="n">u</span><span class="o">.</span><span class="n">neighbors</span><span class="p">(</span><span class="n">Graph</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">neighbor</span><span class="o">.</span><span class="n">visited</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">neighbor</span><span class="o">.</span><span class="n">visited</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">queue</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">neighbor</span><span class="p">)</span>
+        <span class="n">node</span><span class="o">.</span><span class="n">visited</span> <span class="o">=</span> <span class="mi">2</span>
+
+
+<span class="k">def</span> <span class="nf">print_topological</span><span class="p">(</span><span class="n">Nodes</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Toplogical sort of the Graph:&#39;</span><span class="p">)</span>
+    <span class="c"># prints a topological sort</span>
+    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">Nodes</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">obj</span><span class="p">:</span> <span class="n">obj</span><span class="o">.</span><span class="n">finishing_time</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\t</span><span class="s"> {}: {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">finishing_time</span><span class="p">))</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Using Depth-First-Search&#39;</span><span class="p">)</span>
+    <span class="c"># should print each node exactly once</span>
+    <span class="n">depth_first_search</span><span class="p">(</span><span class="n">Graph</span><span class="p">,</span> <span class="n">Nodes</span><span class="p">)</span>
+    <span class="n">print_topological</span><span class="p">(</span><span class="n">Nodes</span><span class="p">)</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+    <span class="c"># the same buth with Breadth-First-Search</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Using Breadth-First-Search&#39;</span><span class="p">)</span>
+    <span class="n">breadth_first_search</span><span class="p">(</span><span class="n">Graph</span><span class="p">,</span> <span class="n">Nodes</span><span class="p">)</span>
+    <span class="n">print_topological</span><span class="p">(</span><span class="n">Nodes</span><span class="p">)</span>
+</pre></div>
+  </div>
+  <div class="tag-cloud">
+    <p>
+      <a href="/tag/programming.html">Programming</a>
+      <a href="/tag/learning.html">Learning</a>
+      <a href="/tag/university.html">University</a>
+    </p>
+  </div>
+</article>
+
+    <footer>
+      <p>&copy; Nikolai Tschacher 2015</p>
+<p>Built using <a href="http://getpelican.com" target="_blank">Pelican</a> - <a href="https://github.com/alexandrevicenzi/flex" target="_blank">Flex</a> theme by <a href="http://alexandrevicenzi.com" target="_blank">Alexandre Vicenzi</a></p>    </footer>
+  </main>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "BlogPosting",
+  "name": "Implementing two Graph traversal algorithms in Python: Depth First Search and Breadth First Search",
+  "headline": "Implementing two Graph traversal algorithms in Python: Depth First Search and Breadth First Search",
+  "datePublished": "2015-01-24 19:40:00+01:00",
+  "dateModified": "",
+  "author": {
+    "@type": "Person",
+    "name": "Nikolai Tschacher",
+    "url": "/author/nikolai-tschacher.html"
+  },
+  "image": "{{ SITEURL }}/{{ THEME_STATIC_DIR }}/img/profile.png",
+  "url": "/implementing-two-graph-traversal-algorithms-in-python-depth-first-search-and-breadth-first-search.html",
+  "description": "Depth First Search and Breadth First Search I am right in front of a ton of exams and I need to learn about algorithms and data structures. When I read about pseudocode of Graph traversal algorithms, I thought: Why not actually implement them in a real programming language? So I ..."
+}
+</script></body>
+</html>

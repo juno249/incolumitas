@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Coding, Learning and IT Security</title><link href="/" rel="alternate"></link><link href="/feeds/linux-software.atom.xml" rel="self"></link><id>/</id><updated>2015-01-18T15:04:00+01:00</updated><entry><title>Very good program to record audio and desktop on Linux!</title><link href="/very-good-program-to-record-audio-and-desktop-on-linux.html" rel="alternate"></link><updated>2015-01-18T15:04:00+01:00</updated><author><name>admin</name></author><id>tag:,2015-01-18:very-good-program-to-record-audio-and-desktop-on-linux.html</id><summary type="html">&lt;h3&gt;First post in the new year!&lt;/h3&gt;
+&lt;p&gt;Hey&lt;/p&gt;
+&lt;p&gt;Happy new year to all of you and let 2015 be a succesful year for us
+all!&lt;/p&gt;
+&lt;p&gt;My &lt;strong&gt;New Year's resolution&lt;/strong&gt; is to write at least two blog posts every
+month and try to get my scraping service on
+&lt;a href="http://scrapeulous.com" title="my scraping service"&gt;scrapeulous.com&lt;/a&gt; up and
+running!&lt;/p&gt;
+&lt;h3&gt;Good program to record the desktop/audio on linux&lt;/h3&gt;
+&lt;p&gt;But what I really wanted to share today is an awesome way to record your
+desktop with audio on Linux. I tried my luck several times with VLC, but
+it's a freaking pain in the ass to use. Furthermore, VLC will probably
+never be able to capture the desktop with audio (See &lt;a href="http://superuser.com/questions/612186/how-to-capture-screen-video-with-audio-using-vlc-media-player"&gt;this stackoverflow
+thread&lt;/a&gt;
+for more info).&lt;/p&gt;
+&lt;p&gt;But I just found an wonderful alternative (one could almost assume that
+I am advertisting, which is not the case, I swear!):&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://wiki.ubuntuusers.de/recordMyDesktop"&gt;http://wiki.ubuntuusers.de/recordMyDesktop&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;If you want to visit the home page of the program, &lt;a href="http://recordmydesktop.sourceforge.net/about.php"&gt;click
+here&lt;/a&gt;. Although the
+home page is very ugly and the program is not longer in active
+development, it just works like a charm. On Ubuntu you may install it
+like this:&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;sudo apt-get install recordmydesktop&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;Then go to a directory very you want to save the output file and just
+enter &lt;code&gt;recordmydesktop&lt;/code&gt; in a shell.&lt;/p&gt;
+&lt;p&gt;The program begins to record. When hitting Control-C, the capture stops
+and the file is written (Which takes a bit time). Then you can play your
+capture (With VLC for example).&lt;/p&gt;
+&lt;h3&gt;Conclusion&lt;/h3&gt;
+&lt;p&gt;This shows me once more what the most integral parts in the art of
+software development really are:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;The most common usage case of the program should be it's default
+    behaviour!&lt;/li&gt;
+&lt;li&gt;Usability is the most important part of any software. Users are
+    frustrated very easily.&lt;/li&gt;
+&lt;li&gt;The program must be robust. If it doesn't work, potential customers
+    are drained away to the concurrence!&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;All these points apply on recordmydesktop, which makes it very nice to
+work with!&lt;/p&gt;
+&lt;p&gt;Hope you got something out of this.&lt;/p&gt;</summary></entry></feed>

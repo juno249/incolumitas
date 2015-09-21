@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Coding, Learning and IT Security</title><link href="/" rel="alternate"></link><link href="/feeds/uncategorized.atom.xml" rel="self"></link><id>/</id><updated>2014-07-11T19:35:00+02:00</updated><entry><title>Beautiful, beautiful python</title><link href="/beautiful-beautiful-python.html" rel="alternate"></link><updated>2014-07-11T19:35:00+02:00</updated><author><name>admin</name></author><id>tag:,2014-07-11:beautiful-beautiful-python.html</id><summary type="html">&lt;h3&gt;Hey&lt;/h3&gt;
+&lt;p&gt;After a day of programming I went home to program a little bit, trying
+to find a way to implement some tests for my
+&lt;a href="https://github.com/NikolaiT/GoogleScraper" title="Google Scraper on Github"&gt;GoogleScraper&lt;/a&gt;
+project, which lacked focus for a long time. I needed to have some test
+data, in my case some words to search for with the above mentioned
+scraper, and once more I realized how powerful Python (or any
+programming language) is. This silly little code is pretty decent, if
+you need some random testing data:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;requests&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;re&lt;/span&gt;
+
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;random_words&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;n&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;50&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;wordlength&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;15&lt;/span&gt;&lt;span class="p"&gt;)):&lt;/span&gt;
+   &lt;span class="sd"&gt;&amp;quot;&amp;quot;&amp;quot;Read a random english wiki article and extract some words.&lt;/span&gt;
+
+&lt;span class="sd"&gt;   Arguments:&lt;/span&gt;
+&lt;span class="sd"&gt;   n -- The number of words to return. Returns all found ones, if n is more than we were able to found.&lt;/span&gt;
+&lt;span class="sd"&gt;   KeywordArguments:&lt;/span&gt;
+&lt;span class="sd"&gt;   wordlength -- A range that forces the words to have a specific length.&lt;/span&gt;
+&lt;span class="sd"&gt;   &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+   &lt;span class="n"&gt;valid_words&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;re&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;compile&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;r&amp;#39;[a-zA-Z]{{{},{}}}&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;format&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;wordlength&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;start&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;wordlength&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;stop&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+   &lt;span class="n"&gt;found&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;list&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;set&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;valid_words&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;findall&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;requests&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;http://en.wikipedia.org/wiki/Special:Random&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;text&lt;/span&gt;&lt;span class="p"&gt;)))&lt;/span&gt;
+   &lt;span class="k"&gt;try&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+       &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;found&lt;/span&gt;&lt;span class="p"&gt;[:&lt;/span&gt;&lt;span class="n"&gt;n&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+   &lt;span class="k"&gt;except&lt;/span&gt; &lt;span class="ne"&gt;IndexError&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+       &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;found&lt;/span&gt;
+
+&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;random_words&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;200&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;5&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;6&lt;/span&gt;&lt;span class="p"&gt;)))&lt;/span&gt;
+&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;random_words&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;77&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;16&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;26&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;</summary></entry><entry><title>Lichess.org chess bot!</title><link href="/lichess-org-chess-bot.html" rel="alternate"></link><updated>2014-04-23T18:03:00+02:00</updated><author><name>admin</name></author><id>tag:,2014-04-23:lichess-org-chess-bot.html</id><summary type="html">&lt;p&gt;Hey!&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;22.05.2014: Updated the bot, should work better now&lt;/strong&gt;&lt;br /&gt;
+I was in a coding mood during Easter and decided to write a small chess
+bot with
+&lt;a href="http://selenium-python.readthedocs.org/en/latest/" title="selenium python"&gt;selenium&lt;/a&gt;
+and &lt;a href="http://stockfishchess.org/" title="stockfish engine"&gt;stockfish&lt;/a&gt; engine to
+cheat a bit on
+&lt;a href="http://en.lichess.org/" title="lichess chess arena"&gt;lichess.org&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;I think the code is pretty self explanatory and I won't discuss it in
+depth here. You can tweak the config, the comments should explain what
+the parameters do.&lt;/p&gt;
+&lt;p&gt;The config is in the beginning of the code, so modify it there. You
+should maybe modify it to use your username and password. Make sure that
+you download stockfish and install it. Then supply the correct path in
+the 'stockfish_binary' parameter.&lt;/p&gt;
+&lt;p&gt;As always: Have fun!&lt;/p&gt;
+&lt;p&gt;Some open issues:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+Sometimes the last move fails because the bot won't to start a new game
+before it can checkmate
+
+&lt;/li&gt;
+&lt;li&gt;
+Promoting doesn't work yet :/
+
+&lt;/li&gt;
+    __author__ = 'nikolai'
+    __date__ = 'Easter 2014'
+
+    config = {
+        'username' : 'probably_a_spider', # the login username
+        'password' : 'somepwd', # the login password
+        'stockfish_binary' : '/home/nikolai/PycharmProjects/LichessBot/stockfish-dd-src/src/stockfish', # the path to your local stockfish binary
+        #Set to true if the bot should play forever
+        'pwn_forever' : True, # if the bot should play endlessly
+        'min_per_side' : 1, # how long each player may play
+        'increment' : 0, # the increment per move
+        'thinking_time': .5, # How long stockfish is allowd to search, set to None and stockfish will search 0.75 seconds by default
+        'thinking_skew': .2 # This is the maximal random derivative in decimal of the thinking time (0-1) (to not make the bot to appear to move in the same time intervals all the time)
+    }
+
+    from selenium import webdriver
+    from selenium.webdriver import ActionChains
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.webdriver.support import expected_conditions as EC
+    from selenium.common.exceptions import TimeoutException, NoSuchElementException, UnexpectedAlertPresentException
+    import subprocess
+    import os
+    import time
+    import sys
+    import re
+    import random
+
+    def get(proc, poll=True):
+        if poll:
+            proc.stdin.write('isready\n')
+        buf = ''
+        while True:
+            line = proc.stdout.readline().strip()
+            buf += line
+            if 'readyok' in line:
+                return buf
+            if 'bestmove' in line:
+                return buf
+
+    def init_stockfish():
+        if os.path.exists(config['stockfish_binary']):
+            proc = subprocess.Popen([config['stockfish_binary']], universal_newlines=True,
+                                    stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+
+            greeting = get(proc)
+            if not 'Stockfish' in greeting:
+                raise ValueError('Couldnt execute stockfish')
+
+            proc.stdin.write('uci\n')
+            get(proc)
+            # stolen from https://github.com/brandonhsiao/lichess-bot/blob/master/server.py
+            proc.stdin.write('ucinewgame\n')
+            proc.stdin.write('setoption name Hash value 128\n')
+            proc.stdin.write('setoption name Threads value 4\n')
+            proc.stdin.write('setoption name Best Book Move value true\n')
+            proc.stdin.write('setoption name Aggressiveness value 200\n')
+            proc.stdin.write('setoption name Cowardice value 0\n')
+            proc.stdin.write('setoption name Contempt Factor value 50\n')
+            return proc
+
+    proc = init_stockfish()
+
+    def make_move(thinking_time=.5, moves=[]):
+        if moves:
+            cmd = 'position startpos moves {}\n'.format(' '.join(moves))
+            proc.stdin.write(cmd)
+        proc.stdin.write('go infinite\n')
+        try:
+            time.sleep(float(thinking_time))
+        except ValueError as ve:
+            print(ve)
+            sys.exit(0)
+        proc.stdin.write('stop\n')
+        out = get(proc, False)
+        try:
+            bestmove = re.search(r'bestmove\s(?P[a-h][1-8][a-h][1-8])', out).group('move')
+            ponder = re.search(r'ponder\s(?P[a-h][1-8][a-h][1-8])', out).group('ponder')
+        except AttributeError:
+            return False
+        return bestmove
+
+    def newgame_stockfish():
+        proc.stdin.write('ucinewgame\n')
+        get(proc)
+
+    def quit_stockfish():
+        proc.stdin.write('quit\n')
+        proc.terminate()
+
+    def login():
+        wd = webdriver.Firefox()
+        wd.get('http://en.lichess.org/login')
+        u, p = wd.find_element_by_name("username"), wd.find_element_by_name("password")
+        u.send_keys(config['username'])
+        p.send_keys(config['password'])
+        p.submit()
+        return wd
+
+    def create_game(wd, min_per_side=config['min_per_side'], increment=config['increment']):
+        wait = WebDriverWait(wd, 10)
+        try:
+            element = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR,'a[title="Create a game"]')))
+            element.click()
+        except UnexpectedAlertPresentException:
+            pass
+        except Exception as e:
+            print(e)
+
+        WebDriverWait(wd, 5).until(EC.presence_of_element_located((By.ID, 'increment')));
+        # Change the inputs with a bit of jQuery (but wait first until the dom bitch is loaded)
+        wd.execute_script("$('#time').val('{}')".format(str(min_per_side)))
+        wd.execute_script("$('#increment').val('{}')".format(str(increment)))
+        time.sleep(1)
+        wd.find_element_by_name('color').submit()
+
+
+    def play(wd):
+        def move(moves=[]):
+            t = config['thinking_time'] or .75
+            if config['thinking_skew']:
+                t = t * (1 - random.randint(0, config['thinking_skew']*1000) / 1000)
+
+            move = make_move(thinking_time=t, moves=moves)
+            if move:
+                print('[i]Bot is going to make move {} by calculating {} seconds'.format(move, float(t)))
+                f, t = move[:2], move[2:]
+                for i in range(6):
+                    action = ActionChains(wd)
+                    action.drag_and_drop(wd.find_element_by_id(f), wd.find_element_by_id(t))
+                    action.perform()
+                    try:
+                        moved = wd.find_elements_by_css_selector('div.moved.lcs')
+                        move1, move2 = moved[0].get_attribute('id'), moved[1].get_attribute('id')
+                        if t == move1 or f == move1:
+                            break
+                    except:
+                        break
+                    time.sleep(.2)
+                return move
+            else:
+                return False
+
+        def get_last_move(moves=[]):
+            WebDriverWait(wd, 100).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'div.moved.lcs')))
+            t = wd.find_element_by_css_selector('div.moved.lcs div.piece').find_element_by_xpath('..').get_attribute('id')
+            f = [e.get_attribute('id') for e in wd.find_elements_by_css_selector('div.moved.lcs') if e.get_attribute('id') != t][0]
+            # If last move was my last move, sleep a bit and try again to get the next move
+            if moves:
+                print(f+t, moves[-1])
+                while f+t == moves[-1]:
+                    # busy polling, that's very inefficient
+                    time.sleep(.35)
+                    t = wd.find_element_by_css_selector('div.moved.lcs div.piece').find_element_by_xpath('..').get_attribute('id')
+                    f = [e.get_attribute('id') for e in wd.find_elements_by_css_selector('div.moved.lcs') if e.get_attribute('id') != t][0]
+                    try:
+                        wd.find_element_by_css_selector('div.table_with_clock.finished')
+                        return False
+                    except NoSuchElementException:
+                        pass
+            print('[i]Opponent moved {}'.format(f+t))
+            return f+t
+
+        try:
+            # wait maximally 100 seconds for an opponent
+            wait = WebDriverWait(wd, 100)
+            # wait until the square a1 is present which means we got a board
+            element = wait.until(EC.presence_of_element_located((By.ID,'a1')))
+        except TimeoutException as te:
+            print("No board found: {}".format(te))
+            sys.exit(0)
+
+        print('We got a board, games beginning...')
+
+        moves = []
+        # detect what color we play
+        players  = wd.find_elements_by_css_selector('.player &gt; a')
+        is_black = False
+        for e in players:
+                is_black = config['username'] in e.get_attribute('href') and 'black' in e.get_attribute('class')
+        print('[i]Bot is playing {}'.format(['white', 'black'][is_black]))
+        if not is_black:
+            moves.append(move())
+
+        while True:
+            print('[i] Moves played: {}'.format(moves), end='\n\n')
+
+            last = get_last_move(moves)
+            print('last move found was {}'.format(last))
+            if last:
+                moves.append(last)
+            else:
+                print('no last move appended. Leaving: {}'.format(last))
+                return
+
+            m = move(moves)
+            if m:
+                moves.append(m)
+            else:
+                return
+            try:
+                wd.find_element_by_css_selector('div.table_with_clock.finished')
+                return
+            except:
+                pass
+
+    def go_forever():
+        wd = login()
+        while True:
+            create_game(wd)
+            newgame_stockfish()
+            play(wd)
+            wd.get('http://en.lichess.org/')
+
+        quit_stockfish()
+
+    if __name__ == '__main__':
+        if config['pwn_forever']:
+            go_forever()
+        else:
+            wd = login()
+            create_game(wd)
+            play(wd)</summary></entry><entry><title>Success</title><link href="/success.html" rel="alternate"></link><updated>2012-07-23T01:09:00+02:00</updated><author><name>admin</name></author><id>tag:,2012-07-23:success.html</id><summary type="html">&lt;p&gt;Have you ever wanted to know some strategies and hints how to be more
+successful in your daily work? Well, here, i'll compile a list of
+thoughts and scenarios of effective working, which worked for me or
+seems to be at least reasonable in my future working career...&lt;/p&gt;
+&lt;p&gt;To illustrate and give an example for every wisdom, we use the example
+for a job assignment I could found myself in: The fictional job requires
+the accomplishment of a security audit of the employers content
+management system written in PHP. We have access to all sources,
+although the project is proprietary and is under a restrictive license.&lt;/p&gt;
+&lt;p&gt;&lt;span style="text-decoration: underline;"&gt;1. Develop a broad general
+knowledge.&lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;The curios reader would ask now, why the hell do we need a proper
+general knowledge to scan a web application for programming errors which
+might weaken its security? Well, before you begin reading every line of
+code and do the formal, rather static part of your work, you'd better
+square the context of your task with your general knowledge: Where do
+the people, who wrote the application live at? Which language do the
+speak? What does the company which runs the cms exactly offer?&lt;/p&gt;
+&lt;p&gt;&lt;span style="text-decoration: underline;"&gt;2. Work at least 25 minutes at
+a time&lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;Have you ever obsevered yourself  working very unsteadily and you
+constantly interrupt your working sessions? Well, this is very bad for
+the quality of your work, since the amount you learned or did can be
+calculated after common sense similar to something like the following:&lt;/p&gt;
+&lt;p&gt;Stuff_Done = Time * Concentration&lt;/p&gt;
+&lt;p&gt;If you work a lot, but you're concentration is weak because you brain
+just does not have the time to accustom to your task, the efficiency of
+your output will most likely suffer. Just force yourself to concentrate
+you on your work. Do just the specific task, don't look up your emails,
+go to the toilet or make yourself a coffee. No topic change or bigger
+semantic gap should distort the session. Set up a alarm clock to
+actually measure the time.&lt;/p&gt;
+&lt;p&gt;&lt;span style="text-decoration: underline;"&gt;3. Become an expert in few
+things&lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;This is very important for me and somehow contradictory to the first
+rule. In our modern times and since ever changing learning methods and
+information processing improvements, there's still nothing who beats the
+simple stubborn learning by heart way. You should know a few tools very
+good. I will for example try to master sooner or later the programming
+language Python. It's a very abstract and huge scripting language with a
+big standard library, but if you once just know the majority of the
+build in functions and modules and you automatically use them, you
+productivity will increase distinctively. Just imagine you want to make
+a first rough scan of the source code of the CMS with a set of regexes
+who match common security flaws: The best way would be to use grep or
+egrep and code a simple bash script to accomplish the task, but what if
+you first have to seek for a lot of meta information how to make a while
+loop in bash, what the command line arguments in grep exactly mean and
+which regex syntax grep requests and the like? Well, if you then use
+your good old Python knowledge, you exactly know how to pursue, although
+it might not be that elegant and appropriate way to do. Using your old
+and established toolset, you can focus on the task and won't get
+distracted that fast.&lt;/p&gt;
+&lt;p&gt;&lt;span style="text-decoration: underline;"&gt;4. Don't fuck with
+yourself&lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;One of the worst motivation and workflow killers is yourself. Once you
+decide to pursue a goal you should try with all power to reach it. There
+are thousands of hindrances which make it hard and sometimes seem to be
+ impossible to overcome, but the worst of all these obstacles is you
+self:&lt;/p&gt;
+&lt;p&gt;Imagine you intended to create a simple guestbook with a specific
+functionality and a handy design, but after a few weeks, due to your
+stressful and busy time, the task becomes unimportant and you start to
+spend your attention on other stuff. This is incorrect, because you
+betray yourself. Even if the intentional purpose of the idea might
+change or the task itself is barely unreachable because of its
+complexity, legality or significance, you should try hard to terminate
+and finish the task. Nothing destroys more credibility and willpower to
+start over with new projects, than a semi-finished, never ended task.
+You self esteem will most likely suffer too, because you'll ask yourself
+constantly: Am I beginning right now one of these never ending projects?&lt;/p&gt;
+&lt;p&gt;Best practice to prevent this behavior is to keep a diary, which tracks
+the exact definition of the goals, the progress and other related notes
+according the project. You should define a dead line and if it is
+violated the project must definitively fail.&lt;/p&gt;
+&lt;p&gt;&lt;span style="text-decoration: underline;"&gt;3. Intrinsic motivation&lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;Wikipedia defines intrinisc motivation in the following way:&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;&lt;strong&gt;Intrinsic motivation&lt;/strong&gt; refers to motivation that is driven by an
+interest or enjoyment in the task itself, and exists within the
+individual rather than relying on any external pressure.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;So, for every big project in your live, like the chosen direction of
+your'e studies or profession, you just can succeed if you like doing it.
+It might be possible to force yourself, but it's not the intention of
+this post to offer a guide to torture yourself. First ask if you
+principally like what you do, then do it right and in a correct way.&lt;/p&gt;</summary></entry></feed>

@@ -1,0 +1,833 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Coding, Learning and IT Security</title><link href="/" rel="alternate"></link><link href="/feeds/c-chess-programming-security.atom.xml" rel="self"></link><id>/</id><updated>2014-01-26T02:11:00+01:00</updated><entry><title>The art of cheating: Making a chess.com chess bot following an unusual approach!</title><link href="/the-art-of-cheating-making-a-chess-com-chess-bot-using-a-unusual-approach.html" rel="alternate"></link><updated>2014-01-26T02:11:00+01:00</updated><author><name>admin</name></author><id>tag:,2014-01-26:the-art-of-cheating-making-a-chess-com-chess-bot-using-a-unusual-approach.html</id><summary type="html">&lt;h3&gt;Table of contents&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;&lt;a href="#chap_preface"&gt;Preface&lt;/a&gt;&lt;/strong&gt;: Giving first insight into the idea and
+    why I think that hooking into a browser is a good idea.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;a href="#chap_dwmbgb"&gt;Many different ways to make browser game bots&lt;/a&gt;&lt;/strong&gt;:
+    Discussion various techniques to write HTTP/WebSocket bots&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;a href="#chap_internals"&gt;How does chess.com internally look like?&lt;/a&gt;&lt;/strong&gt;:
+    Investigation of the client side behavior of
+    &lt;a href="http://chess.com"&gt;chess.com&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;a href="#chap_workings"&gt;How the bot works&lt;/a&gt;&lt;/strong&gt;: Explaining how my shared
+    library hooks firefox network functions&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;a href="#chap_concl"&gt;Conclusion&lt;/a&gt;&lt;/strong&gt;: Summary of my discoveries&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;a href="https://vimeo.com/85060026" title="Link to the demonstration of the bot"&gt;Demo
+    Video&lt;/a&gt;
+    and another, &lt;a href="https://vimeo.com/85083958" title="demo video, better"&gt;better demo
+    video&lt;/a&gt;&lt;/strong&gt;: You might
+    only watch that video, but make sure you &lt;a href="#chap_demo"&gt;read the explanation on
+    the very bottom of this blog post!&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;You may find the sources to the shared library (so) on my &lt;a href="https://github.com/NikolaiT/chess-com-cheat/" title="Link to chess.com cheat library"&gt;github
+    account&lt;/a&gt;.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id="chap_preface"&gt;Preface&lt;/h3&gt;
+&lt;p&gt;Usually I don't have good ideas in forms of flashes of genius. On the
+contrary, I think that many endeavors and interesting projects might be
+reasonable if realized, but often so, there's a huge amount of work
+involved and &lt;em&gt;too&lt;/em&gt; many variables and strategic decisions in the process
+that could eventually render the project a failure. What I try to say: A
+mediocre idea well engineered might be a good product. But a good idea
+badly implemented and designed is usually just bad in it's final form.&lt;/p&gt;
+&lt;p&gt;Raw, abstract ideas exist in abundance. So does the will to make them
+happen. But once in a while, I manage to overcome these two hindrances
+and begin to build and shape my ideas into reality.&lt;/p&gt;
+&lt;p&gt;So around 10 days ago (yes it took me that long to make it) I went
+jogging in the forest and my subconscious searched for different
+possibilities to cheat in a chess browser game
+(&lt;a href="http://chess.com" title="chess server"&gt;chess.com&lt;/a&gt; to be specific). I knew
+that there were quite some different approaches. So before I get all to
+technical, let's define the obstacle:&lt;/p&gt;
+&lt;p&gt;I want build a bot that plays automatic actions/moves on a online chess
+server, whose communication is realized over HTTP 1/1 and
+&lt;a href="http://tools.ietf.org/html/rfc6455"&gt;WebSocket&lt;/a&gt; (https and wws
+respectively), all TLS/SSL encrypted.&lt;/p&gt;
+&lt;p&gt;Additionally the following constraints need to be considered:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;The bot should work &lt;em&gt;while the player is actually playing&lt;/em&gt;. That
+    means: Without any real action by a human, the bot won't do anything
+    at all.&lt;/li&gt;
+&lt;li&gt;The engine that computes the moves is a local process. I chose
+    &lt;a href="http://stockfishchess.org/"&gt;Stockfish&lt;/a&gt;: it has a pretty decent
+    strength and is open source which makes it usable on Linux contrary
+    to Houdini. If we want to use engine calculated information in the
+    browser we need to get a channel to a local process. We can't
+    integrate Stockfish originated data into the browser process space
+    with memory injection methods, since it seems hard and I don't know
+    how to do it (correctly). But we surely may interact with the local
+    process in any other possible IPC way.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;So this was my idea that overcame me in the woods while running: Why
+should I even bother rebuilding the whole chess.com communication
+protocol, when I can just &lt;em&gt;replace the moves I made ingame with engine
+calculated equivalents?!&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;Every move (like &lt;em&gt;a2a3&lt;/em&gt; or &lt;em&gt;g7g8&lt;/em&gt;) has identical lengths, so I need to
+find the point where the packets (or messages in WebSockets RFC
+terminology) are still decrypted (note that all traffic is TLS/SSL
+layered) such that it's possible to update them, without dealing with
+the hassle of TLS/SSL.&lt;/p&gt;
+&lt;p&gt;And there is only one place where I can do this: Inside of the browser
+process space, in some networking function that sends and receives the
+target packets. This was my idea. I knew that it must be possible to
+find this &lt;em&gt;hook point&lt;/em&gt; and to alter the packets somewhere.&lt;/p&gt;
+&lt;p&gt;But hell, I didn't knew that this approach was that hard to achieve!&lt;/p&gt;
+&lt;p&gt;So before I'll dive into the technical internals, I'll discuss the
+different possible architectures and designs of cheating &lt;em&gt;in particular&lt;/em&gt;
+for a chess.com bot, but which are also perfectly applicable &lt;em&gt;to general
+browser game automation&lt;/em&gt;.&lt;/p&gt;
+&lt;h3 id="chap_dwmbgb"&gt;Many different ways to make browser game bots!&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;A high level approach&lt;/strong&gt; would be to inject custom javascript into
+    the DOM of a running browser session.&lt;br /&gt;
+    This piece of javascript then connects to a local server (e.g. to a
+    simple server listening on localhost:SOMEPORT) that responses with a
+    bot calculated move when requesting with the current game action
+    history. A pretty nice example of this technique is &lt;a href="http://www.youtube.com/watch?v=PW1vMXHJdnM" title="high level javascript bot"&gt;this video on
+    youtube&lt;/a&gt;
+    (I suppose it uses this design paradigm, but I don't know because
+    there are no open sources to investigate further).&lt;br /&gt;
+&lt;em&gt;Advantages&lt;/em&gt;: Comparably easy implementation, because we don't need
+    to tinker with packets and can directly attack the game logic. Works
+    for all platforms and all browsers, because javascript is
+    universally runnable.&lt;br /&gt;
+&lt;em&gt;Drawbacks:&lt;/em&gt; Maybe we can't build a connection to localhost due to
+    the same-origin policy (Can we?) This would render this approach
+    impossible, since we absolutely need a way to communicate with the
+    local program that supplies us with engine moves. Then maybe a
+    socket connection (although listening on localhost) might be slower
+    than other
+    &lt;a href="http://en.wikipedia.org/wiki/Inter-process_communication" title="inter process communication techniques"&gt;IPC&lt;/a&gt;
+    techniques, because of the TCP/IP stack overhead.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Another high level technique&lt;/strong&gt; would be to write a custom browser
+    extension that intercepts the browser game traffic and injects bot
+    calculated moves.&lt;br /&gt;
+&lt;em&gt;Advantages&lt;/em&gt;: We don't need to hassle with SSL/TLS decryption
+    because our application is executed in the browser process.
+    Furthermore it must be somehow possible to communicate with a local
+    process that supplies the extension with engine knowledge.&lt;br /&gt;
+&lt;em&gt;Disadvantages&lt;/em&gt;: Platform and browser dependent code. When going
+    down that road, I would need to write platform independent C code
+    for different browsers. Additionally, it's questionable if we can
+    speak to different processes, because of the browser sandboxes and
+    their security policies.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Another approach: Low level network stack interception
+    technique:&lt;/strong&gt; I could sniff on the network interface where the TCP
+    packets of the communication sessions are exchanged with a
+    appropriate API like
+    &lt;a href="http://www.secdev.org/projects/scapy/" title="awesome python security module"&gt;scapy&lt;/a&gt;
+    or &lt;a href="http://www.tcpdump.org/" title="the library behind tcpdump"&gt;libpcap&lt;/a&gt;
+    (When writing C directly). Because the communication is encrypted
+    with SSL/TLS, there needs to be a reliable way to decrpyt the TCP
+    packets. This is not a trivial task, since different browsers use
+    different ciphers/HMACS for TSL/SSL (they are determined in the
+    &lt;a href="http://en.wikipedia.org/wiki/Transport_Layer_Security#TLS_handshake" title="SSL handshake protocol"&gt;handshake&lt;/a&gt;).&lt;br /&gt;
+    This issue however is alleviated by the fact that some browsers can
+    be started with a option (environment variable
+    &lt;a href="https://developer.mozilla.org/en-US/docs/NSS_Key_Log_Format"&gt;SSLKEYLOGFILE&lt;/a&gt;)
+    to dump the current key secrets of a SSL/TLS session to a file which
+    my bot could use to decrypt/encrypt the traffic on the fly.&lt;br /&gt;
+    Once decrypted, I would modify the appropriate move values and
+    replace the action I made, with the bot calculated move. Then I need
+    to encrypt the packet again with the cipher specified in the
+    SSLKEYLOGFILE. But this implies several issues as for example:&lt;br /&gt;
+    How can my sniffer/bot know which cipher was used? He only knows
+    the current keys for the session, but not the ciphers. In the worst
+    case, we need to also sniff the SSL/TLS handshake and connection
+    start. This again is a very tedious process since the many quirks
+    and combinations of a TLS session beginning.&lt;br /&gt;
+    Padding shouldn't be a bigger issue because the moves in the packet
+    are just replaced and no additional data is injected or deleted. So
+    the TCP packets should stay the same. We only need to recalculate
+    the checksums.&lt;/li&gt;
+&lt;li&gt;Another &lt;em&gt;thoroughly&lt;/em&gt; low level approach: &lt;strong&gt;Hooking &lt;a href="http://tldp.org/HOWTO/Program-Library-HOWTO/shared-libraries.html"&gt;.so
+    libraries&lt;/a&gt;!&lt;/strong&gt;
+    This was my idea while running in the forest!&lt;br /&gt;
+    This might be the hardest approach in the investigation and
+    research phase (It's not a easy task to find the correct hooking
+    points in the HUGE chromium or firefox code base, but it looks like
+    the &lt;a href="https://developer.mozilla.org/en-US/docs/NSS"&gt;NSS library&lt;/a&gt; is a
+    good starting point), but also the most elegant way, because we
+    don't need to hassle with SSL/TLS quirks and can work with plaintext
+    HTTP requestes/responses, when we find a good hook point. This
+    approach, although very elegant and straightforward comes with huge
+    drawbacks:&lt;br /&gt;
+    Hooking is very platform depended. On linux we could hook with
+    kernel modules or the &lt;a href="http://rafalcieslak.wordpress.com/2013/04/02/dynamic-linker-tricks-using-ld_preload-to-cheat-inject-features-and-investigate-programs/"&gt;LD_PRELOAD
+    trick&lt;/a&gt;.
+    On Windows we'd need other hooking techniques like IAT hooking,
+    using the microsoft hooking library or something else. Additionally,
+    we need to know the target architecutre (Differences between x86 and
+    amd64). But from what I know now, this approach seems to be the best
+    compared to the others, because we can work in the target process
+    space (The browser userland process space itself) and we do not
+    reassemble/decrypt packets ourselves (like in the previous
+    technique). &lt;strong&gt;Form grabbers are a related technique&lt;/strong&gt; used by
+    blackhats for their trojans.&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;The traditional way&lt;/strong&gt;: Re-implement the high level browser game
+    protocol by forging messages and HTTP Requests. This is not very
+    elegant because our goal is to just modify packets. But when
+    following this approach, we'd need to rebuilt the whole game logic
+    (or at least many parts). This'd look something like the following:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;requests&lt;/span&gt;
+
+&lt;span class="n"&gt;login&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;requests&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;post&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;https://browsergame.com&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;login&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;user&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;password&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="k"&gt;pass&lt;/span&gt;&lt;span class="p"&gt;})&lt;/span&gt;
+&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;login&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;read&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;success&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+    &lt;span class="n"&gt;requeset&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;request&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;https://browsergame.com/action.php?gamelogic=blabla&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="c"&gt;# Do implement game logic&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;The easy way:&lt;/strong&gt; Make a click bot! Just control the mouse
+    programmatically and initiate actions like a human would.&lt;br /&gt;
+    Normally such bots learn where the chess board in the browser
+    window is located in the browser window by comparing the pixel
+    colors of the screen with the color of the chess squares (or
+    whatever field you want to locate). Slightly more adanced would be
+    to locate the html elements that represent the squares and
+    recalculate the exact location based on viewport sizes and settings
+    and rendering. But I don't know how it is actually made, do you have
+    a idea?&lt;br /&gt;
+    Anyways, the huge majority of chess.com bots is of this
+    architecture type. You can view them in action
+    &lt;a href="http://www.youtube.com/watch?v=1SwOskkPnS0"&gt;here&lt;/a&gt; or
+    &lt;a href="http://www.youtube.com/watch?v=5osrRuz4tvM" title="high level chess.com bot"&gt;here&lt;/a&gt;
+    on youtube.&lt;br /&gt;
+&lt;em&gt;Advantages&lt;/em&gt;: Very easy to implement, very powerful technique, very
+    good possibilities to evade anti cheating techniques (For instance,
+    if &lt;em&gt;there were&lt;/em&gt; cheating detection &lt;em&gt;besides&lt;/em&gt; the ones who detect and
+    doom very strong play as engine originated, these approaches would
+    try to find out whether the current player is human by interpreting
+    mouse movements and intervals between moves. But somewhere this
+    information has to be gathered and sent to a server. We could just
+    remove this submittal and therefore the server has no way to learn
+    that we are cheaters).&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id="chap_internals"&gt;How does chess.com internals look like?&lt;/h3&gt;
+&lt;p&gt;Having discussed the different architectures for a bot (Remember: I
+chose the hooking technique!) it was time to learn more about the
+target.&lt;/p&gt;
+&lt;p&gt;My plan was very ambitions, because I had very little experience with
+hooking processes and hell, I didn't code in C or assembly for over 1.5
+years, nor did I have much experience in the past. Muppets! Even now, I
+know nothing about low level stuff at all.&lt;/p&gt;
+&lt;p&gt;So it was definitely time &lt;strong&gt;to get my learning hat on&lt;/strong&gt; and to
+investigate how &lt;a href="http://chess.com"&gt;chess.com&lt;/a&gt; works.&lt;/p&gt;
+&lt;p&gt;I based a lot of my investigations on the &lt;a href="https://code.google.com/p/v8/"&gt;V8
+debugger&lt;/a&gt;, the one integrated in the
+Chrome browser dev tools. I am not much of a Google fan, but Jesus
+fucking Christ, Chrome's Development tools (the stuff that pops up when
+you click on &lt;em&gt;Inspect Element&lt;/em&gt; in the context menu) is just a very well
+crafted tool!&lt;/p&gt;
+&lt;p&gt;It's very fast, newer hangs or remarkably loads and there are so many
+features whilst maintaining a very clear and concise interface. If you
+don't know how to use it, I really suggest reading and spending a hour
+on this tutorial (Do the assignments, otherwise what you learned won't
+stick): &lt;a href="https://developers.google.com/chrome-developer-tools/docs/javascript-debugging"&gt;DevTools javascript debugger
+tutorial&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;So by using this debugger I found out that chess.com inner client side
+machinery essentially consists of around 30k lines of javascript code.
+There are three major files, LiveChessAdvanced.js, LiveChessBase.js,
+LiveChessCore.js, you can see a excerpt in the screenshot below:&lt;/p&gt;
+&lt;p&gt;[caption id="attachment_654" align="alignleft" width="640"]&lt;a href="http://incolumitas.com/wp-content/uploads/2014/01/Screenshot-from-2014-01-26-055418.png"&gt;&lt;img alt="Look into
+the chess.com internals with the Chrome debugging
+tools" src="http://incolumitas.com/wp-content/uploads/2014/01/Screenshot-from-2014-01-26-055418-1024x515.png" /&gt;&lt;/a&gt;
+&lt;em&gt;Look into the chess.com internals with the Chrome debugging
+tools&lt;/em&gt;[/caption]&lt;/p&gt;
+&lt;p&gt;Furthermore all of chess.com's networking is handled by a file called
+cometd.js, so chess.com makes use of the &lt;em&gt;Bayeux protocol&lt;/em&gt;. You can
+learn more about the javascript library on
+&lt;a href="http://cometd.org/"&gt;cometd.org&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;But why such a strange protocol?&lt;/p&gt;
+&lt;p&gt;HTTP 1.1 is a request response protocol, it's not suited to implement
+complex game protocols.&lt;/p&gt;
+&lt;p&gt;This was quite a issue in the last years, because companies wanted to
+bring complex applications (like browser games) to the browser and so
+they implemented a range of techniques that circumvented these obstacles
+by exploiting some HTTP quirks, like the fact that HTTP connections stay
+open under specific circumstances, like loading javascript in chunks (A
+form of long polling, it's basically just creating &lt;em&gt;script&lt;/em&gt; elements in
+excess and pointing their &lt;em&gt;src&lt;/em&gt; attribute to the cometd server which
+then sends back JavaScript (or JSONP) with events as its payload). Or
+you can achieve alternatively the same with frames. All these techniques
+are summarized under the umbrella term cometd, and &lt;a href="http://en.wikipedia.org/wiki/Comet_(programming)"&gt;you should read
+about them on
+wikipedia&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;But in late 2011 the &lt;a href="http://tools.ietf.org/html/rfc6455" title="RFC for WebSocket"&gt;WebSocket
+standard&lt;/a&gt; was
+established in it's final form and nowadays we don't need to make use of
+cometd techniques (At least I assume that WebSocket should replace these
+techniques), because we can make bi-directional, full-duplex
+(simultaneous communication in both directions) TCP like connections
+using WebSockets. And this is exactly what chess.com does, it
+exclusively uses WebSockets for their protocol, when the connection is
+good enough.&lt;/p&gt;
+&lt;p&gt;But now comes the first quirk: I strongly assume that this cometd.js
+library provides fallbacks for the case they detect that WebSockets
+aren't working for some reason. This happend to me quite often:&lt;/p&gt;
+&lt;p&gt;My internet connection here is very messy and I have a speed limit of
+around 60kps downstream and around 10kps upstream. I don't know if this
+could be a reason, that &lt;a href="https://github.com/cometd/cometd" title="cometd on github"&gt;the
+library&lt;/a&gt; sometimes
+changes protocols, but it certainly does. I first realized this, when I
+was able to intercept the game traffic using the HttpHeaders firefox
+plugin (that, like the name suggests, only captures HTTP traffic) and
+then suddenly in the next game the captured traffic was empty. So I
+concluded that the protocol responsible for the game traffic must be
+chosen dynamically, for which the connection stability seems to be a
+variable!&lt;/p&gt;
+&lt;p&gt;So enough written, &lt;strong&gt;show me some protocol examples of chess.com&lt;/strong&gt; you
+shout! Here you go:&lt;/p&gt;
+&lt;p&gt;This is a typical WebSocket JSON message from the server that updates
+the game state of a game (This packet belongs to a game that I was
+received while kibitzing, not one I played myself):&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;[{&amp;quot;data&amp;quot;:{&amp;quot;sid&amp;quot;:&amp;quot;gserv&amp;quot;,&amp;quot;game&amp;quot;:{&amp;quot;id&amp;quot;:709324515,&amp;quot;gametype&amp;quot;:&amp;quot;chess&amp;quot;,&amp;quot;time&amp;quot;:{&amp;quot;basetime&amp;quot;:600,&amp;quot;timeinc&amp;quot;:0},&amp;quot;players&amp;quot;:[{&amp;quot;uid&amp;quot;:&amp;quot;DAHUANXIONG&amp;quot;,&amp;quot;status&amp;quot;:&amp;quot;online&amp;quot;,&amp;quot;lag&amp;quot;:2,&amp;quot;lagms&amp;quot;:220,&amp;quot;lightning&amp;quot;:2105,&amp;quot;blitz&amp;quot;:2064,&amp;quot;standard&amp;quot;:1361,&amp;quot;lightning960&amp;quot;:1200,&amp;quot;blitz960&amp;quot;:1200,&amp;quot;standard960&amp;quot;:1200,&amp;quot;bughouse&amp;quot;:1200,&amp;quot;ml&amp;quot;:10,&amp;quot;title&amp;quot;:null,&amp;quot;mod&amp;quot;:false,&amp;quot;new&amp;quot;:false,&amp;quot;country&amp;quot;:&amp;quot;CN&amp;quot;,&amp;quot;av&amp;quot;:true,&amp;quot;avatar&amp;quot;:&amp;quot;//d1lalstwiwz2br.cloudfront.net/images_users/avatars/DAHUANXIONG_small.1.jpeg&amp;quot;,&amp;quot;clientfeatures&amp;quot;:{&amp;quot;examineboard&amp;quot;:true,&amp;quot;multiplegames&amp;quot;:true,&amp;quot;clientname&amp;quot;:&amp;quot;LC4Full v2013121801; Chrome/25; Windows&amp;quot;},&amp;quot;nonverified&amp;quot;:true},{&amp;quot;uid&amp;quot;:&amp;quot;Mrsinj&amp;quot;,&amp;quot;status&amp;quot;:&amp;quot;playing&amp;quot;,&amp;quot;lag&amp;quot;:2,&amp;quot;lagms&amp;quot;:259,&amp;quot;gid&amp;quot;:709324515,&amp;quot;lightning&amp;quot;:2153,&amp;quot;blitz&amp;quot;:2205,&amp;quot;standard&amp;quot;:1200,&amp;quot;lightning960&amp;quot;:1200,&amp;quot;blitz960&amp;quot;:1200,&amp;quot;standard960&amp;quot;:1200,&amp;quot;bughouse&amp;quot;:1200,&amp;quot;ml&amp;quot;:10,&amp;quot;title&amp;quot;:null,&amp;quot;mod&amp;quot;:false,&amp;quot;new&amp;quot;:false,&amp;quot;country&amp;quot;:&amp;quot;RS&amp;quot;,&amp;quot;av&amp;quot;:true,&amp;quot;avatar&amp;quot;:&amp;quot;//d1lalstwiwz2br.cloudfront.net/images_users/avatars/Mrsinj_s.1.jpg&amp;quot;,&amp;quot;clientfeatures&amp;quot;:{&amp;quot;examineboard&amp;quot;:false,&amp;quot;multiplegames&amp;quot;:true,&amp;quot;clientname&amp;quot;:&amp;quot;LC4Simple v2013121801; Chrome/32; Windows&amp;quot;}}]},&amp;quot;tid&amp;quot;:&amp;quot;Game&amp;quot;},&amp;quot;channel&amp;quot;:&amp;quot;/game/~1&amp;quot;}]
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;If you're not a fan of such unformatted, jammed JSON data, you should
+inspect the code on a online JSON editor like
+&lt;a href="http://www.jsoneditoronline.org/"&gt;www.jsoneditoronline.org&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;A few interesting fields: &lt;em&gt;uid&lt;/em&gt; identifies the players, &lt;em&gt;status&lt;/em&gt; can be
+&lt;em&gt;starting&lt;/em&gt;, &lt;em&gt;in_progress&lt;/em&gt;, &lt;em&gt;aborted&lt;/em&gt; or &lt;em&gt;stopped&lt;/em&gt;, &lt;em&gt;lag&lt;/em&gt; and &lt;em&gt;lagms&lt;/em&gt;
+specify the lag of the player (How can you measure that?). Funny enough,
+the protocol architect uses redundant information here, &lt;em&gt;lag&lt;/em&gt; is just
+the rounded version of &lt;em&gt;lagms&lt;/em&gt;, but it doesn't bring other information.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;gid&lt;/em&gt; is the global game id. For instance, you should be able to revisit
+the upper game under the following link
+&lt;em&gt;http://www.chess.com/livechess/game?id=709324515&lt;/em&gt;. But this particular
+message above is not of big interest, because it doesn't contain any
+moves, it just provides some status information. The packets that are
+sent on every move made look like the next message:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;[{&amp;quot;data&amp;quot;:{&amp;quot;sid&amp;quot;:&amp;quot;gserv&amp;quot;,&amp;quot;game&amp;quot;:{&amp;quot;id&amp;quot;:709324427,&amp;quot;status&amp;quot;:&amp;quot;in_progress&amp;quot;,&amp;quot;seq&amp;quot;:9,&amp;quot;players&amp;quot;:[{&amp;quot;uid&amp;quot;:&amp;quot;ImaginaryDunker&amp;quot;,&amp;quot;status&amp;quot;:&amp;quot;playing&amp;quot;,&amp;quot;lag&amp;quot;:1,&amp;quot;lagms&amp;quot;:132,&amp;quot;gid&amp;quot;:709324427},{&amp;quot;uid&amp;quot;:&amp;quot;Alexander_Donchenko&amp;quot;,&amp;quot;status&amp;quot;:&amp;quot;playing&amp;quot;,&amp;quot;lag&amp;quot;:1,&amp;quot;lagms&amp;quot;:115,&amp;quot;gid&amp;quot;:709324427}],&amp;quot;moves&amp;quot;:&amp;quot;gvYIlBIBvB0KBrZJow&amp;quot;,&amp;quot;clocks&amp;quot;:[582,571],&amp;quot;draws&amp;quot;:[],&amp;quot;squares&amp;quot;:[0,0]},&amp;quot;tid&amp;quot;:&amp;quot;GameState&amp;quot;},&amp;quot;channel&amp;quot;:&amp;quot;/game/709324427&amp;quot;}]
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Three fields are of particular importance,
+&lt;em&gt;"moves":"gvYIlBIBvB0KBrZJow"&lt;/em&gt;, &lt;em&gt;"clocks":[582,571]&lt;/em&gt; and
+&lt;em&gt;"status":"in_progress"&lt;/em&gt;. They are pretty much self explanatory at this
+point I suppose.&lt;/p&gt;
+&lt;p&gt;So let's finally &lt;strong&gt;look at a typical game session&lt;/strong&gt; in terms of parsed
+WebSocket messages. Please note that I might not include all messages
+that are exchanged in a game session, simply because I don't care to
+much for trivial information (like polling the server for specific
+features). The bottom messages are the ones which count when you want to
+understand a typical game session:&lt;/p&gt;
+&lt;p&gt;First of all, a connection message to the server is sent when the
+browser connects to the server:&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;1. Initial connection outbound message&lt;/strong&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="p"&gt;[{&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;channel&amp;quot;&lt;/span&gt;&lt;span class="s-Atom"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;/meta/connect&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;connectionType&amp;quot;&lt;/span&gt;&lt;span class="s-Atom"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;ssl-websocket&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;advice&amp;quot;&lt;/span&gt;&lt;span class="s-Atom"&gt;:&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;timeout&amp;quot;&lt;/span&gt;&lt;span class="s-Atom"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;},&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;id&amp;quot;&lt;/span&gt;&lt;span class="s-Atom"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;10&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;clientId&amp;quot;&lt;/span&gt;&lt;span class="s-Atom"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;6djua267g6n8ydja21m8yhztj3gtpx&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;ext&amp;quot;&lt;/span&gt;&lt;span class="s-Atom"&gt;:&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;ack&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;timesync&amp;quot;&lt;/span&gt;&lt;span class="s-Atom"&gt;:&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;tc&amp;quot;&lt;/span&gt;&lt;span class="s-Atom"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;1390715596738&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;l&amp;quot;&lt;/span&gt;&lt;span class="s-Atom"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;661&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;o&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:-&lt;/span&gt;&lt;span class="mi"&gt;17527952&lt;/span&gt;&lt;span class="p"&gt;}}}]&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;I am not sure, that encoding/encryption the clientId is, but it didn't
+matter for my purpose to write a bot. So when I expect a challenge from
+another player, I receive such a packet:&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;2. Game begins&lt;/strong&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;[{&amp;quot;data&amp;quot;:{&amp;quot;sid&amp;quot;:&amp;quot;gserv&amp;quot;,&amp;quot;game&amp;quot;:{&amp;quot;id&amp;quot;:709341692,&amp;quot;status&amp;quot;:&amp;quot;starting&amp;quot;,&amp;quot;seq&amp;quot;:0,&amp;quot;players&amp;quot;:[{&amp;quot;uid&amp;quot;:&amp;quot;ponkhan&amp;quot;,&amp;quot;status&amp;quot;:&amp;quot;playing&amp;quot;,&amp;quot;lag&amp;quot;:2,&amp;quot;lagms&amp;quot;:285,&amp;quot;gid&amp;quot;:709341692},{&amp;quot;uid&amp;quot;:&amp;quot;EatingSpiders&amp;quot;,&amp;quot;status&amp;quot;:&amp;quot;playing&amp;quot;,&amp;quot;lag&amp;quot;:1,&amp;quot;lagms&amp;quot;:177,&amp;quot;gid&amp;quot;:709341692}],&amp;quot;abortable&amp;quot;:[true,true],&amp;quot;moves&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;clocks&amp;quot;:[600,600],&amp;quot;draws&amp;quot;:[],&amp;quot;repeated&amp;quot;:true,&amp;quot;squares&amp;quot;:[0,0]},&amp;quot;tid&amp;quot;:&amp;quot;GameState&amp;quot;},&amp;quot;channel&amp;quot;:&amp;quot;/game/709341692&amp;quot;}]
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Noteworthy is the &lt;em&gt;status&lt;/em&gt; "starting". As you can see, the &lt;em&gt;moves&lt;/em&gt; value
+is still empty. Then my adversary made a move and I receive again a
+message in the style as above:&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;3. First move received&lt;/strong&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;[{&amp;quot;data&amp;quot;:{&amp;quot;sid&amp;quot;:&amp;quot;gserv&amp;quot;,&amp;quot;game&amp;quot;:{&amp;quot;id&amp;quot;:709341692,&amp;quot;status&amp;quot;:&amp;quot;starting&amp;quot;,&amp;quot;seq&amp;quot;:1,&amp;quot;players&amp;quot;:[{&amp;quot;uid&amp;quot;:&amp;quot;ponkhan&amp;quot;,&amp;quot;status&amp;quot;:&amp;quot;playing&amp;quot;,&amp;quot;lag&amp;quot;:3,&amp;quot;lagms&amp;quot;:381,&amp;quot;gid&amp;quot;:709341692},{&amp;quot;uid&amp;quot;:&amp;quot;EatingSpiders&amp;quot;,&amp;quot;status&amp;quot;:&amp;quot;playing&amp;quot;,&amp;quot;lag&amp;quot;:1,&amp;quot;lagms&amp;quot;:183,&amp;quot;gid&amp;quot;:709341692}],&amp;quot;abortable&amp;quot;:[true,true],&amp;quot;moves&amp;quot;:&amp;quot;mC&amp;quot;,&amp;quot;clocks&amp;quot;:[600,600],&amp;quot;draws&amp;quot;:[],&amp;quot;squares&amp;quot;:[0,0]},&amp;quot;tid&amp;quot;:&amp;quot;GameState&amp;quot;},&amp;quot;channel&amp;quot;:&amp;quot;/game/709341692&amp;quot;}]
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Now &lt;em&gt;moves&lt;/em&gt; isn't empty anymore, it contains &lt;em&gt;"mC"&lt;/em&gt;, but what the heck
+does it mean?&lt;/p&gt;
+&lt;p&gt;It's basically a encoding of chess.com for their move notation. I don't
+know why the chose it, maybe it's represents a compression because it'd
+use n/2 of the space where n is the number of bytes used in the
+&lt;a href="http://en.wikipedia.org/wiki/Algebraic_notation_(chess)"&gt;algebraic chess
+notation.&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;But I honestly doubt it, because there are far better compression
+methods for 64 possible squares (and some promotion combinations).&lt;/p&gt;
+&lt;p&gt;Maybe it's a way to stop stupid cheaters like me to pursue their
+devilish deeds, but that can't be possible, since the method that
+decoded/decrypts the move notation isn't more than a simple look-up
+table:&lt;/p&gt;
+&lt;p&gt;Here is the relevant code part of the obfuscated javascript source in
+LiveChessCore.js, at line 8577 (after applying Chrome's pretty print
+functionality):&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;function&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;zf9bd6&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;function&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;z6439d&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;a1&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;a&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;a2&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;i&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;a3&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;q&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;a4&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;y&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;a5&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;G&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;a6&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;O&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;a7&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;W&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;a8&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;4&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;b1&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;b&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;b2&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;j&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;b3&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;r&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;b4&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;z&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;b5&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;H&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;b6&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;P&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;b7&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;X&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;b8&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;5&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;c1&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;c&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;c2&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;k&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;c3&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;s&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;c4&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;A&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;c5&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;I&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;c6&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;Q&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;c7&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;Y&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;c8&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;6&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;d1&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;d&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;d2&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;l&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;d3&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;t&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;d4&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;B&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;d5&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;J&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;d6&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;R&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;d7&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;Z&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;d8&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;7&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;e1&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;e&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;e2&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;m&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;e3&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;u&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;e4&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;C&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;e5&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;K&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;e6&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;S&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;e7&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;0&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;e8&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;8&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;f1&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;f&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;f2&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;n&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;f3&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;v&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;f4&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;D&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;f5&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;L&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;f6&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;T&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;f7&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;1&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;f8&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;9&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;g1&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;g&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;g2&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;o&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;g3&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;w&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;g4&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;E&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;g5&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;M&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;g6&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;U&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;g7&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;2&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;g8&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;!&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;h1&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;h&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;h2&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;p&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;h3&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;x&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;h4&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;F&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;h5&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;N&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;h6&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;V&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;h7&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;3&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;h8&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;?&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;};&lt;/span&gt;
+        &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ze8500&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_a&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;a1&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_i&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;a2&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_q&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;a3&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_y&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;a4&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_G&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;a5&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_O&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;a6&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_W&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;a7&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_4&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;a8&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_b&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;b1&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_j&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;b2&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_r&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;b3&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_z&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;b4&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_H&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;b5&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_P&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;b6&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_X&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;b7&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_5&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;b8&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_c&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;c1&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_k&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;c2&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_s&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;c3&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_A&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;c4&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_I&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;c5&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_Q&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;c6&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_Y&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;c7&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_6&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;c8&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_d&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;d1&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_l&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;d2&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_t&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;d3&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_B&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;d4&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_J&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;d5&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_R&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;d6&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_Z&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;d7&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_7&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;d8&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_e&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;e1&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_m&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;e2&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_u&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;e3&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_C&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;e4&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_K&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;e5&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_S&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;e6&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_0&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;e7&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_8&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;e8&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_f&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;f1&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_n&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;f2&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_v&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;f3&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_D&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;f4&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_L&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;f5&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_T&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;f6&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_1&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;f7&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_9&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;f8&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_g&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;g1&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_o&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;g2&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_w&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;g3&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_E&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;g4&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_M&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;g5&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_U&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;g6&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_2&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;g7&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_!&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;g8&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_h&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;h1&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_p&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;h2&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_x&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;h3&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_F&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;h4&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_N&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;h5&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_V&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;h6&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_3&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;h7&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_?&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;h8&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;};&lt;/span&gt;
+        &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;z56f6c&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;{&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;z87e36&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;~&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;zbba2c&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;}&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;z7fd23&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;(&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;za93ff&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;^&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;z536e1&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;)&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;z817b2&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;[&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;z00e3d&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;_&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ze4b5e&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;]&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;z91a79&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;@&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;zc21d8&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;#&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;zaa236&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;$&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="p"&gt;};&lt;/span&gt;
+    &lt;span class="n"&gt;zf9bd6&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;prototype&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nl"&gt;z0cd66&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;function&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;ze2e37&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;zbd29b&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;z2ba00&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+            &lt;span class="n"&gt;var&lt;/span&gt; &lt;span class="n"&gt;zed3d4&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;z6439d&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;ze2e37&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+            &lt;span class="n"&gt;var&lt;/span&gt; &lt;span class="n"&gt;z98075&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;z6439d&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;zbd29b&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;z2ba00&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="n"&gt;var&lt;/span&gt; &lt;span class="n"&gt;dir&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;zbd29b&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;charCodeAt&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="n"&gt;ze2e37&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;charCodeAt&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+                &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;z2ba00&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;q&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+                    &lt;span class="n"&gt;z98075&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;dir&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;?&lt;/span&gt; &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nl"&gt;z56f6c&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="n"&gt;dir&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;?&lt;/span&gt; &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nl"&gt;zbba2c&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;z87e36&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+                &lt;span class="k"&gt;else&lt;/span&gt; 
+                &lt;span class="nf"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;z2ba00&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;n&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+                    &lt;span class="n"&gt;z98075&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;dir&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;?&lt;/span&gt; &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nl"&gt;z7fd23&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="n"&gt;dir&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;?&lt;/span&gt; &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nl"&gt;z536e1&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;za93ff&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+                &lt;span class="k"&gt;else&lt;/span&gt; 
+                &lt;span class="nf"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;z2ba00&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;r&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+                    &lt;span class="n"&gt;z98075&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;dir&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;?&lt;/span&gt; &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nl"&gt;z817b2&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="n"&gt;dir&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;?&lt;/span&gt; &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nl"&gt;ze4b5e&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;z00e3d&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+                &lt;span class="k"&gt;else&lt;/span&gt; 
+                &lt;span class="nf"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;z2ba00&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;b&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+                    &lt;span class="n"&gt;z98075&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;dir&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;?&lt;/span&gt; &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nl"&gt;z91a79&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="n"&gt;dir&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;?&lt;/span&gt; &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nl"&gt;zaa236&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;zc21d8&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+            &lt;span class="p"&gt;}&lt;/span&gt;
+            &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;zed3d4&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;z98075&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="p"&gt;},&lt;/span&gt;&lt;span class="nl"&gt;zafc74&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;function&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;z32182&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+            &lt;span class="n"&gt;var&lt;/span&gt; &lt;span class="n"&gt;zed3d4&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;z32182&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;charAt&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+            &lt;span class="n"&gt;var&lt;/span&gt; &lt;span class="n"&gt;z98075&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;z32182&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;charAt&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+            &lt;span class="n"&gt;var&lt;/span&gt; &lt;span class="n"&gt;ze2e37&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ze8500&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;zed3d4&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+            &lt;span class="n"&gt;var&lt;/span&gt; &lt;span class="n"&gt;zbd29b&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+            &lt;span class="n"&gt;var&lt;/span&gt; &lt;span class="n"&gt;z2ba00&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;null&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+            &lt;span class="n"&gt;var&lt;/span&gt; &lt;span class="n"&gt;z2b70d&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;ze2e37&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;charCodeAt&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+            &lt;span class="n"&gt;var&lt;/span&gt; &lt;span class="n"&gt;z5b3be&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;null&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;z98075&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;z56f6c&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="n"&gt;z5b3be&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;z2b70d&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                &lt;span class="n"&gt;z2ba00&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;q&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+            &lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;else&lt;/span&gt; 
+            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;z98075&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;z87e36&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="n"&gt;z5b3be&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;z2b70d&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                &lt;span class="n"&gt;z2ba00&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;q&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+            &lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;else&lt;/span&gt; 
+            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;z98075&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;zbba2c&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="n"&gt;z5b3be&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;z2b70d&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                &lt;span class="n"&gt;z2ba00&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;q&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+            &lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;else&lt;/span&gt; 
+            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;z98075&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;z7fd23&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="n"&gt;z5b3be&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;z2b70d&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                &lt;span class="n"&gt;z2ba00&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;n&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+            &lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;else&lt;/span&gt; 
+            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;z98075&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;za93ff&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="n"&gt;z5b3be&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;z2b70d&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                &lt;span class="n"&gt;z2ba00&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;n&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+            &lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;else&lt;/span&gt; 
+            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;z98075&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;z536e1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="n"&gt;z5b3be&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;z2b70d&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                &lt;span class="n"&gt;z2ba00&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;n&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+            &lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;else&lt;/span&gt; 
+            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;z98075&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;z817b2&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="n"&gt;z5b3be&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;z2b70d&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                &lt;span class="n"&gt;z2ba00&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;r&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+            &lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;else&lt;/span&gt; 
+            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;z98075&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;z00e3d&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="n"&gt;z5b3be&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;z2b70d&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                &lt;span class="n"&gt;z2ba00&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;r&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+            &lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;else&lt;/span&gt; 
+            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;z98075&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ze4b5e&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="n"&gt;z5b3be&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;z2b70d&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                &lt;span class="n"&gt;z2ba00&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;r&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+            &lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;else&lt;/span&gt; 
+            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;z98075&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;z91a79&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="n"&gt;z5b3be&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;z2b70d&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                &lt;span class="n"&gt;z2ba00&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;b&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+            &lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;else&lt;/span&gt; 
+            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;z98075&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;zc21d8&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="n"&gt;z5b3be&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;z2b70d&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                &lt;span class="n"&gt;z2ba00&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;b&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+            &lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;else&lt;/span&gt; 
+            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;z98075&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;zaa236&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="n"&gt;z5b3be&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;z2b70d&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                &lt;span class="n"&gt;z2ba00&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;b&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+            &lt;span class="p"&gt;}&lt;/span&gt;
+            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;z5b3be&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="n"&gt;null&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="n"&gt;var&lt;/span&gt; &lt;span class="n"&gt;zd2788&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;ze2e37&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;charAt&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+                &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;zd2788&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mi"&gt;7&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+                    &lt;span class="n"&gt;zbd29b&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;String&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;fromCharCode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;z5b3be&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;8&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                &lt;span class="k"&gt;else&lt;/span&gt; 
+                &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;zd2788&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+                    &lt;span class="n"&gt;zbd29b&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;String&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;fromCharCode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;z5b3be&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;1&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                &lt;span class="k"&gt;else&lt;/span&gt;
+                    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;null&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+            &lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;else&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="n"&gt;zbd29b&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ze8500&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;z98075&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+                &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;!&lt;/span&gt;&lt;span class="n"&gt;zbd29b&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+                    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;null&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+            &lt;span class="p"&gt;}&lt;/span&gt;
+            &lt;span class="n"&gt;var&lt;/span&gt; &lt;span class="n"&gt;z3cbd9&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{};&lt;/span&gt;
+            &lt;span class="n"&gt;z3cbd9&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;fromArea&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;ze2e37&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+            &lt;span class="n"&gt;z3cbd9&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;toArea&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;zbd29b&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+            &lt;span class="n"&gt;z3cbd9&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;additionalInfo&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;z2ba00&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+            &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;z3cbd9&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="p"&gt;},&lt;/span&gt;&lt;span class="nl"&gt;za902f&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;function&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;zcc2ef&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+            &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;z6439d&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;zcc2ef&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+        &lt;span class="p"&gt;},&lt;/span&gt;&lt;span class="nl"&gt;z398d0&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;function&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;zccfb6&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+            &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ze8500&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;_&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;zccfb6&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+        &lt;span class="p"&gt;}};&lt;/span&gt;
+&lt;span class="p"&gt;})();&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Before I forget it: Why the hell are you guys from chess.com obfuscating
+your JS code? I mean it probably makes sense to pack and encrypt game
+binaries of big games (that are still very fast cracked by talanted
+crackers), but why blur Javascript? It's just too easy to reverse the
+logic with existing tools such as DevTools or Firebug, so why even
+bother?&lt;/p&gt;
+&lt;p&gt;No with the function above, we can look the move up which reveals "mC"
+== "e3e5". So we now how to encode/decode the move notation. Let's
+inspect the next message:&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;4. Writing my first move (outgoing Message)&lt;/strong&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;[{&amp;quot;channel&amp;quot;:&amp;quot;/service/user&amp;quot;,&amp;quot;data&amp;quot;:{&amp;quot;move&amp;quot;:{&amp;quot;gid&amp;quot;:709341692,&amp;quot;seq&amp;quot;:1,&amp;quot;uid&amp;quot;:&amp;quot;EatingSpiders&amp;quot;,&amp;quot;move&amp;quot;:&amp;quot;YI&amp;quot;,&amp;quot;clock&amp;quot;:600,&amp;quot;clockms&amp;quot;:60000,&amp;quot;squared&amp;quot;:false},&amp;quot;sid&amp;quot;:&amp;quot;gserv&amp;quot;,&amp;quot;tid&amp;quot;:&amp;quot;Move&amp;quot;},&amp;quot;id&amp;quot;:&amp;quot;259&amp;quot;,&amp;quot;clientId&amp;quot;:&amp;quot;6djua267g6n8ydja21m8yhztj3gtpx&amp;quot;}]
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Nothing new here, this is just my browser that send the move "YI" to the
+game server. You can look it up now on your own, since I have identified
+the decoding mechanism above.&lt;/p&gt;
+&lt;p&gt;Now the next messages are just essentially like the previous two (with
+status &lt;em&gt;in_progress&lt;/em&gt; in place of the initial &lt;em&gt;starting&lt;/em&gt;), always
+receiving the opponents move and then I sending my move. So we have all
+knowledge about the protocol that we need, now let's discuss how I
+finally implemented my bot.&lt;/p&gt;
+&lt;h3 id="chap_workings"&gt;How the bot is implemented&lt;/h3&gt;
+&lt;p&gt;As discussed, I chose to hook into low level networking functions in the
+browser. I chose firefox as my hooking target, because there already
+exist quite many examples on how to hook networking functions in
+firefox.&lt;/p&gt;
+&lt;p&gt;So the technique is basically known as the LD_PRELOAD trick. You can
+learn about it on this short &lt;a href="http://stackoverflow.com/questions/426230/what-is-the-ld-preload-trick"&gt;stackoverflow.com
+explanation&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;There are other, better ways to hook library functions, I really
+recommend you to read &lt;a href="http://www.codeproject.com/Articles/70302/Redirecting-functions-in-shared-ELF-libraries"&gt;this wonderful
+article&lt;/a&gt;
+about &lt;em&gt;redirecting shared functions in ELF binaries&lt;/em&gt;. But you should
+have profound knowledge of the &lt;em&gt;ELF&lt;/em&gt; format in order to follow;&lt;/p&gt;
+&lt;p&gt;First, I tried to hook directly into the specific HTTP and WebSocket
+functions in the firefox network library called &lt;em&gt;netwerk&lt;/em&gt; or
+&lt;a href="https://developer.mozilla.org/en/docs/Necko"&gt;necko&lt;/a&gt;. But firefox is
+written in C++ and therefore it's not so simple to use the LD_PRELOAD
+trick, because the functions/class names are
+&lt;a href="http://en.wikipedia.org/wiki/Name_mangling#Standardised_name_mangling_in_C.2B.2B"&gt;mangled&lt;/a&gt;.
+I desperately tried to hook such C++ code and I also managed to to so in
+a simple example. It looks something like below, but it couldn't
+actually log some calls. Maybe because the function was never called.
+Here I try to hook into the &lt;code&gt;GenerateCredentials()&lt;/code&gt; function of the
+&lt;code&gt;nsHttpBasicAuth&lt;/code&gt; class. I assume the function fires when you enter
+HttpAuth credentials in a browser.&lt;/p&gt;
+&lt;p&gt;[Crayon lang="C++"]&lt;br /&gt;
+#include &lt;dlfcn.h&gt; #include &lt;stdlib.h&gt;&lt;br /&gt;
+#include &lt;stdio.h&gt;&lt;br /&gt;
+#include &lt;string.h&gt;&lt;/p&gt;
+&lt;p&gt;#ifndef _GNU_SOURCE&lt;br /&gt;
+#define _GNU_SOURCE&lt;br /&gt;
+#endif&lt;/p&gt;
+&lt;p&gt;namespace mozilla {&lt;br /&gt;
+namespace net {&lt;/p&gt;
+&lt;p&gt;typedef unsigned short char16_t;&lt;br /&gt;
+typedef unsigned int uint32_t;&lt;br /&gt;
+typedef unsigned long PRUint32;&lt;br /&gt;
+typedef PRUint32 nsresult;&lt;br /&gt;
+#define NS_IMETHODIMP NS_IMETHODIMP_(nsresult)&lt;/p&gt;
+&lt;p&gt;class nsIHttpAuthenticator {&lt;/p&gt;
+&lt;p&gt;};&lt;/p&gt;
+&lt;p&gt;class nsISupports {&lt;/p&gt;
+&lt;p&gt;};&lt;/p&gt;
+&lt;p&gt;class nsHttpBasicAuth : public nsIHttpAuthenticator&lt;br /&gt;
+{&lt;br /&gt;
+public:&lt;br /&gt;
+nsHttpBasicAuth();&lt;br /&gt;
+virtual \~nsHttpBasicAuth();&lt;br /&gt;
+unsigned long GenerateCredentials(void *authChannel,&lt;br /&gt;
+const char *challenge,&lt;br /&gt;
+bool isProxyAuth,&lt;br /&gt;
+const char16_t *domain,&lt;br /&gt;
+const char16_t *user,&lt;br /&gt;
+const char16_t *password,&lt;br /&gt;
+nsISupports **sessionState,&lt;br /&gt;
+nsISupports **continuationState,&lt;br /&gt;
+uint32_t *aFlags,&lt;br /&gt;
+char **creds);&lt;/p&gt;
+&lt;p&gt;};&lt;/p&gt;
+&lt;p&gt;nsHttpBasicAuth::nsHttpBasicAuth()&lt;br /&gt;
+{&lt;br /&gt;
+}&lt;/p&gt;
+&lt;p&gt;nsHttpBasicAuth::\~nsHttpBasicAuth()&lt;br /&gt;
+{&lt;br /&gt;
+}&lt;/p&gt;
+&lt;p&gt;unsigned long&lt;br /&gt;
+nsHttpBasicAuth::GenerateCredentials(void *authChannel,&lt;br /&gt;
+const char *challenge,&lt;br /&gt;
+bool isProxyAuth,&lt;br /&gt;
+const char16_t *domain,&lt;br /&gt;
+const char16_t *user,&lt;br /&gt;
+const char16_t *password,&lt;br /&gt;
+nsISupports **sessionState,&lt;br /&gt;
+nsISupports **continuationState,&lt;br /&gt;
+uint32_t *aFlags,&lt;br /&gt;
+char **creds) {&lt;br /&gt;
+fprintf(stdout, "[+] GenerateCredentials hooked!\n");&lt;br /&gt;
+// define the class member pointer tyep&lt;br /&gt;
+typedef unsigned long (nsHttpBasicAuth::*hookedMethod)(void *, const
+char *, bool, const char16_t *, const char16_t *, const char16_t
+*, nsISupports **, nsISupports **, uint32_t *, char **);&lt;br /&gt;
+static hookedMethod origMethod = 0;&lt;/p&gt;
+&lt;p&gt;void *tmpPtr = dlsym(RTLD_NEXT,
+"_ZN7mozilla3net15nsHttpBasicAuth19GenerateCredentialsEPvPKcbPKtS6_S6_PPNS0_11nsISupportsES9_PjPPc");&lt;br /&gt;
+if (tmpPtr == NULL) {&lt;br /&gt;
+fprintf(stderr, "dlsym() couldn't located the symbol :( \n");&lt;br /&gt;
+exit(EXIT_FAILURE);&lt;br /&gt;
+}&lt;/p&gt;
+&lt;p&gt;memcpy(&amp;amp;origMethod, &amp;amp;tmpPtr, sizeof(&amp;amp;tmpPtr));&lt;/p&gt;
+&lt;p&gt;// call the original method&lt;br /&gt;
+unsigned long retVal = (this-&gt;*origMethod)(authChannel, challenge,
+isProxyAuth, domain, user, password, sessionState, continuationState,
+aFlags, creds);&lt;/p&gt;
+&lt;p&gt;return retVal;&lt;br /&gt;
+}&lt;/p&gt;
+&lt;p&gt;}&lt;br /&gt;
+}&lt;/p&gt;
+&lt;p&gt;Anyways, if I could get succeed in hooking C++ functions by overcoming
+the mangling issues, I would directly hook into functions found in the
+mozilla source tree
+&lt;a href="http://mxr.mozilla.org/mozilla-central/source/netwerk/protocol/websocket/"&gt;/mozilla-central/source/netwerk/protocol/websocket/&lt;/a&gt;.
+It would be enormously juicy to hook into the file
+&lt;a href="http://mxr.mozilla.org/mozilla-central/source/netwerk/protocol/websocket/WebSocketChannel.cpp"&gt;WebSocketChannel.cpp&lt;/a&gt;.
+For example the function &lt;code&gt;void WebSocketChannel::BeginOpen()&lt;/code&gt; on line
+1061 looks like a nice start. &lt;strong&gt;Can anyone provide me a hooking example
+for this function? That'd be awesome!&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;So after some further research and giving up trying to hook C++
+functions, I decided to hook into firefox's &lt;em&gt;PR_write()&lt;/em&gt; and
+&lt;em&gt;PR_read()&lt;/em&gt; low level networking functions, implemented in plain C. If
+you search for these functions in the internet, you will find lot's of
+different example for form grabbers, techniques that are commonly used
+by maleware writers.&lt;/p&gt;
+&lt;p&gt;After experimenting a little bit with these two functions, I figured out
+that basically the whole freaking internet flows through them. For
+instance, if you just open a browser without loading any site, a whole
+bunch of meta protocols are squeezed through &lt;em&gt;PR_write()&lt;/em&gt; and
+&lt;em&gt;PR_read()&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;I assume that all possible protocols (like accessing cookies,
+&lt;em&gt;about:blank&lt;/em&gt;, &lt;em&gt;file:&lt;/em&gt; and the like) are also handled these functions.
+It's really funny what you're able to see when you hook into these
+functions. To formulate it pregnant: Stuff that you thought to be
+deleted after clearing the cache is happily appearing inside these two
+functions...&lt;/p&gt;
+&lt;p&gt;Anyways, the basic C code that implements this hooking technique in form
+of a shared library looks like the bottom code excerpt. You can always
+visit &lt;a href="https://github.com/NikolaiT/chess-com-cheat"&gt;my public
+repository&lt;/a&gt;, where you can
+read the current state of the cheat code.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nx"&gt;PRInt32&lt;/span&gt; &lt;span class="nx"&gt;PR_Write&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;PRFileDesc&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;fd&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kr"&gt;const&lt;/span&gt; &lt;span class="k"&gt;void&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;buf&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;PRInt32&lt;/span&gt; &lt;span class="nx"&gt;amount&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="kr"&gt;static&lt;/span&gt; &lt;span class="nx"&gt;PRInt32&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;my_PR_write&lt;/span&gt;&lt;span class="p"&gt;)(&lt;/span&gt;&lt;span class="nx"&gt;PRFileDesc&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kr"&gt;const&lt;/span&gt; &lt;span class="k"&gt;void&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;PRInt32&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// Detect the client WebSocket connection attempt&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;!&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;webSocketState&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;state&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt; &lt;span class="nx"&gt;WEB_SOCKET_CONNECTION_REQUESTED&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="nx"&gt;amount&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="mi"&gt;600&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="nx"&gt;amount&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="mi"&gt;1200&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="nx"&gt;memContains&lt;/span&gt;&lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="kr"&gt;const&lt;/span&gt; &lt;span class="kr"&gt;char&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="nx"&gt;buf&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;amount&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Upgrade: websocket&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; 
+        &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="nx"&gt;memContains&lt;/span&gt;&lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="kr"&gt;const&lt;/span&gt; &lt;span class="kr"&gt;char&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="nx"&gt;buf&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;amount&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Origin: http://live.chess.com&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="nx"&gt;memContains&lt;/span&gt;&lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="kr"&gt;const&lt;/span&gt; &lt;span class="kr"&gt;char&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="nx"&gt;buf&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;amount&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Sec-WebSocket-Key:&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt;
+             &lt;span class="nx"&gt;memContains&lt;/span&gt;&lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="kr"&gt;const&lt;/span&gt; &lt;span class="kr"&gt;char&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="nx"&gt;buf&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;amount&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Sec-WebSocket-Version: 13&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="nx"&gt;webSocketState&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;state&lt;/span&gt; &lt;span class="o"&gt;|=&lt;/span&gt; &lt;span class="nx"&gt;WEB_SOCKET_CONNECTION_REQUESTED&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; 
+&lt;span class="err"&gt;#&lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="nx"&gt;DEBUG_LEVEL&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
+        &lt;span class="nx"&gt;INFO_PRINT&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;Chess.com WebSocket client request detected&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;SH_RED&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="err"&gt;#&lt;/span&gt;&lt;span class="nx"&gt;endif&lt;/span&gt;
+        &lt;span class="c1"&gt;// Also start up the Stockfish engine&lt;/span&gt;
+        &lt;span class="c1"&gt;//INFO_PRINT(&amp;quot;Starting the engine...&amp;quot;, SH_BLUE);&lt;/span&gt;
+        &lt;span class="c1"&gt;//initStockfish();&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="cm"&gt;/*&lt;/span&gt;
+&lt;span class="cm"&gt;     * When the WebSocket is open sniff for move packets that are between 230 and 240 bytes in size.&lt;/span&gt;
+&lt;span class="cm"&gt;     * I observed that these synchronize with moves made and hence I assume these packetses transmit moves.&lt;/span&gt;
+&lt;span class="cm"&gt;     * Now I just need do decrypt them and good is.&lt;/span&gt;
+&lt;span class="cm"&gt;     */&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="nx"&gt;webSocketState&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;state&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt; &lt;span class="nx"&gt;WEB_SOCKET_CONNECTION_REQUESTED&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="nx"&gt;amount&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="mi"&gt;210&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="nx"&gt;amount&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="mi"&gt;260&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+&lt;span class="err"&gt;#&lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="nx"&gt;DEBUG_LEVEL&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;=&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;
+        &lt;span class="nx"&gt;INFO_PRINT&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;PR_Write() called and buffer size suggests that this packet represents a move!&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;SH_RED&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="err"&gt;#&lt;/span&gt;&lt;span class="nx"&gt;endif&lt;/span&gt;
+        &lt;span class="c1"&gt;// Inject a engine made move and update the game state&lt;/span&gt;
+        &lt;span class="nx"&gt;modifyMove&lt;/span&gt;&lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="kr"&gt;char&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="nx"&gt;buf&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;size_t&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="nx"&gt;amount&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+
+    &lt;span class="nx"&gt;my_PR_write&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;dlsym&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;RTLD_NEXT&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;PR_Write&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;my_PR_write&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="nx"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="nx"&gt;fprintf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;stderr&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;dlsym() failed for PR_Write\n&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="nx"&gt;exit&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;EXIT_FAILURE&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+
+    &lt;span class="nx"&gt;PRInt32&lt;/span&gt; &lt;span class="nx"&gt;retVal&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;my_PR_write&lt;/span&gt;&lt;span class="p"&gt;)(&lt;/span&gt;&lt;span class="nx"&gt;fd&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;buf&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;amount&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nx"&gt;retVal&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="nx"&gt;PRInt32&lt;/span&gt; &lt;span class="nx"&gt;PR_Read&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;PRFileDesc&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;fd&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;void&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;buf&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;PRInt32&lt;/span&gt; &lt;span class="nx"&gt;amount&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="kr"&gt;static&lt;/span&gt; &lt;span class="nx"&gt;PRInt32&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;my_PR_read&lt;/span&gt;&lt;span class="p"&gt;)(&lt;/span&gt;&lt;span class="nx"&gt;PRFileDesc&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;void&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;PRInt32&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+    &lt;span class="cm"&gt;/* &lt;/span&gt;
+&lt;span class="cm"&gt;     * There is a hell of a lot data that passes through this function. Hence we only want&lt;/span&gt;
+&lt;span class="cm"&gt;     * to consume as few as possible processing power. We are only interested in data that&lt;/span&gt;
+&lt;span class="cm"&gt;     * is in a specfic length range, since it seems that the WebSocket packets on live.chess.com&lt;/span&gt;
+&lt;span class="cm"&gt;     * use pretty regular packet size.&lt;/span&gt;
+&lt;span class="cm"&gt;     */&lt;/span&gt;
+
+    &lt;span class="cm"&gt;/* &lt;/span&gt;
+&lt;span class="cm"&gt;     * Sniff for incoming live.chess.com WebSocket move data.&lt;/span&gt;
+&lt;span class="cm"&gt;     */&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="nx"&gt;webSocketState&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;state&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt; &lt;span class="nx"&gt;WEB_SOCKET_CONNECTION_REQUESTED&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="nx"&gt;amount&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="mi"&gt;50&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="nx"&gt;memContains&lt;/span&gt;&lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="kr"&gt;const&lt;/span&gt; &lt;span class="kr"&gt;char&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="nx"&gt;buf&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;amount&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;moves&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="nx"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="nx"&gt;couldRead&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="nx"&gt;collectGameState&lt;/span&gt;&lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="kr"&gt;char&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="nx"&gt;buf&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;amount&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="err"&gt;#&lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="nx"&gt;DEBUG_LEVEL&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;=&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;
+        &lt;span class="nx"&gt;INFO_PRINT&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;PR_Read() called with &amp;#39;moves&amp;#39; keyword inside&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;SH_BLUE&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="err"&gt;#&lt;/span&gt;&lt;span class="nx"&gt;endif&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+
+    &lt;span class="nx"&gt;my_PR_read&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;dlsym&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;RTLD_NEXT&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;PR_Read&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;my_PR_read&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="nx"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="nx"&gt;fprintf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;stderr&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;dlsym() failed for PR_Write\n&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="nx"&gt;exit&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;EXIT_FAILURE&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+
+    &lt;span class="nx"&gt;PRInt32&lt;/span&gt; &lt;span class="nx"&gt;retVal&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;my_PR_read&lt;/span&gt;&lt;span class="p"&gt;)(&lt;/span&gt;&lt;span class="nx"&gt;fd&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;buf&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;amount&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nx"&gt;retVal&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;I hope the above code is more or less self explanatory. But in case it's
+not, here's a short summary of the rough algorithm that it computes:&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;1.&lt;/strong&gt; The shared library (let's call it libpwh.so) is dynamically
+loaded in a firefox process with the LD_PRELOAD trick. For instance:
+&lt;code&gt;export LD_PRELOAD=$PWD/libpwh.so; /usr/bin/firefox&lt;/code&gt;&lt;br /&gt;
+&lt;strong&gt;2.&lt;/strong&gt; The functions PR_Read() and PR_Write() are hooked.&lt;br /&gt;
+&lt;strong&gt;3.&lt;/strong&gt; As soon as a WebSocket request that indicates the beginning of a
+new live.chess.com chess game is detected, the shared library (the above
+code) initializes the &lt;a href="http://stockfishchess.org/" title="chess engine"&gt;local Stockfish chess
+engine&lt;/a&gt; with the function
+&lt;em&gt;int initStockfish()&lt;/em&gt; {There should be enough time before the game
+actually begins to pre-calculate some moves}.&lt;br /&gt;
+&lt;strong&gt;3.1&lt;/strong&gt; When a JSON message like the following&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;[{&amp;quot;data&amp;quot;:{&amp;quot;sid&amp;quot;:&amp;quot;gserv&amp;quot;,&amp;quot;game&amp;quot;:{&amp;quot;id&amp;quot;:706548893,&amp;quot;status&amp;quot;:&amp;quot;starting&amp;quot;,&amp;quot;seq&amp;quot;:0,&amp;quot;players&amp;quot;:[{&amp;quot;uid&amp;quot;:&amp;quot;rocchen&amp;quot;,&amp;quot;status&amp;quot;:&amp;quot;playing&amp;quot;,&amp;quot;lag&amp;quot;:4,&amp;quot;lagms&amp;quot;:415,&amp;quot;gid&amp;quot;:706548893},{&amp;quot;uid&amp;quot;:&amp;quot;workcentre7328&amp;quot;,&amp;quot;status&amp;quot;:&amp;quot;playing&amp;quot;,&amp;quot;lag&amp;quot;:2,&amp;quot;lagms&amp;quot;:210,&amp;quot;gid&amp;quot;:706548893}],&amp;quot;abortable&amp;quot;:[true,true],&amp;quot;moves&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;clocks&amp;quot;:[600,600],&amp;quot;draws&amp;quot;:[],&amp;quot;repeated&amp;quot;:true,&amp;quot;squares&amp;quot;:[0,0]},&amp;quot;tid&amp;quot;:&amp;quot;GameState&amp;quot;},&amp;quot;channel&amp;quot;:&amp;quot;/game/706548893&amp;quot;}]
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;
+is intercepted, a game has begun. The needles that indicate such a
+beginning are thus the players UID and the string *"status":"starting"*  
+**4.** From now on, every outgoing packet (from PR\_Write()), that
+causes a move, must be updated with a chess engine move. This is done
+with with function void *modifyMove()*, which in turns relies on a
+correct game state. Such a outbound packet looks like (We have discussed
+the protocol in the previous chapter):
+
+    [{"channel":"/service/user","data":{"move":{"gid":706662190,"seq":11,"uid":"rocchen","move":"9I","clock":76,"clockms":7661,"squared":false},"sid":"gserv","tid":"Move"},"id":"105","clientId":"4gzikii6gu01a1k7kvdcb7a1h2gh6"}]
+
+**5.** Concurrently to step 4, the move made by the opponent is
+synchronized with a local gameState struct variable. The opponent's move
+is obtained in PR\_Read() and the function void *collectGameState()*
+keeps the move history current. The function *collectGameState()* also
+stores the current game state in a C struct:
+
+[Crayon="C"]  
+// This struct holds the current game state and all kids of game
+information as parsed and extracted of the live session  
+typedef struct {  
+char status[0x50]; // The status as defined by the protocol. Will be
+most likely 'playing' during a game.  
+uint64\_t gameID; // The global game id. Can be looked up after games
+to review the game.  
+uint32\_t moveNumber; // The number of moves I did  
+char playerName[0x50]; // Me  
+char opponentPlayerName[0x50]; // Poor opponent  
+uint64\_t remainingTimeMsSelf; // yeah does that matter?  
+uint64\_t remainingTimeMsOpponent; // probably more relevant  
+uint16\_t lagMsSelf; // i have a stupid connection here in my house  
+uint16\_t lagMsOpponent;  
+char movesMade[0x100]; // in live.chess.com encoded version  
+char movesMadeDecoded[0x400]; // the decoded version  
+char currentMoveOpponent[0x3]; // last move of opponent  
+char currentMoveSelf[0x3]; // my last move  
+char currentMoveOpponentDecoded[0x6];  
+char currentMoveSelfDecoded[0x6];  
+char engineMoves[0x100];  
+char engineSuggestion[0x6]; // The best move as suggested by the
+engine  
+} \_CHESS\_COM\_GAME\_SESSION\_STATE;
+
+### Conclusion {#chap_concl}
+
+Hooking is a dirty business and it's not the good idea I thought it was.
+Therefore my idea was rather average and the implementation is pretty
+bad. All in all, I am still satisfied, because it works!
+
+It would be a probably good approach if I managed to hook directly into
+[WebSocketChannel.cpp](http://mxr.mozilla.org/mozilla-central/source/netwerk/protocol/websocket/WebSocketChannel.cpp),
+because I wouldn't need to cumbersomly pick my target messages in the
+huge traffic that flows thourgh PR\_Read().
+
+It's a really strange bot to use, because while my bot modifies packets,
+**the javascript frontend can't properly deal with this fact and in
+displays a huge mess!** This is really interesting because the frontend
+(in flash and javascript) notes that I made a specific move and saves it
+accordingly in their variables/objects, but suddenly the game server
+says that I made in reality atotally different move (The one which was
+injected by my code). So the poor frontend is heavily confused and
+sometimes needs up to 10 moves to update the *real* moves into the
+frontend browser window. You can observe this behaviour in the video.
+It's really funny!
+
+To be honest, my bot has still many open issues and sometimes the
+firefox process crashes randomly. Maybe there's a memory leak somewhere,
+because after several games someone eats up the whole heap and the whole
+linux system crashes.
+
+I am pretty sure it's not my malloc/calloc, because I strictly checked
+to free() all allocated buffers. But on the other hand, I must be the
+culprit, because without me hooking into firefox, everything works like
+a charm.
+
+Either I am to inexperienced or it *just is* hard, but I think making a
+click bot (as discussed above) for browser games it a far better
+approach, if the case you're strictly result oriented :)
+
+### Demonstration videos {#chap_demo}
+
+These two videos are of slightly low quality, but you can still
+comfortably recolonize the chess game:
+
+&lt;p&gt;
+&lt;!-- This version of the embed code is no longer supported. Learn more: https://vimeo.com/s/tnm --&gt;
+
+&lt;object width="500" height="281"&gt;
+&lt;param name="allowfullscreen" value="true"&gt;&lt;/param&gt;&lt;param name="allowscriptaccess" value="always"&gt;&lt;/param&gt;&lt;param name="movie" value="http://vimeo.com/moogaloop.swf?clip_id=85060026&amp;amp;force_embed=1&amp;amp;server=vimeo.com&amp;amp;show_title=1&amp;amp;show_byline=1&amp;amp;show_portrait=1&amp;amp;color=00adef&amp;amp;fullscreen=1&amp;amp;autoplay=0&amp;amp;loop=0"&gt;&lt;/param&gt;
+
+&lt;embed src="http://vimeo.com/moogaloop.swf?clip_id=85060026&amp;amp;force_embed=1&amp;amp;server=vimeo.com&amp;amp;show_title=1&amp;amp;show_byline=1&amp;amp;show_portrait=1&amp;amp;color=00adef&amp;amp;fullscreen=1&amp;amp;autoplay=0&amp;amp;loop=0" type="application/x-shockwave-flash" allowfullscreen="true" allowscriptaccess="always" width="500" height="281"&gt;
+&lt;/embed&gt;
+&lt;/object&gt;
+[Chess.com Bot](http://vimeo.com/85060026) from [Nikolai
+T](http://vimeo.com/user24568030) on [Vimeo](https://vimeo.com).
+
+&lt;p&gt;
+&lt;!-- This version of the embed code is no longer supported. Learn more: https://vimeo.com/s/tnm --&gt;
+
+&lt;object width="500" height="281"&gt;
+&lt;param name="allowfullscreen" value="true"&gt;&lt;/param&gt;&lt;param name="allowscriptaccess" value="always"&gt;&lt;/param&gt;&lt;param name="movie" value="http://vimeo.com/moogaloop.swf?clip_id=85083958&amp;amp;force_embed=1&amp;amp;server=vimeo.com&amp;amp;show_title=1&amp;amp;show_byline=1&amp;amp;show_portrait=1&amp;amp;color=00adef&amp;amp;fullscreen=1&amp;amp;autoplay=0&amp;amp;loop=0"&gt;&lt;/param&gt;
+
+&lt;embed src="http://vimeo.com/moogaloop.swf?clip_id=85083958&amp;amp;force_embed=1&amp;amp;server=vimeo.com&amp;amp;show_title=1&amp;amp;show_byline=1&amp;amp;show_portrait=1&amp;amp;color=00adef&amp;amp;fullscreen=1&amp;amp;autoplay=0&amp;amp;loop=0" type="application/x-shockwave-flash" allowfullscreen="true" allowscriptaccess="always" width="500" height="281"&gt;
+&lt;/embed&gt;
+&lt;/object&gt;
+[Chess.com bot demonstration](http://vimeo.com/85083958) from [Nikolai
+T](http://vimeo.com/user24568030) on [Vimeo](https://vimeo.com).
+
+**Please note the following to understand the video**: I make random
+moves with the king. They are *not actually being submitted* to the
+server, they are just shown so in the client side interface (That what
+you can see in the browser). **The real moves are updated and modified
+by the Stockfish engine and then injected into the WebSocket messages.**
+That's also the reason sometimes the chessboard suddenly updates,
+because the client side GUI recognizes that it showed the *false* moves.
+Then you can see the real moves for a second again.</summary><category term="C"></category><category term="cheating"></category><category term="chess.com"></category><category term="firefox"></category><category term="hooking"></category><category term="LowLevel"></category></entry></feed>

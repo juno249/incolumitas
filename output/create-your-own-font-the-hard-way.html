@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700,400italic' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" type="text/css" href="/theme/css/style.min.css">
+  <link rel="stylesheet" type="text/css" href="/theme/css/pygments.min.css">
+  <link rel="stylesheet" type="text/css" href="/theme/css/font-awesome.min.css">
+
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="index, follow" />
+<meta name="author" content="Nikolai Tschacher" />
+<meta name="description" content="Last major update on 23.10.2013 Preface As promised previously in my last article, I will guide you through the creation process of a rudimentary font. I will use the glyphs of my font to draw captchas and incorportate the implementation in my brand new captcha plugin for wordpress ..." />
+<meta name="keywords" content="Captcha, Programming, Design, Glyphs, Learning, Font">
+<meta property="og:site_name" content="Coding, Learning and IT Security"/>
+<meta property="og:title" content="Create your own font the hard way!"/>
+<meta property="og:description" content="Last major update on 23.10.2013 Preface As promised previously in my last article, I will guide you through the creation process of a rudimentary font. I will use the glyphs of my font to draw captchas and incorportate the implementation in my brand new captcha plugin for wordpress ..."/>
+<meta property="og:locale" content="en_US"/>
+<meta property="og:url" content="/create-your-own-font-the-hard-way.html"/>
+<meta property="og:type" content="article"/>
+<meta property="article:published_time" content="2013-10-16 15:06:00+02:00"/>
+<meta property="article:modified_time" content=""/>
+<meta property="article:author" content="/author/nikolai-tschacher.html">
+<meta property="article:section" content="Learning"/>
+<meta property="article:tag" content="Captcha"/>
+<meta property="article:tag" content="Programming"/>
+<meta property="article:tag" content="Design"/>
+<meta property="article:tag" content="Glyphs"/>
+<meta property="article:tag" content="Learning"/>
+<meta property="article:tag" content="Font"/>
+<meta property="og:image" content="">  <title>Coding, Learning and IT Security &ndash; Create your own font the hard way!</title>
+</head>
+<body>
+  <aside>
+    <div>
+      <a href="">
+        <img src="/theme/img/profile.png" alt="Coding, Learning and IT Security" title="Coding, Learning and IT Security">
+      </a>
+      <h1><a href="">Coding, Learning and IT Security</a></h1>
+      <p></p>
+      <nav>
+        <ul class="list">
+          <li><a href="/pages/about.html#about">About</a></li>
+          <li><a href="/pages/contact.html#contact">Contact</a></li>
+          <li><a href="/pages/googlescraper-py.html#googlescraper-py">GoogleScraper.py</a></li>
+          <li><a href="/pages/projects.html#projects">Projects</a></li>
+          <li><a href="/pages/impressum.html#impressum">Site Notice</a></li>
+          <li><a href="/pages/svgcaptcha.html#svgcaptcha">SVGCaptcha</a></li>
+        </ul>
+      </nav>
+      <ul class="social">
+        <li><a class="sc-twitter" href="https://twitter.com/incolumitas_" target="_blank"><i class="fa fa-twitter"></i></a></li>
+        <li><a class="sc-github" href="https://github.com/NikolaiT" target="_blank"><i class="fa fa-github"></i></a></li>
+        <li><a class="sc-rss" href="//incolumitas/feeds/all.atom.xml" target="_blank"><i class="fa fa-rss"></i></a></li>
+        <li><a class="sc-stack-overflow" href="http://stackoverflow.com/users/1052496/nikolai-tschacher" target="_blank"><i class="fa fa-stack-overflow"></i></a></li>
+      </ul>
+    </div>
+  </aside>
+  <main>
+    <nav>
+      <a href="">Home</a>
+      <a href="/archives.html">Archives</a>
+      <a href="/categories.html">Categories</a>
+      <a href="/tags.html">Tags</a>
+    </nav>
+
+<article>
+  <header>
+    <h1 id="create-your-own-font-the-hard-way">Create your own font the hard way!</h1>
+    <p>Posted on Mi 16 Oktober 2013 in <a href="/category/learning.html">Learning</a></p>
+  </header>
+  <div>
+    <p><em>Last major update on 23.10.2013</em>  </p>
+<h3>Preface</h3>
+<p>As promised previously in my last article, I will guide you through the
+creation process of a rudimentary font. I will use the glyphs of my font
+to draw captchas and incorportate the implementation in my brand new
+captcha plugin for wordpress. There are already quite a few captcha
+plugins out there, some of them are better than mine
+(<a href="http://www.google.com/recaptcha">RECAPTCHA</a>for instance translates
+books and thus solves two problems at the same time),
+<a href="http://wordpress.org/plugins/captcha/">others</a> are worse, because the
+math equations can simply be parsed (As far as I can judge without
+inspecting the code further).</p>
+<p>In this article however, I will center the focus entirely on the font
+and abstract from it's future usage in the captcha.</p>
+<h3>Technical background of fonts</h3>
+<p>A logical start of font creation is to answer the question what type of
+font we are going to create. But lets first introduce some concepts that
+are of importance when it comes to font design.</p>
+<p>In short: A font is a collection of glyphs. Each glyph has a shape and
+there are various ways of describing that shape. You can imagine a glyph
+as a instanteation of a character. Whereas a character is a conecpt a
+glyph is a reification of that concept. When we speak of glyphs, we are
+interested in the form, design and view of the character, not the
+character itself as a carrier of information. Now in our latin font,
+there is a one-to-one mapping of glyphs to characters. But in some other
+languages there might be different glyphs for a character depending on
+the adjacent characters (For instance in arabic some characters have
+four or more different glyphs).</p>
+<p>Now lets answer the question which font format we are going to choose.
+Essentially, there are three different font types, each of them with
+different advantages and drawbacks. They are:</p>
+<ul>
+<li>
+<h4>Bitmap fonts</h4>
+<p>Fonts in this format are described in a array of pixels (a bitmap).
+You can imagine the array as a two-dimensional coordinate system and
+when rasterizing the font you just copy that array in the coordinate
+system of the output canvas. The glyph information is rather
+unflexible, because there is not an easy and intuitive way to resize
+the single glyphs and therefore there are usually different bitmaps
+for the different sizes and stlyes of penmanships such as cursive,
+bold or normal.</p>
+</li>
+<li>
+<h4>Outline fonts</h4>
+<p>This format takes a different approach. Here we won't store the
+actual coordinates of glyphs. Instead we store the information of
+how to draw the glyphs as a mathematical function with different
+paramters which control the shape (cursive, bold, normal) and size
+(12px, 36px, npx) and other aspects of the appearance of each glyph.
+An outline is a set of contours or paths, and the paths consist of
+Bézier splines and simple lines. The splines are normally quadratic
+or cubic bezier curves. Therefore the glyphs are only rastered when
+the application already determined all the parameters. Outline fonts
+are very dynamic and powerful, but require a lot more of processing
+power compared to bitmap fonts. Postscript and truetype fonts are
+examples of this format.</p>
+</li>
+<li>
+<h4>Stroke fonts</h4>
+<p>Are stroked fonts, where each stem of the glyph is represented by
+one line down the center of the stem, and the line is later drawn
+with a certain widt. I am not particularly
+interested in stroke fonts, but in the case you are, just read it up
+in the interwebs.</p>
+</li>
+</ul>
+<p>I will develop a outline font, but compared to
+TrueType/OpenType/PostScript fonts, it will be in a very basic format
+and not even include the full alphabet (Just around 10-15 characters).
+Furthermore I will use quadratic and cubic Bézier splines. The glyphs
+will be of very very easy shape (Each glyph will essentially be only a
+path), but for some characters I will add some additional parameters to
+illustrate the entire possibilities. The final plugin written in PHP
+will be able to save the captchas to png and bbm files, both of them are
+bitmap formats.<br />
+It'd be certainly possible to directly use vector graphic techniques
+(Such as scalable vector graphics) and let the plugin just generate
+them. As a layman, I think this would be considerably faster and a
+<em>better</em> solution, since I can use the high level language SVG and the
+rasterization process will happen on the client-side and not on the
+server as in my intentional approach.</p>
+<h3>Why is this faster?</h3>
+<p>Because the most time consuming process is the rasterization of the
+specific Bézier splines and simple lines that define the single glyphs
+of the font. SVG files just describe the shape of these characters, but
+the final drawing process to the monitor happens in the browser of the
+client.<br />
+But on the other side, I guess that .svg captchas are more easily
+deciphered (OCR in short), because the cracker does not have to remove
+noise and guess the bitmap structure which comprises the actual letters
+(Please leave a comment if you think differently).<br />
+That being said, I will still use the latter way (Plotting my captcha
+directly and producing bitmap pictures like PNG's) in the full
+conscience that it might be the worse solution (Heck, writing captcha
+software in 2013 <em>is</em> certainily a bad idea). But all this is legitmated
+with the fruitful learning process that accompanies the coding process.</p>
+<p>Now in the case you shrug your shoulders when I mention Bézier curves,
+consider reading my <a href="http://incolumitas.com/2013/10/06/plotting-bezier-curves/">previous blog
+article</a> that
+also includes a bunch of links to very nice resources. Be aware that
+quite a bit of math hides behind Bézier splines and that I won't use
+heavily optimized algorithms for plotting the splines, simply out of the
+reason that I don't have the mathematical/algorithmic knowledge and
+skill to do so.</p>
+<p>If I got you hooked and you also want to create your own fonts and you
+want to really use them everywhere and save them in a offical format
+such as PostScript, SVG or TrueType/OpenType, consider the application
+FontForge [Link goes here], that helps you quite a lot and bewares you
+of the quirky low level plotting algorithms. For my font, I just use
+FontForge and Inkscape to get a look and feel experience of how my
+glyphs sould look like, since it's kinda hard to think entirely in
+points and control points of Bézier splines without actually drawing
+them ;)</p>
+<h3>Approach</h3>
+<p>Because I needed some kind of sketch board to develop and design my
+glyphs, I looked for a vector graphics application.
+<a href="http://inkscape.org">Inkscape</a> really fit perfectly and it generates
+easy parsable .svg files. Then I created a little script that was
+capable of exporting the Bézier points and line points of the .svg files
+generated by Inkscape. That wasn't too hard, since .svg is a W3C
+standard and the <path> element is perfectly described
+<a href="http://www.w3.org/TR/SVG/paths.html#Introduction">here</a>.</p>
+<p>The export script I made looks like this (Please consider that only
+closed paths and cubic/quadratic and lines are properly parsed! If this
+is not enough for your pupose, the script is easy extendable tough):</p>
+<div class="highlight"><pre><span class="c"># Parse inkscap svg files and tries to obtain all bezier curves points and lines.</span>
+<span class="c"># Assumes that only one glyph is drawn and extracts ALL bezier points </span>
+<span class="c"># in the main  (called &#39;layer1&#39; in inkscape). Only heterogenous bezier </span>
+<span class="c"># paths and straight lines are parsed correctly.</span>
+<span class="c"># Read: http://www.w3.org/TR/SVG/paths.html#Introduction</span>
+<span class="c"># Author: Nikolai Tschacher</span>
+<span class="c"># Date: 14.10.2013</span>
+<span class="c"># Site: incolumitas.com</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">lxml</span> <span class="kn">import</span> <span class="n">etree</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;Ohh boy, it seems that you didn</span><span class="se">\&#39;</span><span class="s">t install lxml. Try &quot;pip install lxml&quot;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">InvalidGlyphShape</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    This Exception is raised when the parser discovers a  element</span>
+<span class="sd">    that he cannot read.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+<span class="c"># lxml is awesome   </span>
+<span class="k">def</span> <span class="nf">parse_glyph</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">event</span><span class="p">,</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">etree</span><span class="o">.</span><span class="n">iterparse</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="s">&#39;{*}g&#39;</span><span class="p">):</span> <span class="c"># &quot;{*}&quot; includes the whole xml namespace</span>
+        <span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;layer1&#39;</span><span class="p">:</span> <span class="c"># Inkscape packs all the shapes in a  container and calls it &quot;layer1&quot; by default</span>
+            <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">element</span><span class="o">.</span><span class="n">iter</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="s">&#39;{*}path&#39;</span><span class="p">):</span> <span class="c"># Find ALL(!) path elements</span>
+                <span class="k">yield</span> <span class="n">path</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;d&#39;</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">parse_path</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+    <span class="c"># What format do we need? List of sequence of tuples</span>
+    <span class="c"># like [[(43,233), (4434, 222), (87, 387)], [(63,23), (44, 12), (87, 337)], ...]</span>
+    <span class="c"># each of them constituting points of a cubic Bézier spline.</span>
+    <span class="c"># ... Analogeous for the other shapes...</span>
+    <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">parse_glyph</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">c_splines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">q_splines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;z&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">InvalidGlyphShape</span><span class="p">(</span><span class="s">&#39;Path is not a closed shape&#39;</span><span class="p">)</span>
+
+        <span class="c"># If a moveto is followed by multiple pairs of coordinates,</span>
+        <span class="c"># the subsequent pairs are treated as implicit lineto commands.</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>   
+        <span class="k">if</span> <span class="n">cmd</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&#39;M&#39;</span><span class="p">,</span> <span class="s">&#39;m&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">InvalidGlyphShape</span><span class="p">(</span><span class="s">&#39;No move command Mm&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> <span class="c"># Check for implicit lineto cmd.</span>
+            <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">is_cmd</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_cmd</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">])):</span>
+                <span class="n">lines</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">chunks</span><span class="p">(</span><span class="n">sublist</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">:]),</span> <span class="mi">2</span><span class="p">)])</span> <span class="c"># Lil hack here :)</span>
+
+        <span class="c"># Magic parsing begins. Very basic parser.</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">e</span> <span class="ow">in</span> <span class="s">&#39;Cc&#39;</span><span class="p">:</span>
+                <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="n">c_splines</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">chunks</span><span class="p">(</span><span class="n">sublist</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">:]),</span> <span class="mi">4</span><span class="p">)])</span>
+            <span class="k">if</span> <span class="n">e</span> <span class="ow">in</span> <span class="s">&#39;Qq&#39;</span><span class="p">:</span>
+                <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="n">q_splines</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">chunks</span><span class="p">(</span><span class="n">sublist</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">:]),</span> <span class="mi">3</span><span class="p">)])</span>
+            <span class="k">if</span> <span class="n">e</span> <span class="ow">in</span> <span class="s">&#39;Ll&#39;</span><span class="p">:</span>
+                <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="n">lines</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">chunks</span><span class="p">(</span><span class="n">sublist</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">:]),</span> <span class="mi">2</span><span class="p">)])</span>
+            <span class="k">if</span> <span class="n">e</span> <span class="ow">in</span> <span class="s">&#39;Zz&#39;</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="c"># closepath (close the current shape by drawing a line to the last moveto)</span>
+                <span class="c"># With &quot;closepath&quot;, the end of the final segment of the subpath is &quot;joined&quot;</span>
+                <span class="c"># with the start of the initial segment of the subpath.</span>
+                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+
+        <span class="n">cleaned</span> <span class="o">=</span> <span class="n">clean</span><span class="p">(</span><span class="n">cubic_bezier</span><span class="o">=</span><span class="n">c_splines</span><span class="p">,</span>
+                     <span class="n">quadratic_bezier</span><span class="o">=</span><span class="n">q_splines</span><span class="p">,</span>
+                     <span class="n">simple_lines</span><span class="o">=</span><span class="n">lines</span><span class="p">)</span>
+
+        <span class="k">yield</span> <span class="n">cleaned</span>
+
+<span class="c"># clean the data. For some reason my algorithm yields single points. Just</span>
+<span class="c"># remove them and the data is solid.     </span>
+<span class="k">def</span> <span class="nf">clean</span><span class="p">(</span><span class="o">**</span><span class="n">args</span><span class="p">):</span>
+    <span class="n">keys</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="k">for</span> <span class="n">kw</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+        <span class="n">args</span><span class="p">[</span><span class="n">kw</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">args</span><span class="p">[</span><span class="n">kw</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span>
+
+
+    <span class="c"># Make integer coordinates ready to be rasterized.   </span>
+    <span class="k">for</span> <span class="n">kw</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+        <span class="n">args</span><span class="p">[</span><span class="n">kw</span><span class="p">]</span> <span class="o">=</span> <span class="p">[[</span><span class="nb">tuple</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">i</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">p</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)])</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">geo_el</span><span class="p">]</span> <span class="k">for</span> <span class="n">geo_el</span> <span class="ow">in</span> <span class="n">args</span><span class="p">[</span><span class="n">kw</span><span class="p">]]</span>
+
+    <span class="k">return</span> <span class="n">args</span>
+
+<span class="c"># print the glyph data.</span>
+<span class="k">def</span> <span class="nf">pretty_print</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+    <span class="n">keys</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;----------------------- Next  data -------------------------&#39;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">kw</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">***********</span><span class="se">\n</span><span class="s">Point data for </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">kw</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="n">kw</span><span class="p">])</span>
+
+<span class="c"># Returns a sublist up to the next cmd.</span>
+<span class="k">def</span> <span class="nf">sublist</span><span class="p">(</span><span class="n">l</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">l</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">e</span> <span class="ow">in</span> <span class="s">&#39;CcQqLlZz&#39;</span><span class="p">:</span> <span class="c"># SVG path commands</span>
+            <span class="k">return</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">i</span><span class="p">]</span>
+
+<span class="c"># Check if element is a command within d attribute in  element.</span>
+<span class="k">def</span> <span class="nf">is_cmd</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">e</span> <span class="ow">in</span> <span class="s">&#39;CcQqLlZzMm&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">False</span>
+
+<span class="c"># Make chunks                          </span>
+<span class="k">def</span> <span class="nf">chunks</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">l</span><span class="p">),</span> <span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="k">yield</span> <span class="n">l</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="n">n</span><span class="p">]</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="nb">open</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s">&#39;r&#39;</span><span class="p">)</span> <span class="c"># raises an exception if file can&#39;t be located</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">parse_path</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">pretty_print</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">FileNotFoundError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[-] No such file, sir&#39;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[-] Usage: </span><span class="si">%s</span><span class="s"> SvgFile&#39;</span> <span class="o">%</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</pre></div>
+
+
+<p>Now the font design can finally begin! I searched for inspiration at
+googlefonts and tried to redraw the glyphs freehand. This is of course
+really unprofessional, because if you actually want to implement a
+<em>real</em> font, you're better off using FontForge, a nice open source
+program that incorporates many tools that help you create a
+sophisticated font. I won't get down that path, instead I just
+implemented some cool glyphs according to my taste and after a short
+design period, I imported them with the script listed above into my
+python font module that was already equipped with the plotting
+algorithms I discussed in the <a href="http://incolumitas.com/2013/10/06/plotting-bezier-curves/">previous
+article</a>. In
+the aforementioned module, I am also going to store the glyph data
+(Implemented as a list of points).</p>
+<p>Here are some screenshots that you guys can get a impression how my
+workflow was.</p>
+<p>First I roughly outline the shape of the glyph and it looks like this:  </p>
+<p>[<img alt="raw-shaping a glyph" src="/uploads/2013/10/unedited-1024x576.png" /></p>
+<p>Then after some reshaping:  </p>
+<p>[<img alt="fine-tuning the glyph" src="/uploads/2013/10/better-1024x576.png" /></p>
+<p>And finally after I exported it and redrawn it using my own
+module: [<img alt="plotting with own implementation" src="/uploads/2013/10/Drawing_myself-1024x576.png" /></p>
+<p>And to end this post, I will present you my final alphabet all drawn on
+a tkinter canvas with my own plotting algorithms. There are also
+variants where the alphabet is skewed and a shear operations ar applied.
+Here are the screenshots:</p>
+<p>[<img alt="All Glyphs" src="/uploads/2013/10/all_glyphs-1024x576.png" /></p>
+<p>All the glyphs drawn in a scatter. They are imported from the Inkscape
+.svg files and plotted using the algorithms developed in the
+<a href="http://incolumitas.com/2013/10/06/plotting-bezier-curves/">last</a> blot
+post.</p>
+<p>And after applying some linear transformations:</p>
+<p>[<img alt="Shear
+transformation" src="/uploads/2013/10/shear_applied-1024x576.png" /></p>
+<p>In this picture all glyphs moved using shear operations</p>
+<p>[<img alt="Skew transformation" src="/uploads/2013/10/skew-1024x576.png" />
+Skew linear transformation.</p>
+<p>My glyphs are far from beautiful or even consistent, but this isn't
+really a drawback either, since I will use them for my captcha plugin
+(Whose implementation in PHP will be presented in the next blog post).
+But the clear advantage is obviously that all my glyphs (although they
+don't really look so) consist of simple lines and Bézier splines, which
+means that we can express them as a mathematical function and therefor
+apply a wide range of transformations on them without any loss of
+information! After blurring the glyphs to our liking, we can finally
+export it as a raster grafics format (such as png) and they eventually
+become immutable. Maybe I will add in the PHP imlementation a way to
+fill the glyphs with color in order to obliterate pattern recognition
+methods.<br />
+As mentioned before, If you are interested in professional font/glyph
+design, visit <a href="http://fontforge.org">fontforge.org</a> and read the great
+resources over there.</p>
+<p>And that's the end! Stay tuned for the final article of my series, that
+will talk about the captcha plugin!</p>
+<h3>Links</h3>
+<ul>
+<li><a href="https://github.com/NikolaiT/CunningCaptcha">The github repository that contains all of the above code
+    snippets</a></li>
+<li><a href="http://fontforge.org">The fontforge home page</a></li>
+<li><a href="http://inkscape.org/">The great vector drawing program Inkscape</a></li>
+<li><a href="http://pomax.github.io/bezierinfo/">A wonderful insight into the applications of Bézier curves. Really
+    high quality stuff!</a></li>
+<li>
+<p><a href="http://en.wikipedia.org/wiki/Transformation_matrix">All possible ways to move/rotate/shear
+    points</a></p>
+<ul>
+<li><a href="http://en.wikipedia.org/wiki/Computer_font">Computer Fonts</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Bresenham's_line_algorithm">Rastering
+    lines</a></li>
+<li><a href="http://en.wikipedia.org/wiki/B%C3%A9zier_curve">Wikipedia about Bézier
+    curves</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Scalable_Vector_Graphics">SVG w3
+    standard</a></li>
+</ul>
+</li>
+<li>
+<p><a href="http://en.wikipedia.org/wiki/Bresenham's_line_algorithm">Rastering
+        lines</a></p>
+<ul>
+<li><a href="http://en.wikipedia.org/wiki/B%C3%A9zier_curve">Wikipedia about Bézier
+    curves</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Scalable_Vector_Graphics">SVG w3
+    standard</a></li>
+</ul>
+</li>
+</ul>
+  </div>
+  <div class="tag-cloud">
+    <p>
+      <a href="/tag/captcha.html">Captcha</a>
+      <a href="/tag/programming.html">Programming</a>
+      <a href="/tag/design.html">Design</a>
+      <a href="/tag/glyphs.html">Glyphs</a>
+      <a href="/tag/learning.html">Learning</a>
+      <a href="/tag/font.html">Font</a>
+    </p>
+  </div>
+</article>
+
+    <footer>
+      <p>&copy; Nikolai Tschacher 2015</p>
+<p>Built using <a href="http://getpelican.com" target="_blank">Pelican</a> - <a href="https://github.com/alexandrevicenzi/flex" target="_blank">Flex</a> theme by <a href="http://alexandrevicenzi.com" target="_blank">Alexandre Vicenzi</a></p>    </footer>
+  </main>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "BlogPosting",
+  "name": "Create your own font the hard way!",
+  "headline": "Create your own font the hard way!",
+  "datePublished": "2013-10-16 15:06:00+02:00",
+  "dateModified": "",
+  "author": {
+    "@type": "Person",
+    "name": "Nikolai Tschacher",
+    "url": "/author/nikolai-tschacher.html"
+  },
+  "image": "{{ SITEURL }}/{{ THEME_STATIC_DIR }}/img/profile.png",
+  "url": "/create-your-own-font-the-hard-way.html",
+  "description": "Last major update on 23.10.2013 Preface As promised previously in my last article, I will guide you through the creation process of a rudimentary font. I will use the glyphs of my font to draw captchas and incorportate the implementation in my brand new captcha plugin for wordpress ..."
+}
+</script></body>
+</html>

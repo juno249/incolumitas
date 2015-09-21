@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700,400italic' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" type="text/css" href="/theme/css/style.min.css">
+  <link rel="stylesheet" type="text/css" href="/theme/css/pygments.min.css">
+  <link rel="stylesheet" type="text/css" href="/theme/css/font-awesome.min.css">
+
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="index, follow" />
+<meta name="author" content="Nikolai Tschacher" />
+<meta name="description" content="Preface Do you like to fiddle around with programming projects in your spare time? And do you sometimes start endeavors ambitiously, but you never actually finish them? Are you fucking tired of stacking unsuccessful projects, doing mediocre work while never being thoroughly satisfied in what you do? If yes, you ..." />
+<meta name="keywords" content="Architecture, Captcha, Philosophical, Programming, Php, Uncategorized, Wordpress">
+<meta property="og:site_name" content="Coding, Learning and IT Security"/>
+<meta property="og:title" content="The dangers of a poorly planned project"/>
+<meta property="og:description" content="Preface Do you like to fiddle around with programming projects in your spare time? And do you sometimes start endeavors ambitiously, but you never actually finish them? Are you fucking tired of stacking unsuccessful projects, doing mediocre work while never being thoroughly satisfied in what you do? If yes, you ..."/>
+<meta property="og:locale" content="en_US"/>
+<meta property="og:url" content="/the-dangers-of-a-badly-planned-project.html"/>
+<meta property="og:type" content="article"/>
+<meta property="article:published_time" content="2013-11-21 00:48:00+01:00"/>
+<meta property="article:modified_time" content=""/>
+<meta property="article:author" content="/author/nikolai-tschacher.html">
+<meta property="article:section" content="Philosophical"/>
+<meta property="article:tag" content="Architecture"/>
+<meta property="article:tag" content="Captcha"/>
+<meta property="article:tag" content="Philosophical"/>
+<meta property="article:tag" content="Programming"/>
+<meta property="article:tag" content="Php"/>
+<meta property="article:tag" content="Uncategorized"/>
+<meta property="article:tag" content="Wordpress"/>
+<meta property="og:image" content="">  <title>Coding, Learning and IT Security &ndash; The dangers of a poorly planned project</title>
+</head>
+<body>
+  <aside>
+    <div>
+      <a href="">
+        <img src="/theme/img/profile.png" alt="Coding, Learning and IT Security" title="Coding, Learning and IT Security">
+      </a>
+      <h1><a href="">Coding, Learning and IT Security</a></h1>
+      <p></p>
+      <nav>
+        <ul class="list">
+          <li><a href="/pages/about.html#about">About</a></li>
+          <li><a href="/pages/contact.html#contact">Contact</a></li>
+          <li><a href="/pages/googlescraper-py.html#googlescraper-py">GoogleScraper.py</a></li>
+          <li><a href="/pages/projects.html#projects">Projects</a></li>
+          <li><a href="/pages/impressum.html#impressum">Site Notice</a></li>
+          <li><a href="/pages/svgcaptcha.html#svgcaptcha">SVGCaptcha</a></li>
+        </ul>
+      </nav>
+      <ul class="social">
+        <li><a class="sc-twitter" href="https://twitter.com/incolumitas_" target="_blank"><i class="fa fa-twitter"></i></a></li>
+        <li><a class="sc-github" href="https://github.com/NikolaiT" target="_blank"><i class="fa fa-github"></i></a></li>
+        <li><a class="sc-rss" href="//incolumitas/feeds/all.atom.xml" target="_blank"><i class="fa fa-rss"></i></a></li>
+        <li><a class="sc-stack-overflow" href="http://stackoverflow.com/users/1052496/nikolai-tschacher" target="_blank"><i class="fa fa-stack-overflow"></i></a></li>
+      </ul>
+    </div>
+  </aside>
+  <main>
+    <nav>
+      <a href="">Home</a>
+      <a href="/archives.html">Archives</a>
+      <a href="/categories.html">Categories</a>
+      <a href="/tags.html">Tags</a>
+    </nav>
+
+<article>
+  <header>
+    <h1 id="the-dangers-of-a-badly-planned-project">The dangers of a poorly planned project</h1>
+    <p>Posted on Do 21 November 2013 in <a href="/category/philosophical.html">Philosophical</a></p>
+  </header>
+  <div>
+    <h3>Preface</h3>
+<p>Do you like to fiddle around with programming projects in your spare
+time? And do you sometimes start endeavors ambitiously, but you never
+actually finish them? Are you fucking tired of stacking unsuccessful
+projects, doing mediocre work while never being thoroughly satisfied in
+what you do?</p>
+<p>If yes, you may be inclined to listen to some words I have to say over
+my most recent failed project:</p>
+<p>The idea was to create my own <em>little</em> captcha plugin for wordpress. You
+can learn more about the idea by delving into some of my accompanying
+investigations in the following blog posts:</p>
+<ul>
+<li><a href="http://incolumitas.com/2013/10/06/plotting-bezier-curves/">Plotting Bézier curves directly and with De Casteljau’s
+    algorithm</a></li>
+<li><a href="http://incolumitas.com/2013/10/16/create-your-own-font-the-hard-way/">Create your own font the hard
+    way!</a></li>
+</ul>
+<p>Honestly I started this project because back in the time I was using
+<a href="wordpress.org/plugins/captcha/‎" title="captcha">this</a> plugin and I was
+unsatisfied because for
+<a href="http://incolumitas.com/2013/11/04/a-tale-of-a-twofold-broken-wordpress-captcha-plugin/" title="captcha is broken">these</a>
+reason. So this context information hopefully points out some of my
+motivations to start the project in the first place.</p>
+<h3>The destiny of every badly planned project</h3>
+<p>As with many spontaneously started projects in came up with in the past,
+I first was convinced that it was an awesome idea and subsequently
+started programming head-first without having a clear path or at least a
+slight vision of what the project should look like in the end.</p>
+<p>But after reaching first milestones, it slowly began to dawn on me that
+there might be several issues inherent to the architecture and concept
+itself. This kind of coming back down to earth with a bang is nothing
+new for me, actually it's a pattern I observed several times in the
+past.</p>
+<p>It's really annoying, because you invested blood, sweat and tears into
+your project. Let me analyze how such a idea get's wrecked over its
+unfortunate evolution:</p>
+<h3>Avoid quickstarts</h3>
+<p>The first development stage of a fresh project is mostly euphorically:
+You're able to make progress virtually without making big efforts. You
+just code thoughtlessly without having the big picture in front of you.<br />
+The reason for that is, that your motivation is intrinsic and you don't
+have to convince yourself that what you are doing is right; you're just
+doing it.<br />
+In this phase, you're unconsciously laying the foundation of your
+project (Defining classes, choosing a concrete design pattern) and the
+quality and solidness of what you do <em>now</em> determines the amount of
+headache and time you have to invest <em>later</em> to fix architectural
+mistakes.<br />
+<strong>Learn:</strong> Before you begin to write a single line of code, make sure
+that you can answer the following questions: Am I implementing something
+that I will actively user later, or am I just doing it for the learning
+sake? Is the end product important, or the path itself?</p>
+<h3>Use existing solutions</h3>
+<p>If you are like me, then you love to do reinvent things: Rasterizing
+Bézier curves? Plotting Lines? Writing PNG's (Involves the whole
+re-implementation of the pretty complex PNG specification)? Should I use
+ImageMagick? Nahh, let's not use a imaging library, let's do it on my
+own!<br />
+The avoidance of a imaging library is a concrete example and a part of
+the reason for the failure of my aforementioned project idea.<br />
+Reinventing and re-implementing essential building blocks is mostly a
+bad idea!<br />
+Don't get me wrong: Doing so is highly educational and in the process
+you're going to learn a hell of a lot (Example: How else would I know
+now how to approximate the derivation of n-th order bezier curves
+numerically with the Newton-Raphson algorithm?).<br />
+But if you create elemental code on your own, you should either have
+professional knowledge of the subject or a huge willpower/effort and
+most importantly, lots of time on your hand, to invest into your
+endeavor.</p>
+<p><strong>Understand:</strong> Ask yourself whether you want to focus on the unique,
+innovative part of your application, that needs to absorb all of your
+imagination and creativity, or if you prefer spending a lot of time on
+parts that already exist in a better form than you would ever be able to
+do it?<br />
+It's mostly a rhetorical question, but the paradoxical part lies here:
+If you never appreciate the thinking process that accommodates the
+building process of a elemental software block and you always do the
+part that's completely new, you mightn't learn <em>enough</em> to do actually a
+worthy, unique and new part. The road to a brilliant idea is paved by
+many failures and dull re-implementations of existing ideas!</p>
+<h3>Do not bury your aborted ideas.</h3>
+<p>It's bad, believe me.<br />
+You don't need to pursue a project at all costs even though it was
+doomed to fail right from the beginning. But if you try to forget it and
+let your code rot in some shady places on your hard-drive, you're
+unconsciously reinforcing a very bad feeling: That you still have
+something to complete, but you do not really know what.<br />
+Make a clear decision to finish your project. Just mark it as completed
+and as a failure, but put an end to it! This allows you to start over
+and do better in the future! Not everything needs to be a success. Most
+projects end as a failure. Such is life!</p>
+<h3>Rethinking about motivation and discipline</h3>
+<p>In being fully aware of the danger of sounding corny (Does this word fit
+here?): You only need to be right very few times in life:</p>
+<ul>
+<li>Theoretically, you need to command up the courage only once to find
+    the woman of your life.</li>
+<li>You only need to try very few times in your life to apply for a job
+    of your dreams.</li>
+<li>Once realized that Python is the very best programming language (In
+    combination with C) you don't need wasting your precious time on
+    other languages anymore ;)</li>
+</ul>
+<p>You can endure thousand failures, but if you just succeed once with an
+idea, you made it.<br />
+If there's a single project that doesn't end in the corner of failures,
+you succeeded! So every stranding you encounter in life brings you
+closer to a success. The worst thing you can do: Stop trying.<br />
+I honestly don't think that this is motivational nonsense: Try hard
+enough, end you eventually succeed. As simple as that.<br />
+<strong>Learn:</strong> Be aware of motivation. Everybody is motivated. Anyone wants
+to get in formidable physical shape, learn a lot and achieve great
+things. But only few to so. It's not a question of intellectual ability
+and fluid intelligence that keeps you from reaching mastery, it's the
+addiction of being comfortable and shirking, that makes it impossible
+for you to do what you want.<br />
+Ask yourself: Who will rise higher: A committed, hard working,
+averagely gifted person, that spends a year on a particular task, or a
+genius that expects from himself to do great things in a short time?</p>
+<h3>Getting concrete: What was wrong with my idea? And what did I actually learn?</h3>
+<p>The initial idea was to make a (nother) Captcha plugin for Wordpress.</p>
+<p>Maybe the first mistake was to consider doing my own version, without
+even inspecting the existing solutions.<br />
+But there are quite some good wordpress captcha plugins out there. For
+instance the one I am using now: It prevents all forms of spam so far
+and fulfills its purpose perfectly.<br />
+That's all you expect from such a plugin.<br />
+A <a href="http://wordpress.org/plugins/search.php?q=captcha" title="captcha alternatives">quick
+search</a>
+yields many good alternatives that I wasn't aware of.</p>
+<p>Furthermore, I wanted to to everything on my own: Rasterizing my own
+lines (Bresenham line algorithm, Midpoint algorithm), plotting Bézier
+splines on my own (Casteljau's algorithm, several different
+approximations, ...), generating bitmap graphics on my own and I could
+continue this list indefinitely.</p>
+<p>All these patchwork approaches ended in a very unstable captcha
+implementation on witch I couldn't built further. This meant, that every
+future I tried to integrate, needed exhaustive debugging while
+maintaining an general overview of where the bug could be possibly
+situated.</p>
+<p>To state an example: I tried to implement glyph filling. This involves
+line/line and line/curve intersection checking. The algorithm that finds
+the intersection point needs the roots of Bézier curves (Which were
+cubic in my case).<br />
+Thus I had to implement the Raphson-Newton algorithm in order to
+compute the roots. That alone was a new field for me. But combined with
+my repulsion for PHP and a really unstable testing environment (I could
+have made a better debugging environment, but apparently I was to lazy),
+it was a pain in the ass to implement things correctly.</p>
+<p>I soon started to solve the problems in Python and after the logic was
+working there, ported it back to PHP. I did so simply out of the reason
+that debugging the plugin directly, involved generating bitmap captchas
+every run, which was a rather tedious process. Hence I underestimated
+the complexity completely and failed to set up a productive environment
+(I better don't start elaborating on my attempts to get xdebug installed
+in a xampp environment).</p>
+<p>While the former issue wasn't the reason I decided to stop the
+development, there were other problems with the architecture itself:</p>
+<p>My captcha plugin calculates randomly placed splines and glyphs on a
+bitmap (that constitute the glyphs) and saves the rather large (no
+compression) netbpm bitmap file on disk, which is then converted to a
+PNG with the command line utility pnmtopng.  </p>
+<p>All this requires a lot memory and CPU power, since the algorithms to
+rasterize lines and Bézier splines are rather expensive. Therefore I
+just fire the captcha factory once in intervals of 2 hours (With web
+cronjobs or real cronjobs if necessary) in order to feed a finite pool
+of captcha images, that's is slowly but constantly renewing itself.<br />
+All users that visit the plugin, get a randomly chosen captchas served.
+But this approach exhibits a big drawback: The captcha exists to prevent
+spammers from posting comments. But due to this captcha-image-pool
+design, every malicious user could just request a large amount of
+captchas until he obtains the majority of captchas in the pool. Then he
+could manually map the obtained pictures to it's solution and teach his
+attacking script the answer and BOOM the captcha is bypassed.<br />
+Of course he'd need to update the mappings every two hours, but this
+wouldn't hinder a motivated attacker to do so.</p>
+<p>In short: Because plotting bitmaps and computing splines is a very
+expensive task, I simply can't manufacture fresh captchas for every
+user. I need to have a collection of pre built captcha pictures that are
+randomly chosen to be presented to visitors. But this is a weak design
+from a security point of view.<br />
+Although there are countermeasures, they cannot neutralize the root
+problem and hinder evil mind's from finding a circumvention.</p>
+<p>Here have an example of how I implemented that "pool feeding":</p>
+<div class="highlight"><pre><span class="x">/*</span>
+<span class="x"> * Only the cronjob calls this file directly. The cronjob must have the same</span>
+<span class="x"> * IP address as the webserver, otherwise it won&#39;t be executed. This prevents</span>
+<span class="x"> * users from calling this file directly and DDOSing the server</span>
+<span class="x"> */</span>
+<span class="x">if (basename(__FILE__) == basename($_SERVER[&quot;SCRIPT_FILENAME&quot;])) {</span>
+<span class="x">    if (in_array($_SERVER[&#39;REMOTE_ADDR&#39;], array(&#39;127.0.0.1&#39;, &#39;::1&#39;))) {</span>
+<span class="x">        require_once(&#39;cunning_captcha_lib.php&#39;);</span>
+<span class="x">        /* Bring the wordpress API into play */</span>
+<span class="x">        define(&#39;WP_USE_THEMES&#39;, false);</span>
+<span class="x">        require(&#39;../../../wp-blog-header.php&#39;); /* Assuming we&#39;re in plugin directory */</span>
+<span class="x">        ccaptcha_feed_pool(); /* Feed the little monster */</span>
+<span class="x">    } else {</span>
+<span class="x">        wp_die(__(&#39;Error: Dont call CunningCaptcha directly. It does not like it :(.&#39;, &#39;CunningCaptcha&#39;));</span>
+<span class="x">    }</span>
+<span class="x">}</span>
+
+<span class="x">// ...</span>
+<span class="x">/*</span>
+<span class="x"> * Adds new captcha images to the pool.</span>
+<span class="x"> */</span>
+
+<span class="x">function ccaptcha_feed_pool() {</span>
+<span class="x">    /* First of all check if pnmtopng is available on the system */</span>
+
+<span class="x">    $handle = popen(&#39;/usr/bin/which pnmtopng 2&gt;&amp;1&#39;, &#39;r&#39;);</span>
+<span class="x">    $read = fread($handle, 2096);</span>
+<span class="x">    pclose($handle);</span>
+<span class="x">    if (!file_exists(trim($read))) {</span>
+<span class="x">        print(&quot;pnmtopng is not installed on the system.&quot;);</span>
+<span class="x">        return false;</span>
+<span class="x">    }</span>
+
+<span class="x">    /* Check if target dir exists, if not, create it */</span>
+<span class="x">    if (!file_exists(trailingslashit(TARGET_DIR)) &amp;&amp; !is_dir(trailingslashit(TARGET_DIR))) {</span>
+<span class="x">        if (!mkdir(trailingslashit(TARGET_DIR), $mode = 0755))</span>
+<span class="x">            print(&quot;Couldn&#39;t create image directory&quot;);</span>
+<span class="x">        return false;</span>
+<span class="x">    }</span>
+
+<span class="x">    /* If there are no png files in the target directory, unset the option */</span>
+<span class="x">    if (false === strpos(implode(&#39;&#39;, array_values(scandir(trailingslashit(TARGET_DIR)))), &#39;png&#39;)) {</span>
+<span class="x">        echo &quot;deleted options&quot;;</span>
+<span class="x">        delete_option(&#39;ccaptcha_path_captcha_a&#39;);</span>
+<span class="x">    }</span>
+
+<span class="x">    $captchas = cclib_generateCaptchas($path = trailingslashit(TARGET_DIR), $number = 10, $captchalength = 5);</span>
+
+<span class="x">    /* Convert them to png using pnmtopng */</span>
+<span class="x">    foreach (array_keys($captchas) as $path) {</span>
+<span class="x">        $path = escapeshellarg($path);</span>
+<span class="x">        system(sprintf(&quot;pnmtopng %s &gt; %s &amp;&amp; rm %s;&quot;, $path . &#39;.ppm&#39;, $path . &#39;.png&#39;, $path . &#39;.ppm&#39;));</span>
+<span class="x">    }</span>
+<span class="x">    /*</span>
+<span class="x">     * If the pool size is now too large, delete the superfluous (redundant) files from the directory</span>
+<span class="x">     * and the options database.</span>
+<span class="x">     */</span>
+<span class="x">    $cnt = 0;</span>
+<span class="x">    foreach (glob(trailingslashit(TARGET_DIR) . &quot;*.png&quot;) as $filename) {</span>
+<span class="x">        $filetimes[$filename] = filectime($filename);</span>
+<span class="x">        $cnt++;</span>
+<span class="x">    }</span>
+
+<span class="x">    if ($cnt &gt; POOL_SIZE) {</span>
+<span class="x">        $num_to_delete = $cnt - POOL_SIZE;</span>
+<span class="x">        /* Sort the array by value (unix timestamp) */</span>
+<span class="x">        if (!asort($filetimes, SORT_NUMERIC)) {</span>
+<span class="x">            print(&quot;couldn&#39;t sort images by modification time.&quot;);</span>
+<span class="x">            return false;</span>
+<span class="x">        }</span>
+<span class="x">        $keys = array_keys($filetimes);</span>
+<span class="x">        $savedcaptchas = get_option(&#39;ccaptcha_path_captcha_a&#39;); /* This array cannot (should&#39;t) be empty */</span>
+<span class="x">        foreach (range(0, $num_to_delete - 1) as $i) {</span>
+<span class="x">            unlink($keys[$i]);</span>
+<span class="x">            unset($savedcaptchas[rtrim($keys[$i], &#39;.png&#39;)]);</span>
+<span class="x">        }</span>
+<span class="x">        /* Synchronize the deletions with the options database */</span>
+<span class="x">        if (false === update_option(&#39;ccaptcha_path_captcha_a&#39;, $savedcaptchas)) {</span>
+<span class="x">            /* update failed or the option didn&#39;t change */</span>
+<span class="x">        }</span>
+<span class="x">    }</span>
+
+<span class="x">    $savedcaptchas = get_option(&#39;ccaptcha_path_captcha_a&#39;);</span>
+
+<span class="x">    if (!$savedcaptchas) // Create</span>
+<span class="x">        update_option(&#39;ccaptcha_path_captcha_a&#39;, $captchas);</span>
+<span class="x">    else { // Add</span>
+<span class="x">        update_option(&#39;ccaptcha_path_captcha_a&#39;, array_merge($savedcaptchas, $captchas));</span>
+<span class="x">    }</span>
+
+<span class="x">    /* Check if the directory and the options database are synchronized */</span>
+<span class="x">    $a = get_option(&#39;ccaptcha_path_captcha_a&#39;);</span>
+<span class="x">    foreach (array_keys($a) as $key)</span>
+<span class="x">        if (!file_exists($key . &#39;.png&#39;))</span>
+<span class="x">            wp_die(&quot;Options database doesn&#39;t match with FS&quot;);</span>
+
+<span class="x">    D($a);</span>
+
+<span class="x">    return true;</span>
+<span class="x">}</span>
+</pre></div>
+
+
+<h3>What now?</h3>
+<p>It's not all bad. The plugin that I see as a failure is even working.
+The estimated amount of 3000 lines of code (including python sources)
+wasn't for nothing. You can dig it on <a href="https://github.com/NikolaiT/CunningCaptcha">my github
+account</a> if you like. I
+learned a lot and I have come up with another idea that is better (I
+need to watch out that I don't fall in the same mistakes I pointed out
+above). But before I begin with the new idea, I will profoundly think
+about it! You can be damn sure of that!</p>
+<h3>Epilogue</h3>
+<p>To conclude this post about my failed attempt, let's actually show how
+the plugin works in it's current unfinished form. Let me repeat: It
+works. It's a rather bad captcha (Would be easy to crack with OCR), but
+one could use it in wordpress.</p>
+<p>Here are some captchas generated in distinct forms:</p>
+<p>[<img alt="The captcha in the comment form. Note: The error message reveals that I was
+pretty frustrated while coding
+:D" src="/uploads/2013/11/captcha_in_action2.png" /></p>
+<p>[<img alt="The captcha embedded in the comment
+form..." src="/uploads/2013/11/captcha_in_action1-300x300.png" /></p>
+<p>Let me know what you think...</p>
+<p>Cheers</p>
+  </div>
+  <div class="tag-cloud">
+    <p>
+      <a href="/tag/architecture.html">Architecture</a>
+      <a href="/tag/captcha.html">Captcha</a>
+      <a href="/tag/philosophical.html">Philosophical</a>
+      <a href="/tag/programming.html">Programming</a>
+      <a href="/tag/php.html">Php</a>
+      <a href="/tag/uncategorized.html">Uncategorized</a>
+      <a href="/tag/wordpress.html">Wordpress</a>
+    </p>
+  </div>
+</article>
+
+    <footer>
+      <p>&copy; Nikolai Tschacher 2015</p>
+<p>Built using <a href="http://getpelican.com" target="_blank">Pelican</a> - <a href="https://github.com/alexandrevicenzi/flex" target="_blank">Flex</a> theme by <a href="http://alexandrevicenzi.com" target="_blank">Alexandre Vicenzi</a></p>    </footer>
+  </main>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "BlogPosting",
+  "name": "The dangers of a poorly planned project",
+  "headline": "The dangers of a poorly planned project",
+  "datePublished": "2013-11-21 00:48:00+01:00",
+  "dateModified": "",
+  "author": {
+    "@type": "Person",
+    "name": "Nikolai Tschacher",
+    "url": "/author/nikolai-tschacher.html"
+  },
+  "image": "{{ SITEURL }}/{{ THEME_STATIC_DIR }}/img/profile.png",
+  "url": "/the-dangers-of-a-badly-planned-project.html",
+  "description": "Preface Do you like to fiddle around with programming projects in your spare time? And do you sometimes start endeavors ambitiously, but you never actually finish them? Are you fucking tired of stacking unsuccessful projects, doing mediocre work while never being thoroughly satisfied in what you do? If yes, you ..."
+}
+</script></body>
+</html>

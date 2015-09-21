@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Coding, Learning and IT Security</title><link href="/" rel="alternate"></link><link href="/feeds/programming-wordpress.atom.xml" rel="self"></link><id>/</id><updated>2013-11-08T10:36:00+01:00</updated><entry><title>Wordpress comment form with bootstrap v3.0.2</title><link href="/wordpress-comment-form-with-bootstrap-v3-0-2.html" rel="alternate"></link><updated>2013-11-08T10:36:00+01:00</updated><author><name>admin</name></author><id>tag:,2013-11-08:wordpress-comment-form-with-bootstrap-v3-0-2.html</id><summary type="html">&lt;p&gt;Hey everybody!&lt;/p&gt;
+&lt;p&gt;In this short article I will explain how I designed my wordpress theme's
+comment section with bootstrap 3.0.2. For the most recent changes, you
+find my &lt;a href="https://github.com/NikolaiT/clearcontent/"&gt;theme on github&lt;/a&gt;. If
+you want to see a live demo, just inspect the comment form on this site.
+It uses exactly this bootstrap styled form I am discussing here.&lt;/p&gt;
+&lt;p&gt;In order to follow the content's of this blog post, you should have
+basic experience with PHP and HTML/CSS.&lt;/p&gt;
+&lt;h2&gt;The problem&lt;/h2&gt;
+&lt;p&gt;The tricky question here is, whether we can use a action or filter hook
+to manipulate the comment form to our liking, or if we have to use and
+modify the original comment_form() function directly. Our goal is to
+decorate the form with some bootstrap widget classes and use the
+bootstrap grid layout. We want to obtain a horizontal form, such as
+demonstrated &lt;a href="http://getbootstrap.com/css/#forms-horizontal"&gt;here&lt;/a&gt;.
+After a quick search, I found the function &lt;a href="http://codex.wordpress.org/Function_Reference/comment_form"&gt;comment_form( \$args,
+\$post_id
+);&lt;/a&gt; in the
+wordpress codex. While it looks promising on the first glimpse, some
+hindrances become clear after further thinking through. The function's
+description says:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Most strings and form fields may be controlled through the \$args
+array passed into the function, while you may also choose to use the
+comment_form_default_fields filter to modify the array of default
+fields if you'd just like to add a new one or remove a single field.
+All fields are also individually passed through a filter of the form
+comment_form_field_\$name where \$name is the key used in the array
+of fields.&lt;/p&gt;
+&lt;p&gt;&lt;small&gt;Wordpress codex at
+&lt;cite title="codex"&gt;http://codex.wordpress.org/Function_Reference/comment_form&lt;/cite&gt;&lt;/small&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;But there are two html elements in the function that aren't passed
+through any filters/actions: The \&amp;lt;form&gt; element itself (With the
+bootstrap comment form applied, the \&amp;lt;form&gt; element should be &lt;em&gt;\&amp;lt;form
+class="form-horizontal" role="form"&gt;&lt;/em&gt;) and the submit button that needs
+to be wrapped in the following div element:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;form-group&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Therefore we can't achieve the bootstrap horizontal comment form with
+passing modified \$args to comment_form() template.&lt;/p&gt;
+&lt;h2&gt;A Solution&lt;/h2&gt;
+&lt;p&gt;My quick &amp;amp; dirty solution was to just copy the comment_form() code from
+&lt;a href="http://core.trac.wordpress.org/browser/tags/3.7.1/src/wp-includes/comment-template.php#L1509"&gt;comment-template.php&lt;/a&gt;,
+incorporate it in our theme (within functions.php for example) and then
+modify it directly to our liking. I guess that doing so is
+controversial, because there might be other ways to style the elements
+that aren't affected by any filters. For instance, if we can't modify
+the \&amp;lt;form&gt; attribute with the boostrap class "form-horizontal", we
+could alternatively just wrap the whole comment_form() within a div
+element of the same class (Not tested if it really works though).&lt;/p&gt;
+&lt;p&gt;Anyways, my modified comment_form template can be found
+&lt;a href="https://github.com/NikolaiT/clearcontent/blob/master/inc/template-tags.php"&gt;here&lt;/a&gt;
+under the name clearcontent_comment_form().&lt;/p&gt;
+&lt;p&gt;The solution is not really nice, because it violates the good wordpress
+design pattern, namely avoiding duplicate code with hooks. The
+disadvantage is the the potential inconsistency with the real
+comment_form() code: Whenever wordpress updates, I need to change my
+custom comment_form() too in order to make sure the interfaces stays
+stable that comment_form() provides. This is very inconvenient to say
+the least.&lt;/p&gt;</summary><category term="bootstrap"></category><category term="comment"></category><category term="form"></category><category term="wordpress"></category></entry></feed>

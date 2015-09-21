@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Coding, Learning and IT Security</title><link href="/" rel="alternate"></link><link href="/feeds/philosophical-php-programming-uncategorized.atom.xml" rel="self"></link><id>/</id><updated>2013-11-21T00:48:00+01:00</updated><entry><title>The dangers of a poorly planned project</title><link href="/the-dangers-of-a-badly-planned-project.html" rel="alternate"></link><updated>2013-11-21T00:48:00+01:00</updated><author><name>admin</name></author><id>tag:,2013-11-21:the-dangers-of-a-badly-planned-project.html</id><summary type="html">&lt;h3&gt;Preface&lt;/h3&gt;
+&lt;p&gt;Do you like to fiddle around with programming projects in your spare
+time? And do you sometimes start endeavors ambitiously, but you never
+actually finish them? Are you fucking tired of stacking unsuccessful
+projects, doing mediocre work while never being thoroughly satisfied in
+what you do?&lt;/p&gt;
+&lt;p&gt;If yes, you may be inclined to listen to some words I have to say over
+my most recent failed project:&lt;/p&gt;
+&lt;p&gt;The idea was to create my own &lt;em&gt;little&lt;/em&gt; captcha plugin for wordpress. You
+can learn more about the idea by delving into some of my accompanying
+investigations in the following blog posts:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="http://incolumitas.com/2013/10/06/plotting-bezier-curves/"&gt;Plotting Bézier curves directly and with De Casteljau’s
+    algorithm&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://incolumitas.com/2013/10/16/create-your-own-font-the-hard-way/"&gt;Create your own font the hard
+    way!&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Honestly I started this project because back in the time I was using
+&lt;a href="wordpress.org/plugins/captcha/‎" title="captcha"&gt;this&lt;/a&gt; plugin and I was
+unsatisfied because for
+&lt;a href="http://incolumitas.com/2013/11/04/a-tale-of-a-twofold-broken-wordpress-captcha-plugin/" title="captcha is broken"&gt;these&lt;/a&gt;
+reason. So this context information hopefully points out some of my
+motivations to start the project in the first place.&lt;/p&gt;
+&lt;h3&gt;The destiny of every badly planned project&lt;/h3&gt;
+&lt;p&gt;As with many spontaneously started projects in came up with in the past,
+I first was convinced that it was an awesome idea and subsequently
+started programming head-first without having a clear path or at least a
+slight vision of what the project should look like in the end.&lt;/p&gt;
+&lt;p&gt;But after reaching first milestones, it slowly began to dawn on me that
+there might be several issues inherent to the architecture and concept
+itself. This kind of coming back down to earth with a bang is nothing
+new for me, actually it's a pattern I observed several times in the
+past.&lt;/p&gt;
+&lt;p&gt;It's really annoying, because you invested blood, sweat and tears into
+your project. Let me analyze how such a idea get's wrecked over its
+unfortunate evolution:&lt;/p&gt;
+&lt;h4&gt;Avoid quickstarts&lt;/h4&gt;
+&lt;p&gt;The first development stage of a fresh project is mostly euphorically:
+You're able to make progress virtually without making big efforts. You
+just code thoughtlessly without having the big picture in front of you.&lt;br /&gt;
+The reason for that is, that your motivation is intrinsic and you don't
+have to convince yourself that what you are doing is right; you're just
+doing it.&lt;br /&gt;
+In this phase, you're unconsciously laying the foundation of your
+project (Defining classes, choosing a concrete design pattern) and the
+quality and solidness of what you do &lt;em&gt;now&lt;/em&gt; determines the amount of
+headache and time you have to invest &lt;em&gt;later&lt;/em&gt; to fix architectural
+mistakes.&lt;br /&gt;
+&lt;strong&gt;Learn:&lt;/strong&gt; Before you begin to write a single line of code, make sure
+that you can answer the following questions: Am I implementing something
+that I will actively user later, or am I just doing it for the learning
+sake? Is the end product important, or the path itself?&lt;/p&gt;
+&lt;h4&gt;Use existing solutions&lt;/h4&gt;
+&lt;p&gt;If you are like me, then you love to do reinvent things: Rasterizing
+Bézier curves? Plotting Lines? Writing PNG's (Involves the whole
+re-implementation of the pretty complex PNG specification)? Should I use
+ImageMagick? Nahh, let's not use a imaging library, let's do it on my
+own!&lt;br /&gt;
+The avoidance of a imaging library is a concrete example and a part of
+the reason for the failure of my aforementioned project idea.&lt;br /&gt;
+Reinventing and re-implementing essential building blocks is mostly a
+bad idea!&lt;br /&gt;
+Don't get me wrong: Doing so is highly educational and in the process
+you're going to learn a hell of a lot (Example: How else would I know
+now how to approximate the derivation of n-th order bezier curves
+numerically with the Newton-Raphson algorithm?).&lt;br /&gt;
+But if you create elemental code on your own, you should either have
+professional knowledge of the subject or a huge willpower/effort and
+most importantly, lots of time on your hand, to invest into your
+endeavor.&lt;br /&gt;
+&lt;strong&gt;Understand:&lt;/strong&gt; Ask yourself whether you want to focus on the unique,
+innovative part of your application, that needs to absorb all of your
+imagination and creativity, or if you prefer spending a lot of time on
+parts that already exist in a better form than you would ever be able to
+do it?&lt;br /&gt;
+It's mostly a rhetorical question, but the paradoxical part lies here:
+If you never appreciate the thinking process that accommodates the
+building process of a elemental software block and you always do the
+part that's completely new, you mightn't learn &lt;em&gt;enough&lt;/em&gt; to do actually a
+worthy, unique and new part. The road to a brilliant idea is paved by
+many failures and dull re-implementations of existing ideas!&lt;/p&gt;
+&lt;h4&gt;Do not bury your aborted ideas.&lt;/h4&gt;
+&lt;p&gt;It's bad, believe me.&lt;br /&gt;
+You don't need to pursue a project at all costs even though it was
+doomed to fail right from the beginning. But if you try to forget it and
+let your code rot in some shady places on your hard-drive, you're
+unconsciously reinforcing a very bad feeling: That you still have
+something to complete, but you do not really know what.&lt;br /&gt;
+Make a clear decision to finish your project. Just mark it as completed
+and as a failure, but put an end to it! This allows you to start over
+and do better in the future! Not everything needs to be a success. Most
+projects end as a failure. Such is life!&lt;/p&gt;
+&lt;h4&gt;Rethinking about motivation and discipline&lt;/h4&gt;
+&lt;p&gt;In being fully aware of the danger of sounding corny (Does this word fit
+here?): You only need to be right very few times in life:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Theoretically, you need to command up the courage only once to find
+    the woman of your life.&lt;/li&gt;
+&lt;li&gt;You only need to try very few times in your life to apply for a job
+    of your dreams.&lt;/li&gt;
+&lt;li&gt;Once realized that Python is the very best programming language (In
+    combination with C) you don't need wasting your precious time on
+    other languages anymore ;)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;You can endure thousand failures, but if you just succeed once with an
+idea, you made it.&lt;br /&gt;
+If there's a single project that doesn't end in the corner of failures,
+you succeeded! So every stranding you encounter in life brings you
+closer to a success. The worst thing you can do: Stop trying.&lt;br /&gt;
+I honestly don't think that this is motivational nonsense: Try hard
+enough, end you eventually succeed. As simple as that.&lt;br /&gt;
+&lt;strong&gt;Learn:&lt;/strong&gt; Be aware of motivation. Everybody is motivated. Anyone wants
+to get in formidable physical shape, learn a lot and achieve great
+things. But only few to so. It's not a question of intellectual ability
+and fluid intelligence that keeps you from reaching mastery, it's the
+addiction of being comfortable and shirking, that makes it impossible
+for you to do what you want.&lt;br /&gt;
+Ask yourself: Who will rise higher: A committed, hard working,
+averagely gifted person, that spends a year on a particular task, or a
+genius that expects from himself to do great things in a short time?&lt;/p&gt;
+&lt;h3&gt;Getting concrete: What was wrong with my idea? And what did I actually learn?&lt;/h3&gt;
+&lt;p&gt;The initial idea was to make a (nother) Captcha plugin for Wordpress.&lt;/p&gt;
+&lt;p&gt;Maybe the first mistake was to consider doing my own version, without
+even inspecting the existing solutions.&lt;br /&gt;
+But there are quite some good wordpress captcha plugins out there. For
+instance the one I am using now: It prevents all forms of spam so far
+and fulfills its purpose perfectly.&lt;br /&gt;
+That's all you expect from such a plugin.&lt;br /&gt;
+A &lt;a href="http://wordpress.org/plugins/search.php?q=captcha" title="captcha alternatives"&gt;quick
+search&lt;/a&gt;
+yields many good alternatives that I wasn't aware of.&lt;/p&gt;
+&lt;p&gt;Furthermore, I wanted to to everything on my own: Rasterizing my own
+lines (Bresenham line algorithm, Midpoint algorithm), plotting Bézier
+splines on my own (Casteljau's algorithm, several different
+approximations, ...), generating bitmap graphics on my own and I could
+continue this list indefinitely.&lt;/p&gt;
+&lt;p&gt;All these patchwork approaches ended in a very unstable captcha
+implementation on witch I couldn't built further. This meant, that every
+future I tried to integrate, needed exhaustive debugging while
+maintaining an general overview of where the bug could be possibly
+situated.&lt;/p&gt;
+&lt;p&gt;To state an example: I tried to implement glyph filling. This involves
+line/line and line/curve intersection checking. The algorithm that finds
+the intersection point needs the roots of Bézier curves (Which were
+cubic in my case).&lt;br /&gt;
+Thus I had to implement the Raphson-Newton algorithm in order to
+compute the roots. That alone was a new field for me. But combined with
+my repulsion for PHP and a really unstable testing environment (I could
+have made a better debugging environment, but apparently I was to lazy),
+it was a pain in the ass to implement things correctly.&lt;/p&gt;
+&lt;p&gt;I soon started to solve the problems in Python and after the logic was
+working there, ported it back to PHP. I did so simply out of the reason
+that debugging the plugin directly, involved generating bitmap captchas
+every run, which was a rather tedious process. Hence I underestimated
+the complexity completely and failed to set up a productive environment
+(I better don't start elaborating on my attempts to get xdebug installed
+in a xampp environment).&lt;/p&gt;
+&lt;p&gt;While the former issue wasn't the reason I decided to stop the
+development, there were other problems with the architecture itself:&lt;/p&gt;
+&lt;p&gt;My captcha plugin calculates randomly placed splines and glyphs on a
+bitmap (that constitute the glyphs) and saves the rather large (no
+compression) netbpm bitmap file on disk, which is then converted to a
+PNG with the command line utility pnmtopng.&lt;br /&gt;
+All this requires a lot memory and CPU power, since the algorithms to
+rasterize lines and Bézier splines are rather expensive. Therefore I
+just fire the captcha factory once in intervals of 2 hours (With web
+cronjobs or real cronjobs if necessary) in order to feed a finite pool
+of captcha images, that's is slowly but constantly renewing itself.&lt;br /&gt;
+All users that visit the plugin, get a randomly chosen captchas served.
+But this approach exhibits a big drawback: The captcha exists to prevent
+spammers from posting comments. But due to this captcha-image-pool
+design, every malicious user could just request a large amount of
+captchas until he obtains the majority of captchas in the pool. Then he
+could manually map the obtained pictures to it's solution and teach his
+attacking script the answer and BOOM the captcha is bypassed.&lt;br /&gt;
+Of course he'd need to update the mappings every two hours, but this
+wouldn't hinder a motivated attacker to do so.&lt;/p&gt;
+&lt;p&gt;In short: Because plotting bitmaps and computing splines is a very
+expensive task, I simply can't manufacture fresh captchas for every
+user. I need to have a collection of pre built captcha pictures that are
+randomly chosen to be presented to visitors. But this is a weak design
+from a security point of view.&lt;br /&gt;
+Although there are countermeasures, they cannot neutralize the root
+problem and hinder evil mind's from finding a circumvention.&lt;/p&gt;
+&lt;p&gt;Here have an example of how I implemented that "pool feeding":&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="cm"&gt;/*&lt;/span&gt;
+&lt;span class="cm"&gt; * Only the cronjob calls this file directly. The cronjob must have the same&lt;/span&gt;
+&lt;span class="cm"&gt; * IP address as the webserver, otherwise it won&amp;#39;t be executed. This prevents&lt;/span&gt;
+&lt;span class="cm"&gt; * users from calling this file directly and DDOSing the server&lt;/span&gt;
+&lt;span class="cm"&gt; */&lt;/span&gt;
+&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;basename&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;__FILE__&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="nx"&gt;basename&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;$_SERVER&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;SCRIPT_FILENAME&amp;quot;&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;in_array&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;$_SERVER&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;REMOTE_ADDR&amp;#39;&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;array&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;127.0.0.1&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;::1&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)))&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="nx"&gt;require_once&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;cunning_captcha_lib.php&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="cm"&gt;/* Bring the wordpress API into play */&lt;/span&gt;
+        &lt;span class="nx"&gt;define&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;WP_USE_THEMES&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kc"&gt;false&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="nx"&gt;require&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;../../../wp-blog-header.php&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt; &lt;span class="cm"&gt;/* Assuming we&amp;#39;re in plugin directory */&lt;/span&gt;
+        &lt;span class="nx"&gt;ccaptcha_feed_pool&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt; &lt;span class="cm"&gt;/* Feed the little monster */&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;else&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="nx"&gt;wp_die&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;Error: Dont call CunningCaptcha directly. It does not like it :(.&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;CunningCaptcha&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;));&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="c1"&gt;// ...&lt;/span&gt;
+&lt;span class="cm"&gt;/*&lt;/span&gt;
+&lt;span class="cm"&gt; * Adds new captcha images to the pool.&lt;/span&gt;
+&lt;span class="cm"&gt; */&lt;/span&gt;
+
+&lt;span class="kd"&gt;function&lt;/span&gt; &lt;span class="nx"&gt;ccaptcha_feed_pool&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="cm"&gt;/* First of all check if pnmtopng is available on the system */&lt;/span&gt;
+
+    &lt;span class="nx"&gt;$handle&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;popen&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;/usr/bin/which pnmtopng 2&amp;gt;&amp;amp;1&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;r&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="nx"&gt;$read&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;fread&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;$handle&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2096&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="nx"&gt;pclose&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;$handle&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;!&lt;/span&gt;&lt;span class="nx"&gt;file_exists&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;trim&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;$read&lt;/span&gt;&lt;span class="p"&gt;)))&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="nx"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;pnmtopng is not installed on the system.&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="kc"&gt;false&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+
+    &lt;span class="cm"&gt;/* Check if target dir exists, if not, create it */&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;!&lt;/span&gt;&lt;span class="nx"&gt;file_exists&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;trailingslashit&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;TARGET_DIR&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="o"&gt;!&lt;/span&gt;&lt;span class="nx"&gt;is_dir&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;trailingslashit&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;TARGET_DIR&lt;/span&gt;&lt;span class="p"&gt;)))&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;!&lt;/span&gt;&lt;span class="nx"&gt;mkdir&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;trailingslashit&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;TARGET_DIR&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="nx"&gt;$mode&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0755&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+            &lt;span class="nx"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;Couldn&amp;#39;t create image directory&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="kc"&gt;false&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+
+    &lt;span class="cm"&gt;/* If there are no png files in the target directory, unset the option */&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kc"&gt;false&lt;/span&gt; &lt;span class="o"&gt;===&lt;/span&gt; &lt;span class="nx"&gt;strpos&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;implode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;array_values&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;scandir&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;trailingslashit&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;TARGET_DIR&lt;/span&gt;&lt;span class="p"&gt;)))),&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;png&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="nx"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;deleted options&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="nx"&gt;delete_option&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;ccaptcha_path_captcha_a&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+
+    &lt;span class="nx"&gt;$captchas&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;cclib_generateCaptchas&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;$path&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;trailingslashit&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;TARGET_DIR&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="nx"&gt;$number&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;$captchalength&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;5&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+    &lt;span class="cm"&gt;/* Convert them to png using pnmtopng */&lt;/span&gt;
+    &lt;span class="nx"&gt;foreach&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;array_keys&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;$captchas&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="nx"&gt;as&lt;/span&gt; &lt;span class="nx"&gt;$path&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="nx"&gt;$path&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;escapeshellarg&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;$path&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="nx"&gt;system&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;sprintf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;pnmtopng %s &amp;gt; %s &amp;amp;&amp;amp; rm %s;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;$path&lt;/span&gt; &lt;span class="p"&gt;.&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;.ppm&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;$path&lt;/span&gt; &lt;span class="p"&gt;.&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;.png&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;$path&lt;/span&gt; &lt;span class="p"&gt;.&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;.ppm&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;));&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="cm"&gt;/*&lt;/span&gt;
+&lt;span class="cm"&gt;     * If the pool size is now too large, delete the superfluous (redundant) files from the directory&lt;/span&gt;
+&lt;span class="cm"&gt;     * and the options database.&lt;/span&gt;
+&lt;span class="cm"&gt;     */&lt;/span&gt;
+    &lt;span class="nx"&gt;$cnt&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="nx"&gt;foreach&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;glob&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;trailingslashit&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;TARGET_DIR&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;.&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;*.png&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="nx"&gt;as&lt;/span&gt; &lt;span class="nx"&gt;$filename&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="nx"&gt;$filetimes&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$filename&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;filectime&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;$filename&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="nx"&gt;$cnt&lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;$cnt&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="nx"&gt;POOL_SIZE&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="nx"&gt;$num_to_delete&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;$cnt&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="nx"&gt;POOL_SIZE&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="cm"&gt;/* Sort the array by value (unix timestamp) */&lt;/span&gt;
+        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;!&lt;/span&gt;&lt;span class="nx"&gt;asort&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;$filetimes&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;SORT_NUMERIC&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+            &lt;span class="nx"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;couldn&amp;#39;t sort images by modification time.&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+            &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="kc"&gt;false&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+        &lt;span class="nx"&gt;$keys&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;array_keys&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;$filetimes&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="nx"&gt;$savedcaptchas&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;get_option&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;ccaptcha_path_captcha_a&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt; &lt;span class="cm"&gt;/* This array cannot (should&amp;#39;t) be empty */&lt;/span&gt;
+        &lt;span class="nx"&gt;foreach&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;$num_to_delete&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="nx"&gt;as&lt;/span&gt; &lt;span class="nx"&gt;$i&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+            &lt;span class="nx"&gt;unlink&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;$keys&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$i&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+            &lt;span class="nx"&gt;unset&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;$savedcaptchas&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="nx"&gt;rtrim&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;$keys&lt;/span&gt;&lt;span class="err"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$i&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;.png&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)]);&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+        &lt;span class="cm"&gt;/* Synchronize the deletions with the options database */&lt;/span&gt;
+        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kc"&gt;false&lt;/span&gt; &lt;span class="o"&gt;===&lt;/span&gt; &lt;span class="nx"&gt;update_option&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;ccaptcha_path_captcha_a&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;$savedcaptchas&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+            &lt;span class="cm"&gt;/* update failed or the option didn&amp;#39;t change */&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+
+    &lt;span class="nx"&gt;$savedcaptchas&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;get_option&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;ccaptcha_path_captcha_a&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;!&lt;/span&gt;&lt;span class="nx"&gt;$savedcaptchas&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="c1"&gt;// Create&lt;/span&gt;
+        &lt;span class="nx"&gt;update_option&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;ccaptcha_path_captcha_a&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;$captchas&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="k"&gt;else&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="c1"&gt;// Add&lt;/span&gt;
+        &lt;span class="nx"&gt;update_option&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;ccaptcha_path_captcha_a&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;array_merge&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;$savedcaptchas&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;$captchas&lt;/span&gt;&lt;span class="p"&gt;));&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+
+    &lt;span class="cm"&gt;/* Check if the directory and the options database are synchronized */&lt;/span&gt;
+    &lt;span class="nx"&gt;$a&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;get_option&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;ccaptcha_path_captcha_a&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="nx"&gt;foreach&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;array_keys&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;$a&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="nx"&gt;as&lt;/span&gt; &lt;span class="nx"&gt;$key&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;!&lt;/span&gt;&lt;span class="nx"&gt;file_exists&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;$key&lt;/span&gt; &lt;span class="p"&gt;.&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;.png&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+            &lt;span class="nx"&gt;wp_die&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;Options database doesn&amp;#39;t match with FS&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+    &lt;span class="nx"&gt;D&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;$a&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="kc"&gt;true&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;What now?&lt;/h3&gt;
+&lt;p&gt;It's not all bad. The plugin that I see as a failure is even working.
+The estimated amount of 3000 lines of code (including python sources)
+wasn't for nothing. You can dig it on &lt;a href="https://github.com/NikolaiT/CunningCaptcha"&gt;my github
+account&lt;/a&gt; if you like. I
+learned a lot and I have come up with another idea that is better (I
+need to watch out that I don't fall in the same mistakes I pointed out
+above). But before I begin with the new idea, I will profoundly think
+about it! You can be damn sure of that!&lt;/p&gt;
+&lt;h3&gt;Epilogue&lt;/h3&gt;
+&lt;p&gt;To conclude this post about my failed attempt, let's actually show how
+the plugin works in it's current unfinished form. Let me repeat: It
+works. It's a rather bad captcha (Would be easy to crack with OCR), but
+one could use it in wordpress.&lt;/p&gt;
+&lt;p&gt;Here are some captchas generated in distinct forms:&lt;/p&gt;
+&lt;p&gt;[caption id="attachment_532" align="alignnone" width="551"]&lt;a href="http://incolumitas.com/wp-content/uploads/2013/11/captcha_in_action2.png"&gt;&lt;img alt="The
+captcha in the comment form. Note: The error message reveals that I was
+pretty frustrated while coding
+:D" src="http://incolumitas.com/wp-content/uploads/2013/11/captcha_in_action2.png" /&gt;&lt;/a&gt;
+The captcha in the comment form. Note: The error message reveals that I
+was pretty frustrated while coding :D[/caption]&lt;/p&gt;
+&lt;p&gt;[caption id="attachment_531" align="alignnone" width="300"]&lt;a href="http://incolumitas.com/wp-content/uploads/2013/11/captcha_in_action1.png"&gt;&lt;img alt="The
+captcha embedded in the comment
+form..." src="http://incolumitas.com/wp-content/uploads/2013/11/captcha_in_action1-300x300.png" /&gt;&lt;/a&gt;
+The captcha embedded in the comment form...[/caption]&lt;/p&gt;
+&lt;p&gt;Let me know what you think...&lt;/p&gt;
+&lt;p&gt;Cheers&lt;/p&gt;</summary><category term="Architecture"></category><category term="Captcha"></category><category term="PHP"></category><category term="wordpress"></category></entry></feed>

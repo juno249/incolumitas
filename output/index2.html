@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700,400italic' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" type="text/css" href="/theme/css/style.min.css">
+  <link rel="stylesheet" type="text/css" href="/theme/css/pygments.min.css">
+  <link rel="stylesheet" type="text/css" href="/theme/css/font-awesome.min.css">
+
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="index, follow" />
+  <meta name="author" content="Nikolai Tschacher" />
+  <meta name="description" content="Nikolai Tschacher's ideas and programming around security and computer science" />
+<meta property="og:site_name" content="Coding, Learning and IT Security"/>
+<meta property="og:type" content="blog"/>
+<meta property="og:title" content="Coding, Learning and IT Security"/>
+<meta property="og:description" content="Nikolai Tschacher's ideas and programming around security and computer science"/>
+<meta property="og:locale" content="en_US"/>
+<meta property="og:url" content=""/>
+  <title>Coding, Learning and IT Security</title>
+</head>
+<body>
+  <aside>
+    <div>
+      <a href="">
+        <img src="/theme/img/profile.png" alt="Coding, Learning and IT Security" title="Coding, Learning and IT Security">
+      </a>
+      <h1><a href="">Coding, Learning and IT Security</a></h1>
+      <p></p>
+      <nav>
+        <ul class="list">
+          <li><a href="/pages/about.html#about">About</a></li>
+          <li><a href="/pages/contact.html#contact">Contact</a></li>
+          <li><a href="/pages/googlescraper-py.html#googlescraper-py">GoogleScraper.py</a></li>
+          <li><a href="/pages/projects.html#projects">Projects</a></li>
+          <li><a href="/pages/impressum.html#impressum">Site Notice</a></li>
+          <li><a href="/pages/svgcaptcha.html#svgcaptcha">SVGCaptcha</a></li>
+        </ul>
+      </nav>
+      <ul class="social">
+        <li><a class="sc-twitter" href="https://twitter.com/incolumitas_" target="_blank"><i class="fa fa-twitter"></i></a></li>
+        <li><a class="sc-github" href="https://github.com/NikolaiT" target="_blank"><i class="fa fa-github"></i></a></li>
+        <li><a class="sc-rss" href="//incolumitas/feeds/all.atom.xml" target="_blank"><i class="fa fa-rss"></i></a></li>
+        <li><a class="sc-stack-overflow" href="http://stackoverflow.com/users/1052496/nikolai-tschacher" target="_blank"><i class="fa fa-stack-overflow"></i></a></li>
+      </ul>
+    </div>
+  </aside>
+  <main>
+    <nav>
+      <a href="">Home</a>
+      <a href="/archives.html">Archives</a>
+      <a href="/categories.html">Categories</a>
+      <a href="/tags.html">Tags</a>
+    </nav>
+
+<article>
+  <header>
+    <h2><a href="/very-good-program-to-record-audio-and-desktop-on-linux.html#very-good-program-to-record-audio-and-desktop-on-linux">Very good program to record audio and desktop on Linux!</a></h2>
+    <p>
+      Posted on So 18 Januar 2015 in <a href="/category/linux.html">Linux</a>
+      &#8226; Tagged with
+      <a href="/tag/linux.html">Linux</a>,      <a href="/tag/software.html">Software</a>    </p>
+  </header>
+  <div>
+      <h3>First post in the new year!</h3>
+<p>Hey</p>
+<p>Happy new year to all of you and let 2015 be a succesful year for us
+all!</p>
+<p>My <strong>New Year's resolution</strong> is to write at least two blog posts every
+month and try to get my scraping service on
+<a href="http://scrapeulous.com" title="my scraping service">scrapeulous.com</a> up and
+running!</p>
+<h3>Good program to record the desktop/audio on linux</h3>
+<p>But what I really wanted to share today is an awesome way to record your
+desktop with audio on Linux. I tried my luck several times with VLC, but
+it's a freaking pain in the ass to use. Furthermore, VLC will probably
+never be able to capture the desktop with audio (See <a href="http://superuser.com/questions/612186/how-to-capture-screen-video-with-audio-using-vlc-media-player">this stackoverflow
+thread</a>
+for more info).</p>
+<p>But I just found an wonderful alternative (one could almost assume that
+I am advertisting, which is not the case, I swear!):</p>
+<p><a href="http://wiki.ubuntuusers.de/recordMyDesktop">http://wiki.ubuntuusers.de/recordMyDesktop</a></p>
+<p>If you want to visit the home page of the program, <a href="http://recordmydesktop.sourceforge.net/about.php">click
+here</a>. Although the
+home page is very ugly and the program is not longer in active
+development, it just works like a charm. On Ubuntu you may install it
+like this:</p>
+<p><code>sudo apt-get install recordmydesktop</code></p>
+<p>Then go to a directory very you want to save the output file and just
+enter <code>recordmydesktop</code> in a shell.</p>
+<p>The program begins to record. When hitting Control-C, the capture stops
+and the file is written (Which takes a bit time). Then you can play your
+capture (With VLC for example).</p>
+<h3>Conclusion</h3>
+<p>This shows me once more what the most integral parts in the art of
+software development really are:</p>
+<ul>
+<li>The most common usage case of the program should be it's default
+    behaviour!</li>
+<li>Usability is the most important part of any software. Users are
+    frustrated very easily.</li>
+<li>The program must be robust. If it doesn't work, potential customers
+    are drained away to the concurrence!</li>
+</ul>
+<p>All these points apply on recordmydesktop, which makes it very nice to
+work with!</p>
+<p>Hope you got something out of this.</p>
+  </div>
+  <hr />
+</article>
+<article>
+  <header>
+    <h2><a href="/scraping-and-extracting-links-from-any-major-search-engine-like-google-yandex-baidu-bing-and-duckduckgo.html#scraping-and-extracting-links-from-any-major-search-engine-like-google-yandex-baidu-bing-and-duckduckgo">Scraping and Extracting Links from any major Search Engine like Google, Yandex, Baidu, Bing and Duckduckgo</a></h2>
+    <p>
+      Posted on Mi 12 November 2014 in <a href="/category/meta.html">Meta</a>
+      &#8226; Tagged with
+      <a href="/tag/scraping.html">Scraping</a>,      <a href="/tag/baidu.html">Baidu</a>,      <a href="/tag/extracting.html">Extracting</a>,      <a href="/tag/google.html">Google</a>,      <a href="/tag/programming.html">Programming</a>,      <a href="/tag/python.html">Python</a>,      <a href="/tag/searchengine.html">Searchengine</a>,      <a href="/tag/bing.html">Bing</a>,      <a href="/tag/meta.html">Meta</a>    </p>
+  </header>
+  <div>
+      <h3>Prelude</h3>
+<p>It's been quite a while since I worked on my projects. But recently I
+had some motivation and energy left, which is quite nice considering my
+full time university week and a programming job besides.</p>
+<p>I have a <a href="https://github.com/NikolaiT/GoogleScraper" title="GoogleScraper">little project on
+GitHub</a> that
+I worked on every now and again in the last year or so. Recently it got
+a little bit bigger (I have 115 github stars now, would've never
+imagined that I ever achieve this) and I receive up to 2 mails with job
+offers every week (Sorry if I cannot accept any request :( ).</p>
+<p>But unfortunately my progress with this project is not as good as I want
+it to be (that's probably a quite common feeling under us programmers).
+It's not a problem of missing ideas and features that I want to
+implement, the hard part is to extend the project without blowing legacy
+code up. GoogleScraper has grown evolutionary and I am waisting <strong>a
+lot</strong> of time to understand my old code. Mostly it's much better to just
+erease whole modules and reimplement things completely anew. This is
+essentially what I made with the parsing module.</p>
+<h3>Parsing SERP pages with many search engines</h3>
+<p>So I rewrote the parsing.py module of GoogleScraper. From now on,
+parsing happens much more stable and is more extendable. In fact,
+everyone can add their own CSS selectors while subclassing the abstract
+<code>Parser</code> class. For now, parsing.py support the following search
+engines:</p>
+<ul>
+<li><a href="https://google.com">Google</a> (as before)</li>
+<li><a href="http://yandex.ru/" title="Yandex">Yandex</a> (quite a nice search engine)</li>
+<li><a href="http://www.bing.com" title="Bing">Bing</a> (pretty mature by now)</li>
+<li><a href="http://https://search.yahoo.com" title="Yahoo">Yahoo</a> (good old google
+    competitor)</li>
+<li><a href="http://www.baidu.com/" title="Baidu">Baidu</a> (let's dive into the asian
+    market ;) )</li>
+<li><a href="https://duckduckgo.com" title="Duckduckgo">Duckduckgo</a> (I am very excited
+    about duckduck.go, because the results are clean any very easily
+    parsable)</li>
+</ul>
+<p>This means that GoogleScraper now support <strong>6 search engines</strong>. So you
+can scale your scraping and compare the results between search engines.
+This means much more output and statistical data for your analysis. You
+can also divide your scrape jobs on the different search engines. A few
+people might still say that Google is the only usable search engine.
+Have you actually used an alternative recently or are you just suffering
+from the <a href="http://en.wikipedia.org/wiki/Lock-in_%28decision-making%29">locked in
+effect</a>?</p>
+<h3>Let's play with it</h3>
+<p>Well, to give you some first insight in the new functionality, lets dig
+some code and see it in action:</p>
+<p>To run it download the code below, save it as parsing.py and just
+install the modules:</p>
+<ul>
+<li>lxml</li>
+<li>cssselect</li>
+<li>beautifulsoup4</li>
+</ul>
+<p>You can do so with <code>sudo pip3 install modulename</code>.</p>
+<p>Now when you are ready, you can easily test the new parsing
+functionality with firing such an example command in<br />
+the command line:</p>
+<p><code>python3 parsing.py 'http://yandex.ru/yandsearch?text=GoogleScraper&amp;lr=178'</code></p>
+<p>This will scrape the results from Yandex with the search query
+<strong>GoogleScraper</strong>. You can try it out with the other search engines:
+Just search in your browser, than copy and paste the url from the
+address bar in the command!</p>
+<p>Please note: Using this module directly makes little sense, because
+requesting such urls<br />
+directly without imitating a real browser (which is done in my
+GoogleScraper module with faking User Agent, using selenium, PhantomJS,
+...) makes<br />
+the search engines sometimes return crippled html, which makes it hard
+to parse.</p>
+<p>But for some engines it nevertheless works quite well (for example:
+yandex, google, ...).</p>
+<p>Please note, the most actual version of the code can be found here:
+<a href="https://github.com/NikolaiT/GoogleScraper/blob/master/GoogleScraper/parsing.py" title="parsing.py">parsing.py at
+GoogleScraper</a></p>
+<div class="highlight"><pre><span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">author: Nikolai Tschacher</span>
+<span class="sd">date: 11.11.2014</span>
+<span class="sd">home: incolumitas.com</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c"># TODO: Implement alternatate selectors for different SERP formats (just use a list in the CSS selector datatypes)</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">lxml.html</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">urllib</span>
+<span class="kn">import</span> <span class="nn">pprint</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">cssselect</span> <span class="kn">import</span> <span class="n">HTMLTranslator</span><span class="p">,</span> <span class="n">SelectorError</span>
+    <span class="kn">from</span> <span class="nn">bs4</span> <span class="kn">import</span> <span class="n">UnicodeDammit</span>
+<span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ie</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ie</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">ie</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;bs4&#39;</span> <span class="ow">or</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ie</span><span class="p">,</span> <span class="s">&#39;args&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="s">&#39;bs4&#39;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">ie</span><span class="p">):</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s">&#39;Install bs4 with the command &quot;sudo pip3 install beautifulsoup4&quot;&#39;</span><span class="p">)</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s">&#39;GoogleScraper&#39;</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">InvalidSearchTypeExcpetion</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+<span class="k">class</span> <span class="nc">Parser</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Parses SERP pages.</span>
+
+<span class="sd">    Each search engine results page (SERP) has a similar layout:</span>
+
+<span class="sd">    The main search results are usually in a html container element (#main, .results, #leftSide).</span>
+<span class="sd">    There might be separate columns for other search results (like ads for example). Then each </span>
+<span class="sd">    result contains basically a link, a snippet and a description (usually some text on the</span>
+<span class="sd">    target site). It&#39;s really astonishing how similar other search engines are to Google.</span>
+
+<span class="sd">    Each child class (that can actual parse a concrete search engine results page) needs</span>
+<span class="sd">    to specify css selectors for the different search types (Like normal search, news search, video search, ...).</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        search_results: The results after parsing.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c"># The supported search types. For instance, Google supports Video Search, Image Search, News search</span>
+    <span class="n">search_types</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">html</span><span class="p">,</span> <span class="n">searchtype</span><span class="o">=</span><span class="s">&#39;normal&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create new Parser instance and parse all information.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            html: The raw html from the search engine search</span>
+<span class="sd">            searchtype: The search type. By default &quot;normal&quot;</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            Assertion error if the subclassed</span>
+<span class="sd">            specific parser cannot handle the the settings.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">searchtype</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_types</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">html</span> <span class="o">=</span> <span class="n">html</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">searchtype</span> <span class="o">=</span> <span class="n">searchtype</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dom</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c"># Try to parse the provided HTML string using lxml</span>
+        <span class="n">doc</span> <span class="o">=</span> <span class="n">UnicodeDammit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html</span><span class="p">,</span> <span class="n">is_html</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">parser</span> <span class="o">=</span> <span class="n">lxml</span><span class="o">.</span><span class="n">html</span><span class="o">.</span><span class="n">HTMLParser</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="n">doc</span><span class="o">.</span><span class="n">declared_html_encoding</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dom</span> <span class="o">=</span> <span class="n">lxml</span><span class="o">.</span><span class="n">html</span><span class="o">.</span><span class="n">document_fromstring</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html</span><span class="p">,</span> <span class="n">parser</span><span class="o">=</span><span class="n">parser</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dom</span><span class="o">.</span><span class="n">resolve_base_href</span><span class="p">()</span>
+
+        <span class="c"># lets do the actual parsing</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parse</span><span class="p">()</span>
+
+        <span class="c"># Apply sublcass specific behaviour after parsing has happened</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">after_parsing</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_parse</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Parse the dom according to the provided css selectors.</span>
+
+<span class="sd">        Raises: InvalidSearchTypeExcpetion if no css selectors for the searchtype could be found.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># try to parse the number of results.</span>
+        <span class="n">attr_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">searchtype</span> <span class="o">+</span> <span class="s">&#39;_search_selectors&#39;</span>
+        <span class="n">selector_dict</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr_name</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+
+        <span class="c"># short alias because we use it so extensively</span>
+        <span class="n">css_to_xpath</span> <span class="o">=</span> <span class="n">HTMLTranslator</span><span class="p">()</span><span class="o">.</span><span class="n">css_to_xpath</span>
+
+        <span class="c"># get the appropriate css selectors for the num_results for the keyword</span>
+        <span class="n">num_results_selector</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;num_results_search_selectors&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">num_results_selector</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s">&#39;num_results&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dom</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="n">css_to_xpath</span><span class="p">(</span><span class="n">num_results_selector</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text_content</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">selector_dict</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">InvalidSearchTypeExcpetion</span><span class="p">(</span><span class="s">&#39;There is no such attribute: {}. No selectors found&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">attr_name</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">result_type</span><span class="p">,</span> <span class="n">selectors</span> <span class="ow">in</span> <span class="n">selector_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="n">result_type</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dom</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span>
+                <span class="n">css_to_xpath</span><span class="p">(</span><span class="s">&#39;{container} {result_container}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">selectors</span><span class="p">))</span>
+            <span class="p">)</span>
+
+            <span class="n">to_extract</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">selectors</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">-</span> <span class="p">{</span><span class="s">&#39;container&#39;</span><span class="p">,</span> <span class="s">&#39;result_container&#39;</span><span class="p">}</span>                
+            <span class="n">selectors_to_use</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(((</span><span class="n">key</span><span class="p">,</span> <span class="n">selectors</span><span class="p">[</span><span class="n">key</span><span class="p">])</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">to_extract</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">selectors</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+
+            <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">result</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">results</span><span class="p">):</span>
+                <span class="c"># Let&#39;s add primitve support for CSS3 pseudo selectors</span>
+                <span class="c"># We just need two of them</span>
+                <span class="c"># ::text</span>
+                <span class="c"># ::attr(someattribute)</span>
+
+                <span class="c"># You say we should use xpath expresssions instead?</span>
+                <span class="c"># Maybe you&#39;re right, but they are complicated when it comes to classes,</span>
+                <span class="c"># have a look here: http://doc.scrapy.org/en/latest/topics/selectors.html</span>
+                <span class="n">serp_result</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">selector</span> <span class="ow">in</span> <span class="n">selectors_to_use</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="bp">None</span>
+                    <span class="k">if</span> <span class="n">selector</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;::text&#39;</span><span class="p">):</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">value</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="n">css_to_xpath</span><span class="p">(</span><span class="n">selector</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;::&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]))[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text_content</span><span class="p">()</span>
+                        <span class="k">except</span> <span class="ne">IndexError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                            <span class="k">pass</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">attr</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&#39;::attr\((?P.*)\)$&#39;</span><span class="p">,</span> <span class="n">selector</span><span class="p">)</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s">&#39;attr&#39;</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">attr</span><span class="p">:</span>
+                            <span class="k">try</span><span class="p">:</span>
+                                <span class="n">value</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="n">css_to_xpath</span><span class="p">(</span><span class="n">selector</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;::&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]))[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">attr</span><span class="p">)</span>
+                            <span class="k">except</span> <span class="ne">IndexError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                                <span class="k">pass</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">try</span><span class="p">:</span>
+                                <span class="n">value</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="n">css_to_xpath</span><span class="p">(</span><span class="n">selector</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text_content</span><span class="p">()</span>
+                            <span class="k">except</span> <span class="ne">IndexError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                                <span class="k">pass</span>
+                    <span class="n">serp_result</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+                <span class="k">if</span> <span class="n">serp_result</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="n">result_type</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">serp_result</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">after_parsing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sublcass specific behaviour after parsing happened.</span>
+
+<span class="sd">        Override in subclass to add search engine specific behaviour.</span>
+<span class="sd">        Commonly used to clean the results.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a nicely formated overview of the results.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">)</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Here follow the different classes that provide CSS selectors </span>
+<span class="sd">for different types of SERP pages of several common search engines.</span>
+
+<span class="sd">Just look at them and add your own selectors in a new class if you</span>
+<span class="sd">want the Scraper to support them.</span>
+
+<span class="sd">You can easily just add new selectors to a search engine. Just follow</span>
+<span class="sd">the attribute naming convention and the parser will recognize them:</span>
+
+<span class="sd">If you provide a dict with a name like finance_search_selectors,</span>
+<span class="sd">then you&#39;re adding a new search type with the name finance.</span>
+
+<span class="sd">Each class needs a attribute called num_results_search_selectors, that</span>
+<span class="sd">extracts the number of searches that were found by the keyword.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="k">class</span> <span class="nc">GoogleParser</span><span class="p">(</span><span class="n">Parser</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Parses SERP pages of the Google search engine.&quot;&quot;&quot;</span>
+
+    <span class="n">search_types</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;normal&#39;</span><span class="p">,</span> <span class="s">&#39;image&#39;</span><span class="p">]</span>
+
+    <span class="n">num_results_search_selectors</span> <span class="o">=</span> <span class="s">&#39;div#resultStats&#39;</span>
+
+    <span class="n">normal_search_selectors</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;results&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&#39;container&#39;</span><span class="p">:</span> <span class="s">&#39;#center_col&#39;</span><span class="p">,</span>
+            <span class="s">&#39;result_container&#39;</span><span class="p">:</span> <span class="s">&#39;li.g &#39;</span><span class="p">,</span>
+            <span class="s">&#39;link&#39;</span><span class="p">:</span> <span class="s">&#39;h3.r &gt; a:first-child::attr(href)&#39;</span><span class="p">,</span>
+            <span class="s">&#39;snippet&#39;</span><span class="p">:</span> <span class="s">&#39;div.s span.st::text&#39;</span><span class="p">,</span>
+            <span class="s">&#39;title&#39;</span><span class="p">:</span> <span class="s">&#39;h3.r &gt; a:first-child::text&#39;</span><span class="p">,</span>
+            <span class="s">&#39;visible_link&#39;</span><span class="p">:</span> <span class="s">&#39;cite::text&#39;</span>
+        <span class="p">},</span>
+        <span class="s">&#39;ads_main&#39;</span> <span class="p">:</span> <span class="p">{</span>
+            <span class="s">&#39;container&#39;</span><span class="p">:</span> <span class="s">&#39;#center_col&#39;</span><span class="p">,</span>
+            <span class="s">&#39;result_container&#39;</span><span class="p">:</span> <span class="s">&#39;li.ads-ad&#39;</span><span class="p">,</span>
+            <span class="s">&#39;link&#39;</span><span class="p">:</span> <span class="s">&#39;h3.r &gt; a:first-child::attr(href)&#39;</span><span class="p">,</span>
+            <span class="s">&#39;snippet&#39;</span><span class="p">:</span> <span class="s">&#39;div.s span.st::text&#39;</span><span class="p">,</span>
+            <span class="s">&#39;title&#39;</span><span class="p">:</span> <span class="s">&#39;h3.r &gt; a:first-child::text&#39;</span><span class="p">,</span>
+            <span class="s">&#39;visible_link&#39;</span><span class="p">:</span> <span class="s">&#39;.ads-visurl cite::text&#39;</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="n">image_search_selectors</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;results&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&#39;container&#39;</span><span class="p">:</span> <span class="s">&#39;li#isr_mc&#39;</span><span class="p">,</span>
+            <span class="s">&#39;result_container&#39;</span><span class="p">:</span> <span class="s">&#39;div.rg_di&#39;</span><span class="p">,</span>
+            <span class="s">&#39;imgurl&#39;</span><span class="p">:</span> <span class="s">&#39;a.rg_l::attr(href)&#39;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">after_parsing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Clean the urls.</span>
+
+<span class="sd">        A typical scraped results looks like the following:</span>
+
+<span class="sd">        &#39;/url?q=http://www.youtube.com/user/Apple&amp;sa=U&amp;ei=lntiVN7JDsTfPZCMgKAO&amp;ved=0CFQQFjAO&amp;usg=AFQjCNGkX65O-hKLmyq1FX9HQqbb9iYn9A&#39;</span>
+
+<span class="sd">        Clean with a short regex.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">after_parsing</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="n">item</span><span class="p">[</span><span class="s">&#39;link&#39;</span><span class="p">]:</span>
+                        <span class="n">result</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&#39;/url\?q=(?P.*?)&amp;sa=U&amp;ei=&#39;</span><span class="p">,</span> <span class="n">item</span><span class="p">[</span><span class="s">&#39;link&#39;</span><span class="p">])</span>
+                        <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="s">&#39;link&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s">&#39;url&#39;</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">YandexParser</span><span class="p">(</span><span class="n">Parser</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Parses SERP pages of the Yandex search engine.&quot;&quot;&quot;</span>
+
+    <span class="n">search_types</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;normal&#39;</span><span class="p">]</span>
+
+    <span class="n">num_results_search_selectors</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="n">normal_search_selectors</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;results&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&#39;container&#39;</span><span class="p">:</span> <span class="s">&#39;div.serp-list&#39;</span><span class="p">,</span>
+            <span class="s">&#39;result_container&#39;</span><span class="p">:</span> <span class="s">&#39;div.serp-item__wrap &#39;</span><span class="p">,</span>
+            <span class="s">&#39;link&#39;</span><span class="p">:</span> <span class="s">&#39;a.serp-item__title-link::attr(href)&#39;</span><span class="p">,</span>
+            <span class="s">&#39;snippet&#39;</span><span class="p">:</span> <span class="s">&#39;div.serp-item__text::text&#39;</span><span class="p">,</span>
+            <span class="s">&#39;title&#39;</span><span class="p">:</span> <span class="s">&#39;a.serp-item__title-link::text&#39;</span><span class="p">,</span>
+            <span class="s">&#39;visible_link&#39;</span><span class="p">:</span> <span class="s">&#39;a.serp-url__link::attr(href)&#39;</span>
+        <span class="p">},</span>
+    <span class="p">}</span>
+
+
+<span class="k">class</span> <span class="nc">BingParser</span><span class="p">(</span><span class="n">Parser</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Parses SERP pages of the Bing search engine.&quot;&quot;&quot;</span>
+
+    <span class="n">search_types</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;normal&#39;</span><span class="p">]</span>
+
+    <span class="n">num_results_search_selectors</span> <span class="o">=</span> <span class="s">&#39;.sb_count&#39;</span>
+
+    <span class="n">normal_search_selectors</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;results&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&#39;container&#39;</span><span class="p">:</span> <span class="s">&#39;ol#b_results&#39;</span><span class="p">,</span>
+            <span class="s">&#39;result_container&#39;</span><span class="p">:</span> <span class="s">&#39;li.b_algo&#39;</span><span class="p">,</span>
+            <span class="s">&#39;link&#39;</span><span class="p">:</span> <span class="s">&#39;.b_title &gt; h2 &gt; a::attr(href)&#39;</span><span class="p">,</span>
+            <span class="s">&#39;snippet&#39;</span><span class="p">:</span> <span class="s">&#39;.b_snippet &gt; p::text&#39;</span><span class="p">,</span>
+            <span class="s">&#39;title&#39;</span><span class="p">:</span> <span class="s">&#39;.b_title &gt; h2 &gt; a::text&#39;</span><span class="p">,</span>
+            <span class="s">&#39;visible_link&#39;</span><span class="p">:</span> <span class="s">&#39;cite::text&#39;</span>
+        <span class="p">},</span>
+        <span class="s">&#39;ads_main&#39;</span> <span class="p">:</span> <span class="p">{</span>
+            <span class="s">&#39;container&#39;</span><span class="p">:</span> <span class="s">&#39;ol#b_results&#39;</span><span class="p">,</span>
+            <span class="s">&#39;result_container&#39;</span><span class="p">:</span> <span class="s">&#39;li.b_ad&#39;</span><span class="p">,</span>
+            <span class="s">&#39;link&#39;</span><span class="p">:</span> <span class="s">&#39;.sb_add &gt; h2 &gt; a::attr(href)&#39;</span><span class="p">,</span>
+            <span class="s">&#39;snippet&#39;</span><span class="p">:</span> <span class="s">&#39;.b_caption::text&#39;</span><span class="p">,</span>
+            <span class="s">&#39;title&#39;</span><span class="p">:</span> <span class="s">&#39;.sb_add &gt; h2 &gt; a::text&#39;</span><span class="p">,</span>
+            <span class="s">&#39;visible_link&#39;</span><span class="p">:</span> <span class="s">&#39;cite::text&#39;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+
+<span class="k">class</span> <span class="nc">YahooParser</span><span class="p">(</span><span class="n">Parser</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Parses SERP pages of the Yahoo search engine.&quot;&quot;&quot;</span>
+
+    <span class="n">search_types</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;normal&#39;</span><span class="p">]</span>
+
+    <span class="n">num_results_search_selectors</span> <span class="o">=</span> <span class="s">&#39;#pg &gt; span:last-child&#39;</span>
+
+    <span class="n">normal_search_selectors</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;results&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&#39;container&#39;</span><span class="p">:</span> <span class="s">&#39;#main&#39;</span><span class="p">,</span>
+            <span class="s">&#39;result_container&#39;</span><span class="p">:</span> <span class="s">&#39;.res&#39;</span><span class="p">,</span>
+            <span class="s">&#39;link&#39;</span><span class="p">:</span> <span class="s">&#39;div &gt; h3 &gt; a::attr(href)&#39;</span><span class="p">,</span>
+            <span class="s">&#39;snippet&#39;</span><span class="p">:</span> <span class="s">&#39;div.abstr::text&#39;</span><span class="p">,</span>
+            <span class="s">&#39;title&#39;</span><span class="p">:</span> <span class="s">&#39;div &gt; h3 &gt; a::text&#39;</span><span class="p">,</span>
+            <span class="s">&#39;visible_link&#39;</span><span class="p">:</span> <span class="s">&#39;span.url::text&#39;</span>
+        <span class="p">},</span>
+    <span class="p">}</span>
+
+
+<span class="k">class</span> <span class="nc">BaiduParser</span><span class="p">(</span><span class="n">Parser</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Parses SERP pages of the Baidu search engine.&quot;&quot;&quot;</span>
+
+    <span class="n">search_types</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;normal&#39;</span><span class="p">]</span>
+
+    <span class="n">num_results_search_selectors</span> <span class="o">=</span> <span class="s">&#39;#container .nums&#39;</span>
+
+    <span class="n">normal_search_selectors</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;results&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&#39;container&#39;</span><span class="p">:</span> <span class="s">&#39;#content_left&#39;</span><span class="p">,</span>
+            <span class="s">&#39;result_container&#39;</span><span class="p">:</span> <span class="s">&#39;.result-op&#39;</span><span class="p">,</span>
+            <span class="s">&#39;link&#39;</span><span class="p">:</span> <span class="s">&#39;h3 &gt; a.t::attr(href)&#39;</span><span class="p">,</span>
+            <span class="s">&#39;snippet&#39;</span><span class="p">:</span> <span class="s">&#39;.c-abstract::text&#39;</span><span class="p">,</span>
+            <span class="s">&#39;title&#39;</span><span class="p">:</span> <span class="s">&#39;h3 &gt; a.t::text&#39;</span><span class="p">,</span>
+            <span class="s">&#39;visible_link&#39;</span><span class="p">:</span> <span class="s">&#39;span.c-showurl::text&#39;</span>
+        <span class="p">},</span>
+    <span class="p">}</span>
+
+
+<span class="k">class</span> <span class="nc">DuckduckgoParser</span><span class="p">(</span><span class="n">Parser</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Parses SERP pages of the Duckduckgo search engine.&quot;&quot;&quot;</span>
+
+    <span class="n">search_types</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;normal&#39;</span><span class="p">]</span>
+
+    <span class="n">num_results_search_selectors</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="n">normal_search_selectors</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;results&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&#39;container&#39;</span><span class="p">:</span> <span class="s">&#39;#links&#39;</span><span class="p">,</span>
+            <span class="s">&#39;result_container&#39;</span><span class="p">:</span> <span class="s">&#39;.result&#39;</span><span class="p">,</span>
+            <span class="s">&#39;link&#39;</span><span class="p">:</span> <span class="s">&#39;.result__title &gt; a::attr(href)&#39;</span><span class="p">,</span>
+            <span class="s">&#39;snippet&#39;</span><span class="p">:</span> <span class="s">&#39;result__snippet::text&#39;</span><span class="p">,</span>
+            <span class="s">&#39;title&#39;</span><span class="p">:</span> <span class="s">&#39;.result__title &gt; a::text&#39;</span><span class="p">,</span>
+            <span class="s">&#39;visible_link&#39;</span><span class="p">:</span> <span class="s">&#39;.result__url__domain::text&#39;</span>
+        <span class="p">},</span>
+    <span class="p">}</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Originally part of https://github.com/NikolaiT/GoogleScraper.</span>
+
+<span class="sd">    Only for testing purposes: May be called directly with an search engine </span>
+<span class="sd">    search url. For example:</span>
+
+<span class="sd">    python3 parsing.py &#39;http://yandex.ru/yandsearch?text=GoogleScraper&amp;lr=178&amp;csg=82%2C4317%2C20%2C20%2C0%2C0%2C0&#39;</span>
+
+<span class="sd">    Please note: Using this module directly makes little sense, because requesting such urls</span>
+<span class="sd">    directly without imitating a real browser (which is done in my GoogleScraper module) makes</span>
+<span class="sd">    the search engines return crippled html, which makes it impossible to parse.</span>
+<span class="sd">    But for some engines it nevertheless works (for example: yandex, google, ...).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">requests</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">,</span> <span class="s">&#39;Usage: {} url&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">raw_html</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&#39;^http[s]?://www\.google&#39;</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
+        <span class="n">parser</span> <span class="o">=</span> <span class="n">GoogleParser</span><span class="p">(</span><span class="n">raw_html</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&#39;^http://yandex\.ru&#39;</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
+        <span class="n">parser</span> <span class="o">=</span> <span class="n">YandexParser</span><span class="p">(</span><span class="n">raw_html</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&#39;^http://www\.bing\.&#39;</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
+        <span class="n">parser</span> <span class="o">=</span> <span class="n">BingParser</span><span class="p">(</span><span class="n">raw_html</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&#39;^http[s]?://search\.yahoo.&#39;</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
+        <span class="n">parser</span> <span class="o">=</span> <span class="n">YahooParser</span><span class="p">(</span><span class="n">raw_html</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&#39;^http://www\.baidu\.com&#39;</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
+        <span class="n">parser</span> <span class="o">=</span> <span class="n">BaiduParser</span><span class="p">(</span><span class="n">raw_html</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&#39;^https://duckduckgo\.com&#39;</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
+        <span class="n">parser</span> <span class="o">=</span> <span class="n">DuckduckgoParser</span><span class="p">(</span><span class="n">raw_html</span><span class="p">)</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="n">parser</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;/tmp/testhtml.html&#39;</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">of</span><span class="p">:</span>
+        <span class="n">of</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">raw_html</span><span class="p">)</span>
+</pre></div>
+
+
+<h3>What you can expect in the near future from GoogleScaper?</h3>
+<p>I am quite excited to develop some new features for GoogleScraper:</p>
+<ol>
+<li>Comple documentation and hosting it on
+    <a href="https://readthedocs.org/" title="readthedocs">readthedocs</a>.</li>
+<li>Asynchroneous support for massive parallel scraping with 1000
+    proxies and up. I don't know yet what framework to use. Maybe
+    Twisted or something more low level (libevent, epoll, ...)</li>
+<li>SqlAlchemy integration. I am really excited about that.</li>
+<li>Cleaner API.</li>
+<li>Complete configuration for all search engine parameters.</li>
+<li>Many examples that show how to use GoogleScraper effectively</li>
+</ol>
+<p>Many thanks for your patience and time!<br />
+Nikolai</p>
+  </div>
+  <hr />
+</article>
+<article>
+  <header>
+    <h2><a href="/using-the-python-cryptography-module-with-custom-passwords.html#using-the-python-cryptography-module-with-custom-passwords">Using the Python cryptography module with custom passwords</a></h2>
+    <p>
+      Posted on So 19 Oktober 2014 in <a href="/category/cryptography.html">Cryptography</a>
+      &#8226; Tagged with
+      <a href="/tag/cryptography.html">Cryptography</a>,      <a href="/tag/programming.html">Programming</a>,      <a href="/tag/uncategorized.html">Uncategorized</a>    </p>
+  </header>
+  <div>
+      <h2>Hey all</h2>
+<p>I recently discovered a <a href="https://cryptography.io/en/latest/" title="cryptography">quite cute crypto
+module</a> for Python.
+It is divided in two logical security layers. The first
+(<a href="https://cryptography.io/en/latest/fernet/" title="Fernet">Fernet</a>) can be
+used by cryptology unaware programmers in a way that makes it unlikely
+to introduce any security flaws. The seconds layer (called
+<a href="https://cryptography.io/en/latest/hazmat/primitives/" title="hazmat">Hazmat</a>)
+allows access to all kinds of cryptographical primitives, such as HMACS
+and asymmetric encryption functions.</p>
+<h3>The Problem</h3>
+<p>Normally you don't want to use primitives, because it is tricky to do
+correct (event for advanced programmers). But unfortunately the secure
+and simple API functionality Fernet:</p>
+<div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">cryptography.fernet</span> <span class="kn">import</span> <span class="n">Fernet</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">key</span> <span class="o">=</span> <span class="n">Fernet</span><span class="o">.</span><span class="n">generate_key</span><span class="p">()</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">f</span> <span class="o">=</span> <span class="n">Fernet</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">token</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span><span class="n">b</span><span class="s">&quot;my deep dark secret&quot;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">token</span>
+<span class="s">&#39;...&#39;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">f</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+<span class="s">&#39;my deep dark secret</span>
+</pre></div>
+
+
+<p>suffers from the huge inconvenience that you need to store (or
+imagine:remember!) a 32 byte key in order to decrypt the tokens that
+Fernet outputs.<br />
+It would be much more convenient to just pass a password to Fernet
+which in turn makes a 32 byte, Base 64 encoded encryption token out of
+it. Of course your own<br />
+password is much less secure then 32 bytes from <code>os.urandom(32)</code>, but
+at least it is somehow usable.</p>
+<p>So I came up with this little extra code to use Fernet with a custom
+password:</p>
+<div class="highlight"><pre><span class="kn">import</span> <span class="nn">base64</span>
+<span class="kn">from</span> <span class="nn">cryptography.fernet</span> <span class="kn">import</span> <span class="n">Fernet</span>
+<span class="kn">from</span> <span class="nn">cryptography.hazmat.primitives</span> <span class="kn">import</span> <span class="n">hashes</span>
+<span class="kn">from</span> <span class="nn">cryptography.hazmat.backends</span> <span class="kn">import</span> <span class="n">default_backend</span>
+
+<span class="k">def</span> <span class="nf">get_key</span><span class="p">(</span><span class="n">password</span><span class="p">):</span>
+
+    <span class="n">digest</span> <span class="o">=</span> <span class="n">hashes</span><span class="o">.</span><span class="n">Hash</span><span class="p">(</span><span class="n">hashes</span><span class="o">.</span><span class="n">SHA256</span><span class="p">(),</span> <span class="n">backend</span><span class="o">=</span><span class="n">default_backend</span><span class="p">())</span>
+    <span class="n">digest</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">password</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">base64</span><span class="o">.</span><span class="n">urlsafe_b64encode</span><span class="p">(</span><span class="n">digest</span><span class="o">.</span><span class="n">finalize</span><span class="p">())</span>
+
+<span class="k">def</span> <span class="nf">encrypt</span><span class="p">(</span><span class="n">password</span><span class="p">,</span> <span class="n">token</span><span class="p">):</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">Fernet</span><span class="p">(</span><span class="n">get_key</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">f</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span><span class="nb">bytes</span><span class="p">(</span><span class="n">token</span><span class="p">))</span>
+
+<span class="k">def</span> <span class="nf">decrypt</span><span class="p">(</span><span class="n">password</span><span class="p">,</span> <span class="n">token</span><span class="p">):</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">Fernet</span><span class="p">(</span><span class="n">get_key</span><span class="p">(</span><span class="n">password</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">f</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span><span class="nb">bytes</span><span class="p">(</span><span class="n">token</span><span class="p">))</span>
+</pre></div>
+
+
+<p>I hope it helps anybody!</p>
+  </div>
+  <hr />
+</article>
+<article>
+  <header>
+    <h2><a href="/beautiful-beautiful-python.html#beautiful-beautiful-python">Beautiful, beautiful python</a></h2>
+    <p>
+      Posted on Fr 11 Juli 2014 in <a href="/category/uncategorized.html">Uncategorized</a>
+      &#8226; Tagged with
+      <a href="/tag/uncategorized.html">Uncategorized</a>    </p>
+  </header>
+  <div>
+      <h3>Hey</h3>
+<p>After a day of programming I went home to program a little bit, trying
+to find a way to implement some tests for my
+<a href="https://github.com/NikolaiT/GoogleScraper" title="Google Scraper on Github">GoogleScraper</a>
+project, which lacked focus for a long time. I needed to have some test
+data, in my case some words to search for with the above mentioned
+scraper, and once more I realized how powerful Python (or any
+programming language) is. This silly little code comes in handy, if
+you need some random words for some testing purposes:</p>
+<div class="highlight"><pre><span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="k">def</span> <span class="nf">random_words</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">wordlength</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">15</span><span class="p">)):</span>
+   <span class="sd">&quot;&quot;&quot;Read a random english wiki article and extract some words.</span>
+
+<span class="sd">   Arguments:</span>
+<span class="sd">   n -- The number of words to return. Returns all found ones, if n is more than we were able to found.</span>
+<span class="sd">   KeywordArguments:</span>
+<span class="sd">   wordlength -- A range that forces the words to have a specific length.</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="n">valid_words</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;[a-zA-Z]{{{},{}}}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">wordlength</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">wordlength</span><span class="o">.</span><span class="n">stop</span><span class="p">))</span>
+   <span class="n">found</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">valid_words</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;http://en.wikipedia.org/wiki/Special:Random&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">)))</span>
+   <span class="k">try</span><span class="p">:</span>
+       <span class="k">return</span> <span class="n">found</span><span class="p">[:</span><span class="n">n</span><span class="p">]</span>
+   <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+       <span class="k">return</span> <span class="n">found</span>
+
+<span class="k">print</span><span class="p">(</span><span class="n">random_words</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">)))</span>
+<span class="k">print</span><span class="p">(</span><span class="n">random_words</span><span class="p">(</span><span class="mi">77</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">26</span><span class="p">))</span>
+</pre></div>
+  </div>
+  <hr />
+</article>
+<article>
+  <header>
+    <h2><a href="/lichess-org-chess-bot.html#lichess-org-chess-bot">Lichess.org chess bot!</a></h2>
+    <p>
+      Posted on Mi 23 April 2014 in <a href="/category/uncategorized.html">Uncategorized</a>
+      &#8226; Tagged with
+      <a href="/tag/uncategorized.html">Uncategorized</a>,      <a href="/tag/programming.html">Programming</a>,      <a href="/tag/chess.html">Chess</a>    </p>
+  </header>
+  <div>
+      <p><strong>22.05.2014: Updated the bot, should work better now</strong></p>
+<p>Hi everyone!</p>
+<p>I was in a coding mood during Easter and decided to write a small chess
+bot with
+<a href="http://selenium-python.readthedocs.org/en/latest/" title="selenium python">selenium</a>
+and <a href="http://stockfishchess.org/" title="stockfish engine">stockfish</a> engine to
+cheat a bit on
+<a href="http://en.lichess.org/" title="lichess chess arena">lichess.org</a>.</p>
+<p>I think the code is pretty self explanatory and I won't discuss it in
+depth here. You can tweak the config, the comments should explain what
+the parameters do.</p>
+<p>The config is in the beginning of the code, so modify it there. You
+should maybe modify it to use your username and password. Make sure that
+you download stockfish and install it. Then supply the correct path in
+the 'stockfish_binary' parameter.</p>
+<p>As always: Have fun!</p>
+<p>Some open issues:</p>
+<ul>
+<li>Sometimes the last move fails because the bot won't to start a new game
+  before it can checkmate</li>
+<li>
+<p>Promoting doesn't work yet :/</p>
+<p>:::python
+<strong>author</strong> = 'nikolai'
+<strong>date</strong> = 'Easter 2014'</p>
+<p>config = {
+    'username' : 'probably_a_spider', # the login username
+    'password' : 'somepwd', # the login password
+    'stockfish_binary' : '/home/nikolai/PycharmProjects/LichessBot/stockfish-dd-src/src/stockfish', # the path to your local stockfish binary
+    #Set to true if the bot should play forever
+    'pwn_forever' : True, # if the bot should play endlessly
+    'min_per_side' : 1, # how long each player may play
+    'increment' : 0, # the increment per move
+    'thinking_time': .5, # How long stockfish is allowd to search, set to None and stockfish will search 0.75 seconds by default
+    'thinking_skew': .2 # This is the maximal random derivative in decimal of the thinking time (0-1) (to not make the bot to appear to move in the same time intervals all the time)
+}</p>
+<p>from selenium import webdriver
+from selenium.webdriver import ActionChains
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException, NoSuchElementException, UnexpectedAlertPresentException
+import subprocess
+import os
+import time
+import sys
+import re
+import random</p>
+<p>def get(proc, poll=True):
+    if poll:
+        proc.stdin.write('isready\n')
+    buf = ''
+    while True:
+        line = proc.stdout.readline().strip()
+        buf += line
+        if 'readyok' in line:
+            return buf
+        if 'bestmove' in line:
+            return buf</p>
+<p>def init_stockfish():
+    if os.path.exists(config['stockfish_binary']):
+        proc = subprocess.Popen([config['stockfish_binary']], universal_newlines=True,
+                                stdout=subprocess.PIPE, stdin=subprocess.PIPE)</p>
+<div class="highlight"><pre>    greeting = get(proc)
+    if not &#39;Stockfish&#39; in greeting:
+        raise ValueError(&#39;Couldnt execute stockfish&#39;)
+
+    proc.stdin.write(&#39;uci\n&#39;)
+    get(proc)
+    # stolen from https://github.com/brandonhsiao/lichess-bot/blob/master/server.py
+    proc.stdin.write(&#39;ucinewgame\n&#39;)
+    proc.stdin.write(&#39;setoption name Hash value 128\n&#39;)
+    proc.stdin.write(&#39;setoption name Threads value 4\n&#39;)
+    proc.stdin.write(&#39;setoption name Best Book Move value true\n&#39;)
+    proc.stdin.write(&#39;setoption name Aggressiveness value 200\n&#39;)
+    proc.stdin.write(&#39;setoption name Cowardice value 0\n&#39;)
+    proc.stdin.write(&#39;setoption name Contempt Factor value 50\n&#39;)
+    return proc
+</pre></div>
+
+
+<p>proc = init_stockfish()</p>
+<p>def make_move(thinking_time=.5, moves=[]):
+    if moves:
+        cmd = 'position startpos moves {}\n'.format(' '.join(moves))
+        proc.stdin.write(cmd)
+    proc.stdin.write('go infinite\n')
+    try:
+        time.sleep(float(thinking_time))
+    except ValueError as ve:
+        print(ve)
+        sys.exit(0)
+    proc.stdin.write('stop\n')
+    out = get(proc, False)
+    try:
+        bestmove = re.search(r'bestmove\s(?P[a-h][1-8][a-h][1-8])', out).group('move')
+        ponder = re.search(r'ponder\s(?P[a-h][1-8][a-h][1-8])', out).group('ponder')
+    except AttributeError:
+        return False
+    return bestmove</p>
+<p>def newgame_stockfish():
+    proc.stdin.write('ucinewgame\n')
+    get(proc)</p>
+<p>def quit_stockfish():
+    proc.stdin.write('quit\n')
+    proc.terminate()</p>
+<p>def login():
+    wd = webdriver.Firefox()
+    wd.get('http://en.lichess.org/login')
+    u, p = wd.find_element_by_name("username"), wd.find_element_by_name("password")
+    u.send_keys(config['username'])
+    p.send_keys(config['password'])
+    p.submit()
+    return wd</p>
+<p>def create_game(wd, min_per_side=config['min_per_side'], increment=config['increment']):
+    wait = WebDriverWait(wd, 10)
+    try:
+        element = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR,'a[title="Create a game"]')))
+        element.click()
+    except UnexpectedAlertPresentException:
+        pass
+    except Exception as e:
+        print(e)</p>
+<div class="highlight"><pre>WebDriverWait(wd, 5).until(EC.presence_of_element_located((By.ID, &#39;increment&#39;)));
+# Change the inputs with a bit of jQuery (but wait first until the dom bitch is loaded)
+wd.execute_script(&quot;$(&#39;#time&#39;).val(&#39;{}&#39;)&quot;.format(str(min_per_side)))
+wd.execute_script(&quot;$(&#39;#increment&#39;).val(&#39;{}&#39;)&quot;.format(str(increment)))
+time.sleep(1)
+wd.find_element_by_name(&#39;color&#39;).submit()
+</pre></div>
+
+
+<p>def play(wd):
+    def move(moves=[]):
+        t = config['thinking_time'] or .75
+        if config['thinking_skew']:
+            t = t * (1 - random.randint(0, config['thinking_skew']*1000) / 1000)</p>
+<div class="highlight"><pre>    move = make_move(thinking_time=t, moves=moves)
+    if move:
+        print(&#39;[i]Bot is going to make move {} by calculating {} seconds&#39;.format(move, float(t)))
+        f, t = move[:2], move[2:]
+        for i in range(6):
+            action = ActionChains(wd)
+            action.drag_and_drop(wd.find_element_by_id(f), wd.find_element_by_id(t))
+            action.perform()
+            try:
+                moved = wd.find_elements_by_css_selector(&#39;div.moved.lcs&#39;)
+                move1, move2 = moved[0].get_attribute(&#39;id&#39;), moved[1].get_attribute(&#39;id&#39;)
+                if t == move1 or f == move1:
+                    break
+            except:
+                break
+            time.sleep(.2)
+        return move
+    else:
+        return False
+
+def get_last_move(moves=[]):
+    WebDriverWait(wd, 100).until(EC.presence_of_element_located((By.CSS_SELECTOR, &#39;div.moved.lcs&#39;)))
+    t = wd.find_element_by_css_selector(&#39;div.moved.lcs div.piece&#39;).find_element_by_xpath(&#39;..&#39;).get_attribute(&#39;id&#39;)
+    f = [e.get_attribute(&#39;id&#39;) for e in wd.find_elements_by_css_selector(&#39;div.moved.lcs&#39;) if e.get_attribute(&#39;id&#39;) != t][0]
+    # If last move was my last move, sleep a bit and try again to get the next move
+    if moves:
+        print(f+t, moves[-1])
+        while f+t == moves[-1]:
+            # busy polling, that&#39;s very inefficient
+            time.sleep(.35)
+            t = wd.find_element_by_css_selector(&#39;div.moved.lcs div.piece&#39;).find_element_by_xpath(&#39;..&#39;).get_attribute(&#39;id&#39;)
+            f = [e.get_attribute(&#39;id&#39;) for e in wd.find_elements_by_css_selector(&#39;div.moved.lcs&#39;) if e.get_attribute(&#39;id&#39;) != t][0]
+            try:
+                wd.find_element_by_css_selector(&#39;div.table_with_clock.finished&#39;)
+                return False
+            except NoSuchElementException:
+                pass
+    print(&#39;[i]Opponent moved {}&#39;.format(f+t))
+    return f+t
+
+try:
+    # wait maximally 100 seconds for an opponent
+    wait = WebDriverWait(wd, 100)
+    # wait until the square a1 is present which means we got a board
+    element = wait.until(EC.presence_of_element_located((By.ID,&#39;a1&#39;)))
+except TimeoutException as te:
+    print(&quot;No board found: {}&quot;.format(te))
+    sys.exit(0)
+
+print(&#39;We got a board, games beginning...&#39;)
+
+moves = []
+# detect what color we play
+players  = wd.find_elements_by_css_selector(&#39;.player &gt; a&#39;)
+is_black = False
+for e in players:
+        is_black = config[&#39;username&#39;] in e.get_attribute(&#39;href&#39;) and &#39;black&#39; in e.get_attribute(&#39;class&#39;)
+print(&#39;[i]Bot is playing {}&#39;.format([&#39;white&#39;, &#39;black&#39;][is_black]))
+if not is_black:
+    moves.append(move())
+
+while True:
+    print(&#39;[i] Moves played: {}&#39;.format(moves), end=&#39;\n\n&#39;)
+
+    last = get_last_move(moves)
+    print(&#39;last move found was {}&#39;.format(last))
+    if last:
+        moves.append(last)
+    else:
+        print(&#39;no last move appended. Leaving: {}&#39;.format(last))
+        return
+
+    m = move(moves)
+    if m:
+        moves.append(m)
+    else:
+        return
+    try:
+        wd.find_element_by_css_selector(&#39;div.table_with_clock.finished&#39;)
+        return
+    except:
+        pass
+</pre></div>
+
+
+<p>def go_forever():
+    wd = login()
+    while True:
+        create_game(wd)
+        newgame_stockfish()
+        play(wd)
+        wd.get('http://en.lichess.org/')</p>
+<div class="highlight"><pre>quit_stockfish()
+</pre></div>
+
+
+<p>if <strong>name</strong> == '<strong>main</strong>':
+    if config['pwn_forever']:
+        go_forever()
+    else:
+        wd = login()
+        create_game(wd)
+        play(wd)</p>
+</li>
+</ul>
+  </div>
+</article>
+
+  <div class="pagination">
+    <a class="btn" href="/index3.html">
+      <i class="fa fa-angle-left"></i> Older Posts
+    </a>
+      <a class="btn float-right" href="/index.html">
+        Newer Posts <i class="fa fa-angle-right"></i>
+      </a>
+  </div>
+
+    <footer>
+      <p>&copy; Nikolai Tschacher 2015</p>
+<p>Built using <a href="http://getpelican.com" target="_blank">Pelican</a> - <a href="https://github.com/alexandrevicenzi/flex" target="_blank">Flex</a> theme by <a href="http://alexandrevicenzi.com" target="_blank">Alexandre Vicenzi</a></p>    </footer>
+  </main>
+<script type="application/ld+json">
+{
+  "@context" : "http://schema.org",
+  "@type" : "Blog",
+  "name": " Coding, Learning and IT Security ",
+  "url" : "",
+  "image": "",
+  "description": "Nikolai Tschacher's ideas and programming around security and computer science"
+}
+</script></body>
+</html>
