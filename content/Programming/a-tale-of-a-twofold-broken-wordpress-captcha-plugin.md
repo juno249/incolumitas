@@ -121,39 +121,39 @@ it better!):
 + The whole captcha protection is even in a *third* way broken.
     Consider some captchas that I generated with the plugin:
 
-
-    Calculation with timestamp: 1383770422 Encoded pWw= is decoded to 3 
-    Calculation with timestamp: 1383773265 Encoded 3Ko= is decoded to 8 
-    Calculation with timestamp: 1383772504 Encoded tNM= is decoded to 6 
-    Calculation with timestamp: 1383770071 Encoded E08r is decoded to 10 
-    Calculation with timestamp: 1383771712 Encoded VEA= is decoded to 0 
-    Calculation with timestamp: 1383770645 Encoded aWPB is decoded to 16 
-    Calculation with timestamp: 1383773392 Encoded MEa7 is decoded to 42 
-    Calculation with timestamp: 1383772030 Encoded 2uA= is decoded to 4 
-    Calculation with timestamp: 1383770004 Encoded lJ8= is decoded to 7 
-    Calculation with timestamp: 1383770859 Encoded KvE= is decoded to 9 
-    Calculation with timestamp: 1383772789 Encoded k1I= is decoded to 7 
-    Calculation with timestamp: 1383773377 Encoded BAE= is decoded to 6 
-    Calculation with timestamp: 1383770038 Encoded /HY= is decoded to 8 
-    Calculation with timestamp: 1383768565 Encoded nmM= is decoded to 5 
-    Calculation with timestamp: 1383765035 Encoded JPA= is decoded to 6 
-    Calculation with timestamp: 1383770354 Encoded 9EZ3 is decoded to 12 
-    Calculation with timestamp: 1383771119 Encoded KX4= is decoded to 1 
-    Calculation with timestamp: 1383773236 Encoded eSc= is decoded to 7 
-    Calculation with timestamp: 1383770716 Encoded J6w= is decoded to 1 
-    Calculation with timestamp: 1383768040 Encoded fUg= is decoded to 1 
-    Calculation with timestamp: 1383773167 Encoded 7Co= is decoded to 6 
-    Calculation with timestamp: 1383770803 Encoded A3k= is decoded to 1 
-    Calculation with timestamp: 1383771047 Encoded J1Q= is decoded to 8 
-    Calculation with timestamp: 1383768079 Encoded fpg= is decoded to 6 
-    Calculation with timestamp: 1383767787 Encoded uR8= is decoded to 2 
-    Calculation with timestamp: 1383773077 Encoded pgg= is decoded to 4 
-    Calculation with timestamp: 1383772657 Encoded KXI= is decoded to 3 
-    Calculation with timestamp: 1383771187 Encoded Ct0= is decoded to 9 
-    Calculation with timestamp: 1383767982 Encoded Y6U= is decoded to 3 
-    Calculation with timestamp: 1383773155 Encoded 9wpu is decoded to 11 
-    Calculation with timestamp: 1383767071 Encoded ejeX is decoded to 27 
-    Calculation with timestamp: 1383772116 Encoded dWyu is decoded to 15
+	    :::text
+		Calculation with timestamp: 1383770422 Encoded pWw= is decoded to 3 
+		Calculation with timestamp: 1383773265 Encoded 3Ko= is decoded to 8 
+		Calculation with timestamp: 1383772504 Encoded tNM= is decoded to 6 
+		Calculation with timestamp: 1383770071 Encoded E08r is decoded to 10 
+		Calculation with timestamp: 1383771712 Encoded VEA= is decoded to 0 
+		Calculation with timestamp: 1383770645 Encoded aWPB is decoded to 16 
+		Calculation with timestamp: 1383773392 Encoded MEa7 is decoded to 42 
+		Calculation with timestamp: 1383772030 Encoded 2uA= is decoded to 4 
+		Calculation with timestamp: 1383770004 Encoded lJ8= is decoded to 7 
+		Calculation with timestamp: 1383770859 Encoded KvE= is decoded to 9 
+		Calculation with timestamp: 1383772789 Encoded k1I= is decoded to 7 
+		Calculation with timestamp: 1383773377 Encoded BAE= is decoded to 6 
+		Calculation with timestamp: 1383770038 Encoded /HY= is decoded to 8 
+		Calculation with timestamp: 1383768565 Encoded nmM= is decoded to 5 
+		Calculation with timestamp: 1383765035 Encoded JPA= is decoded to 6 
+		Calculation with timestamp: 1383770354 Encoded 9EZ3 is decoded to 12 
+		Calculation with timestamp: 1383771119 Encoded KX4= is decoded to 1 
+		Calculation with timestamp: 1383773236 Encoded eSc= is decoded to 7 
+		Calculation with timestamp: 1383770716 Encoded J6w= is decoded to 1 
+		Calculation with timestamp: 1383768040 Encoded fUg= is decoded to 1 
+		Calculation with timestamp: 1383773167 Encoded 7Co= is decoded to 6 
+		Calculation with timestamp: 1383770803 Encoded A3k= is decoded to 1 
+		Calculation with timestamp: 1383771047 Encoded J1Q= is decoded to 8 
+		Calculation with timestamp: 1383768079 Encoded fpg= is decoded to 6 
+		Calculation with timestamp: 1383767787 Encoded uR8= is decoded to 2 
+		Calculation with timestamp: 1383773077 Encoded pgg= is decoded to 4 
+		Calculation with timestamp: 1383772657 Encoded KXI= is decoded to 3 
+		Calculation with timestamp: 1383771187 Encoded Ct0= is decoded to 9 
+		Calculation with timestamp: 1383767982 Encoded Y6U= is decoded to 3 
+		Calculation with timestamp: 1383773155 Encoded 9wpu is decoded to 11 
+		Calculation with timestamp: 1383767071 Encoded ejeX is decoded to 27 
+		Calculation with timestamp: 1383772116 Encoded dWyu is decoded to 15
 
 What do you see? Numeric captcha solutions (The base64 encoded 3-4
 char string) smaller than 10, have a encoded value that ends with
