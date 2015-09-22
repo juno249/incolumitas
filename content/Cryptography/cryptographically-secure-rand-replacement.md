@@ -17,28 +17,28 @@ random numbers. There are many possible use cases:
     number generators.
 
 Now if you code in PHP, there are quite some different ways to obtain
-random numbers. There is the [*rand ( int \$min , int \$max
-)*](http://www.php.net/manual/en/function.rand.php "rand") function for
+random numbers. There is the [`rand ( int $min , int $max
+)`](http://www.php.net/manual/en/function.rand.php "rand") function for
 instance: It yields a random number within the range specified by the
-\$min and \$max parameters.
+`$min` and `$max` parameters.
 
 The documentation states that this approach isn't particularly secure
 and shouldn't be used for applications that need to feed algorithms with
-cryptographically secure random data. Then there's [*mt\_rand ( int
-\$min , int \$max )*](http://www.php.net/manual/en/function.mt-rand.php)
+cryptographically secure random data. Then there's [`mt_rand ( int
+$min , int $max )`](http://www.php.net/manual/en/function.mt-rand.php)
 that apparently creates *better* random values. Certainly not suitable
 for crypto purposes as well.  
 There were/are quite some applications concerned with security bugs
-because of using rand() or mt\_rand() for passwords, encryption keys,
+because of using `rand()` or `mt_rand()` for passwords, encryption keys,
 session cookies, CSRF tokens and the like. See also this link to a
 related discussion on
 [security.stackexchange.com](http://security.stackexchange.com/questions/18033/how-insecure-are-phps-rand-functions).
 
-But because of convenience of the \$min, \$max interfaces of rand() and
-mt\_rand() and it's intuitive handling, I implemented the same interface
+But because of convenience of the `$min`, `$max` interfaces of `rand()` and
+`mt_rand()` and it's intuitive handling, I implemented the same interface
 for a cryptographically secure pseudo random number generator:
-[*openssl\_random\_pseudo\_bytes ( int \$length [, bool
-&\$crypto\_strong ]
+[*openssl_random_pseudo_bytes ( int $length [, bool
+&$crypto_strong ]
 )*](http://www.php.net/manual/en/function.openssl-random-pseudo-bytes.php).
 
 Here is the function that does the job:
@@ -161,30 +161,30 @@ Here is the function that does the job:
 
     performance();
 
-It essentially prompts for 2\^13 random bytes and then splits this blob
+It essentially prompts for 2^13 random bytes and then splits this blob
 of data either in bytes, shorts or longs depending on your specified
 range. It then just iterates over these tokens and looks whether we
 found a candidate. If not, we call the function again (recursive step).
 For further calls, we collect all unused bytes in a look-up table to
-avoid making to much calls to the slow openssl\_random\_pseudo\_bytes()
+avoid making to much calls to the slow `openssl_random_pseudo_bytes()`
 function. This increases performance a bit.
 
 We try to find a random value in the obtained range maximally 50 times.
 If we exceed a recursive depth of 50, we just return the weak and
-insecure rand(). You can verify with the \$secure boolean parameter
+insecure rand(). You can verify with the $secure boolean parameter
 whether we found such a candidate securely or if we needed to fall back
 to rand().
 
 There is no guarantee that the function will always find a value that
-fits, especially in the ranges up to 2\^32. If we search for a value in
+fits, especially in the ranges up to 2^32. If we search for a value in
 the range (100000000, 100070000) for instance, we actually look for a
-long value that is between 0 and 70000. There are maximally 50\*2\^13/4
+long value that is between 0 and 70000. There are maximally 50*2^13/4
 long values where we can search such a value (Because we request 8192/4
 long values per function call and all in all, we have maximally 50
 recursive calls).  
 But the probability that a single random long value lies in this range
-is roughly around 1/(2\^32/2\^16) = 1/(2\^16), which in turn means that
-with our 50\*2\^13/4 long values we have a 2\^16/50\*2\^13/4 \~= 1:1
+is roughly around `1/(2^32/2^16) = 1/(2^16)`, which in turn means that
+with our 50*2^13/4 long values we have a `2^16/50*2^13/4 ~= 1:1`
 chance that we will find one (The calculation is a rough estimate
 though).
 
@@ -195,10 +195,8 @@ parameter...
 But in most cases you don't have this concerns and you are good to go!
 
 To finish, here is a picture that illustrates the distribution of
-secure\_rand() output:
+secure_rand() output:
 
 ({filename}/uploads/2013/11/out.png)]({filename}/uploads/2013/11/out.png)
-[distribution of secure\_rand()]
-The output of secure\_rand() visualized as points in a canvas.
-ure\_rand() visualized as points in a canvas.
-as.
+[distribution of secure_rand()]
+The output of secure_rand() visualized as points in a canvas.

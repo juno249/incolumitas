@@ -3,12 +3,20 @@
 from __future__ import unicode_literals
 
 AUTHOR = 'Nikolai Tschacher'
-SITEUR = 'http://localhost:8000'
+SITEURL = 'http://incolumitas.com'
 SITENAME = 'Coding, Learning and IT Security'
 SITETITLE = 'Coding, Learning and IT Security'
 SITESUBTITLE = ''
 SITEDESCRIPTION = 'Nikolai Tschacher\'s ideas and programming around security and computer science'
-SITEURL = ''
+
+# The same as I used with wordpress to not brake stuff
+ARTICLE_URL = '{date:%Y}/{date:%m}/{date:%d}/{slug}/'
+# ... while the file is index.html to be auto-served from the dir location
+ARTICLE_SAVE_AS = '{date:%Y}/{date:%m}/{date:%d}/{slug}/index.html'
+
+# page urls
+PAGE_URL = 'pages/{slug}/'
+PAGE_SAVE_AS = 'pages/{slug}/index.html'
 
 PATH = 'content'
 
@@ -17,11 +25,9 @@ TIMEZONE = 'Europe/Berlin'
 DEFAULT_LANG = 'en'
 
 # Feed generation is usually not desired when developing
-FEED_ALL_ATOM = None
-CATEGORY_FEED_ATOM = None
-TRANSLATION_FEED_ATOM = None
-AUTHOR_FEED_ATOM = None
-AUTHOR_FEED_RSS = None
+
+FEED_ALL_RSS = 'feeds/all.rss.xml'
+CATEGORY_FEED_RSS = 'feeds/%s.rss.xml'
 
 ROBOTS = 'index, follow'
 SUMMARY_MAX_LENGTH = 50
@@ -29,7 +35,7 @@ SUMMARY_MAX_LENGTH = 50
 # Social widget
 SOCIAL = (('twitter', 'https://twitter.com/incolumitas_'),
           ('github', 'https://github.com/NikolaiT'),
-          ('rss', '//incolumitas/feeds/all.atom.xml'),
+          ('rss', '//incolumitas.com/feeds/all.atom.xml'),
           ('stack-overflow', 'http://stackoverflow.com/users/1052496/nikolai-tschacher'))
 
 DEFAULT_PAGINATION = 5
@@ -43,7 +49,7 @@ STATIC_PATHS = ['uploads/']
 #RELATIVE_URLS = True
 
 
-THEME = '/home/nikolai/Projects/private/incolumitas/pelican-themes/Flex'
+THEME = '/home/nikolai/Projects/private/incolumitas/incolumitas/Flex'
 
 MENUITEMS = (('Archives', '/archives.html'),
              ('Categories', '/categories.html'),
@@ -53,3 +59,5 @@ COPYRIGHT_YEAR = 2015
 MAIN_MENU = True
 USE_FOLDER_AS_CATEGORY = True
 LOAD_CONTENT_CACHE = False
+
+DISQUS_SITENAME = 'incolumitas'

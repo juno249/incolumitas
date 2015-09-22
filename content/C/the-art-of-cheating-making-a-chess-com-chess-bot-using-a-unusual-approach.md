@@ -319,7 +319,7 @@ inspect the code on a online JSON editor like
 [www.jsoneditoronline.org](http://www.jsoneditoronline.org/).
 
 A few interesting fields: *uid* identifies the players, *status* can be
-*starting*, *in\_progress*, *aborted* or *stopped*, *lag* and *lagms*
+*starting*, *in_progress*, *aborted* or *stopped*, *lag* and *lagms*
 specify the lag of the player (How can you measure that?). Funny enough,
 the protocol architect uses redundant information here, *lag* is just
 the rounded version of *lagms*, but it doesn't bring other information.
@@ -335,7 +335,7 @@ sent on every move made look like the next message:
 
 Three fields are of particular importance,
 *"moves":"gvYIlBIBvB0KBrZJow"*, *"clocks":[582,571]* and
-*"status":"in\_progress"*. They are pretty much self explanatory at this
+*"status":"in_progress"*. They are pretty much self explanatory at this
 point I suppose.
 
 So let's finally **look at a typical game session** in terms of parsed
@@ -526,7 +526,7 @@ game server. You can look it up now on your own, since I have identified
 the decoding mechanism above.
 
 Now the next messages are just essentially like the previous two (with
-status *in\_progress* in place of the initial *starting*), always
+status *in_progress* in place of the initial *starting*), always
 receiving the opponents move and then I sending my move. So we have all
 knowledge about the protocol that we need, now let's discuss how I
 finally implemented my bot.
@@ -538,7 +538,7 @@ browser. I chose firefox as my hooking target, because there already
 exist quite many examples on how to hook networking functions in
 firefox.
 
-So the technique is basically known as the LD\_PRELOAD trick. You can
+So the technique is basically known as the LD_PRELOAD trick. You can
 learn about it on this short [stackoverflow.com
 explanation](http://stackoverflow.com/questions/426230/what-is-the-ld-preload-trick).
 
@@ -551,7 +551,7 @@ have profound knowledge of the *ELF* format in order to follow;
 First, I tried to hook directly into the specific HTTP and WebSocket
 functions in the firefox network library called *netwerk* or
 [necko](https://developer.mozilla.org/en/docs/Necko). But firefox is
-written in C++ and therefore it's not so simple to use the LD\_PRELOAD
+written in C++ and therefore it's not so simple to use the LD_PRELOAD
 trick, because the functions/class names are
 [mangled](http://en.wikipedia.org/wiki/Name_mangling#Standardised_name_mangling_in_C.2B.2B).
 I desperately tried to hook such C++ code and I also managed to to so in
@@ -658,8 +658,8 @@ For example the function `void WebSocketChannel::BeginOpen()` on line
 for this function? That'd be awesome!**
 
 So after some further research and giving up trying to hook C++
-functions, I decided to hook into firefox's *PR\_write()* and
-*PR\_read()* low level networking functions, implemented in plain C. If
+functions, I decided to hook into firefox's `PR_write()` and
+`PR_read()` low level networking functions, implemented in plain C. If
 you search for these functions in the internet, you will find lot's of
 different example for form grabbers, techniques that are commonly used
 by maleware writers.
@@ -667,8 +667,8 @@ by maleware writers.
 After experimenting a little bit with these two functions, I figured out
 that basically the whole freaking internet flows through them. For
 instance, if you just open a browser without loading any site, a whole
-bunch of meta protocols are squeezed through *PR\_write()* and
-*PR\_read()*.
+bunch of meta protocols are squeezed through `PR_write()` and
+`PR_read()`.
 
 I assume that all possible protocols (like accessing cookies,
 *about:blank*, *file:* and the like) are also handled these functions.
@@ -762,9 +762,9 @@ I hope the above code is more or less self explanatory. But in case it's
 not, here's a short summary of the rough algorithm that it computes:
 
 **1.** The shared library (let's call it libpwh.so) is dynamically
-loaded in a firefox process with the LD\_PRELOAD trick. For instance:
+loaded in a firefox process with the LD_PRELOAD trick. For instance:
 `export LD_PRELOAD=$PWD/libpwh.so; /usr/bin/firefox`  
-**2.** The functions PR\_Read() and PR\_Write() are hooked.  
+**2.** The functions `PR_Read()` and `PR_Write()` are hooked.  
 **3.** As soon as a WebSocket request that indicates the beginning of a
 new live.chess.com chess game is detected, the shared library (the above
 code) initializes the [local Stockfish chess
@@ -789,7 +789,7 @@ the protocol in the previous chapter):
 
 **5.** Concurrently to step 4, the move made by the opponent is
 synchronized with a local gameState struct variable. The opponent's move
-is obtained in PR\_Read() and the function void *collectGameState()*
+is obtained in `PR_Read()` and the function void *collectGameState()*
 keeps the move history current. The function *collectGameState()* also
 stores the current game state in a C struct:
 
@@ -824,7 +824,7 @@ bad. All in all, I am still satisfied, because it works!
 It would be a probably good approach if I managed to hook directly into
 [WebSocketChannel.cpp](http://mxr.mozilla.org/mozilla-central/source/netwerk/protocol/websocket/WebSocketChannel.cpp),
 because I wouldn't need to cumbersomly pick my target messages in the
-huge traffic that flows thourgh PR\_Read().
+huge traffic that flows thourgh `PR_Read()`.
 
 It's a really strange bot to use, because while my bot modifies packets,
 **the javascript frontend can't properly deal with this fact and in

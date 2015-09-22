@@ -23,8 +23,6 @@ all time highscore is **1974. **Let's go and breake some records...
 
 Ok let the journey begin :)
 
- 
-
 -   26.11.2012: **1924 - 1896. **Did around 30 chin-ups. Tired as hell.
     Lost too many times :)
 -   28.11.2012 **1896 - 1903. **Back in the 1900s. Did lot's of chin
@@ -48,7 +46,7 @@ Ok let the journey begin :)
 -   4.12.2012 **1865 - 1909. **Hangled myself brutally back in the 1900s
     with 2 wins against a 2200 elo player. Played my 10 games...
 -   8.12.2012 **1797 - 1825 **Don't ask. At least I played today 10
-    games. 5 wins, 5 losts. I do now 5 \* 10 pushups...
+    games. 5 wins, 5 losts. I do now `5 * 10` pushups...
 -   10.12.2012 **1800 - 1847**
 -   16.12.2012 **1847 - 1823 **Played 10 games...
 -   18.12.2012 **1800 - 2000 **Hell yeah, I played at least 300 games

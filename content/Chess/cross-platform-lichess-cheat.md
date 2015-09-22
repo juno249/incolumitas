@@ -27,18 +27,17 @@ use the cheat, please follow the following tutorial:
     [here](https://github.com/NikolaiT/lichess_cheat). It is the file
     with the **.py** suffix
 4.  Then execute the python cheat file where you downloaded it. Just go
-    to the directory where you saved it and enter in a shell: **python
-    cheat\_server.py**
+    to the directory where you saved it and enter in a shell: ``python
+    cheat_server.py`
 5.  Open your browser (tested with chrome and firefox) and add the HTTP
     proxy server in the network settings that is outputted in the Bash
-    shell when you executed **python cheat\_server.py**
+    shell when you executed `python cheat_server.py`
 6.  Then login to lichess and start a new game in which you want to
     cheat. The cheat should now show you the best moves with a red
     border around the chess squares
 7.  
 
-For a **video tutorial**l watch the following video: \*\*will follow
-soon\*\*
+For a **video tutorial**l watch the following video: *will follow soon*
 
 For all who are interested in the working of the cheat: You need to know
 Python and Javascript. Python code downloads the stockfish engine and
@@ -60,6 +59,7 @@ The code
 
 ### Javascript cheat to paste in the Browser Console after Python Cheat was run
 
+    :::javascript
     /**
      * 
      * https://github.com/NikolaiT/lichess_cheat
@@ -199,6 +199,7 @@ The code
 
 ### This python file downloads and runs stockfish and must be run first
 
+    :::python
     #!/usr/bin/env python3
 
     # https://github.com/NikolaiT/lichess_cheat

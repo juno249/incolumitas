@@ -38,8 +38,8 @@ bullet chess games per day! This adds to (just a rough guess - supposing
 a game is last a average 90 seconds) 1 hour and 20 minutes spend on
 chess for every day for freakin 10 years! This sounds crazy but may
 not be unrealistic. I played many times just against one player 80 games
-without interruption. Just think about it: 80 \* 90 seconds = 7200/3600
-= 2 hours of chess without any pause!
+without interruption. Just think about it: `80 * 90 seconds = 7200/3600
+= 2 hours` of chess without any pause!
 
 Although this might not be very healthy, there are lots of voices out
 there which critize the nature and even raison être of bullet chess.
@@ -47,8 +47,8 @@ I'll list and argue against them, which finally, brings os to the
 initial purpose of this blog post: Is bullet chess just a random, silly
 game for players who suck at real chess?
 
-**Prejudice 1. Bullet Chess is all about luck and moving figures
-randomly.**
+### Prejudice 1. Bullet Chess is all about luck and moving figures
+randomly.
 
 No, definitely not. While novice bullet chess players might judge it
 this way, it changes rapidly if you improve. With 60 seconds on your
@@ -87,15 +87,15 @@ least on chessbase), just like the equivalent players who just play
 big and diversified? Just because they move in differeing velocity?
 (yeah, it's a rethorical question).
 
-**Prejudice 2. Real chess players don't play bullet games**
+### Prejudice 2. Real chess players don't play bullet games
 
 There are even big official blitz campionships and a lot of
 grandmasters play for fun and part time seriously blitz and bullet
 games. It will never replace the original chess, but it has it's own
 valid place.
 
-**Prejudice 3. Mouse and high latency times make 'fair' games
-impossible**
+### Prejudice 3. Mouse and high latency times make 'fair' games
+impossible
 
 That's just nonsense. While the critisms are partially true for some
 poorly programmed web platforms, these arguments aren't valid for the
@@ -125,7 +125,7 @@ shenanigans which give you advantages:
 -   Check as often as you can. It steals time from your opponent.
 -   Internalize openings.
 
-**Prejudice 4. Bullet chess is a silly game ;)**
+### Prejudice 4. Bullet chess is a silly game ;)
 
 I guess after you played it the first time, you very mentally so broken
 that you became angry and blamed the game instead of yourself. It's a
@@ -133,8 +133,8 @@ hell of a thrilling, stressing and somehow insane game. It need sheer
 unimaginable mental ressources, and not everyone can handel that! It's a
 dead tough game, not a silly one, not ment for ramblers :D
 
-**Prejudice 5. Bullet chess is bad, because it makes you a worse chess
-player**
+### Prejudice 5. Bullet chess is bad, because it makes you a worse chess
+player
 
 Often bullet chess is considered as a game which ruins your normal chess
 skills (as you can see on the wikipedia article above, even by world

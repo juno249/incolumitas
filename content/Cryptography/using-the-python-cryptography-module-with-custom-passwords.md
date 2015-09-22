@@ -7,7 +7,6 @@ Slug: using-the-python-cryptography-module-with-custom-passwords
 Status: published
 
 Hey all
--------
 
 I recently discovered a [quite cute crypto
 module](https://cryptography.io/en/latest/ "cryptography") for Python.
@@ -25,6 +24,7 @@ Normally you don't want to use primitives, because it is tricky to do
 correct (event for advanced programmers). But unfortunately the secure
 and simple API functionality Fernet:
 
+    :::python
     >>> from cryptography.fernet import Fernet
     >>> key = Fernet.generate_key()
     >>> f = Fernet(key)
@@ -46,6 +46,7 @@ at least it is somehow usable.
 So I came up with this little extra code to use Fernet with a custom
 password:
 
+    :::python
     import base64
     from cryptography.fernet import Fernet
     from cryptography.hazmat.primitives import hashes
