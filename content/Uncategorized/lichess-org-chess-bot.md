@@ -34,6 +34,8 @@ Some open issues:
   before it can checkmate
 + Promoting doesn't work yet :/
 
+Here is the code:
+
     :::python
     __author__ = 'nikolai'
     __date__ = 'Easter 2014'

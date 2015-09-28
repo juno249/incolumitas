@@ -13,7 +13,7 @@ DEPLOY_PATH = env.deploy_path
 
 # Remote server configuration
 production = 'nikolai@incolumitas.com:8080'
-dest_path = '/home/nikolai/pelican/'
+dest_path = '/var/www/incolumitas_pelican/'
 
 # Rackspace Cloud Files configuration settings
 env.cloudfiles_username = 'my_rackspace_username'
