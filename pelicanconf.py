@@ -8,7 +8,7 @@ SITENAME = 'Coding, Learning and IT Security'
 SITETITLE = 'Coding, Learning and IT Security'
 SITESUBTITLE = ''
 SITEDESCRIPTION = 'Nikolai Tschacher\'s ideas and programming around security and computer science'
-SITELOGO = 'http://incolumitas.com/uploads/2012/07/IMG_43211.png'
+SITELOGO = 'http://incolumitas.com/images/profile-pic.jpg'
 
 # The same as I used with wordpress to not brake stuff
 ARTICLE_URL = '{date:%Y}/{date:%m}/{date:%d}/{slug}/'

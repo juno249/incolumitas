@@ -4,8 +4,7 @@ Author: Nikolai Tschacher
 Slug: about
 Status: published
 
-
-![Me standing at the shore of Lagos!]({filename}/uploads/2012/07/IMG_43211.png)
+<img src="/images/profile-pic.jpg" alt="Sunset" style="width: 800px;"/>
 
 I am a 24 year old computer science and business student, having graduated with my bachelors in 2015.
 

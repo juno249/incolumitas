@@ -1,13 +1,19 @@
 Title: Cross platform Lichess Cheat
 Date: 2015-08-12 23:24
+Modified: 2015-1-10 14:01
 Author: Nikolai Tschacher
 Category: Chess
 Tags: Software, Python, Programming, Chess
 Slug: cross-platform-lichess-cheat
 Status: published
 
-Edit: Cheat updated on 26.8.2015
+Edit: Cheat updated on 1.10.2015
 --------------------------------
+
+**Visit [Lichess Bot Projects Page]({filename}/pages/lichess-bot.md) for the newest information for this bot!**
+The description and code below will probably not work anymore!
+
+***
 
 Hello Everyone
 
