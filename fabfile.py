@@ -87,6 +87,12 @@ def publish():
         extra_opts='-c',
     )
 
+@hosts(production)
+def publish2():
+    """Publish to production via rsync"""
+    local('pelican -s publishconf.py')
+    local("""rsync --delete --exclude ".DS_Store" -pthrvz -c --rsh='ssh  -p 8080 -i /home/nikolai/.ssh/incolumitas_id_rsa' output/ nikolai@incolumitas.com:/var/www/incolumitas_pelican/""")
+
 def gh_pages():
     """Publish to GitHub Pages"""
     rebuild()

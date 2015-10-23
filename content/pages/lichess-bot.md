@@ -1,12 +1,18 @@
 Title: Lichess Autoplay-Bot
 Date: 2015-10-1 13:50
+Modified: 2015-10-2 14:33
 Author: Nikolai Tschacher
 Slug: lichess-bot
 Status: published
 
 ### Video of Bot in action
 
-This is only a test video of the Bot. He doesn't play against stronger opponents. I consider creating a video of the bot playing against stronger opponents (> 2200 ELO).
+Here is another video of the bot in action. He plays **0-1** time controls. This means each player starts with 2 seconds and gets a one second
+increment per move. I improved the mouse speed and computation speed, as well as the robustness of the TCP message parsing.
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/ncF9mqd-iko" frameborder="0" allowfullscreen></iframe>
+
+This is only a test video of the Bot. He doesn't play against stronger opponents in this video. I consider creating a video of the bot playing against stronger opponents (> 2200 ELO).
 
 <iframe src="https://player.vimeo.com/video/141043509" width="500" height="280" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe> <p><a href="https://vimeo.com/141043509">Lichess Cheating Bot autoplay with Bullet time controls</a> from <a href="https://vimeo.com/user24568030">Incolumitas</a> on <a href="https://vimeo.com">Vimeo</a>.</p>
 
